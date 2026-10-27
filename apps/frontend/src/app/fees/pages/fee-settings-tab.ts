@@ -11,13 +11,7 @@ import { FeeSettings, PLACEHOLDERS, euro, parseEuro } from '../fees.models';
 import { FeesStore } from '../fees.store';
 
 type TextKey =
-  | 'copyTo'
-  | 'purposeTemplate'
-  | 'accountHolder'
-  | 'bank'
-  | 'iban'
-  | 'bic'
-  | 'creditorId';
+  'copyTo' | 'purposeTemplate' | 'accountHolder' | 'bank' | 'iban' | 'bic' | 'creditorId';
 type NumberKey = 'feeLevel1' | 'feeFromLevel2';
 type DaysKey = 'daysLevel1' | 'daysFromLevel2';
 
