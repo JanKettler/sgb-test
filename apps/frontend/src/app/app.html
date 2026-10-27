@@ -1,6 +1,6 @@
 <div class="shell">
   <aside class="sidebar" [class.is-open]="menuOpen()" aria-label="Hauptnavigation">
-    <a class="brand" routerLink="/" (click)="closeMenu()">SG Barnstorf</a>
+    <a class="tone-blue" class="brand" routerLink="/" (click)="closeMenu()">SG Barnstorf</a>
 
     <div class="demo">
       <label class="demo-label" for="demo-role">Ansicht (Demo)</label>
@@ -26,29 +26,59 @@
       </a>
 
       <p class="group">Training</p>
-      <a (click)="closeMenu()" routerLink="/training/anmeldung" routerLinkActive="is-active">
+      <a
+        class="tone-green"
+        (click)="closeMenu()"
+        routerLink="/training/anmeldung"
+        routerLinkActive="is-active"
+      >
         <app-icon name="check" /> Anmeldung
       </a>
       @if (store.canManage()) {
-        <a (click)="closeMenu()" routerLink="/training/termine" routerLinkActive="is-active">
+        <a
+          class="tone-amber"
+          (click)="closeMenu()"
+          routerLink="/training/termine"
+          routerLinkActive="is-active"
+        >
           <app-icon name="calendar" /> Termine
         </a>
-        <a (click)="closeMenu()" routerLink="/training/anwesenheit" routerLinkActive="is-active">
+        <a
+          class="tone-teal"
+          (click)="closeMenu()"
+          routerLink="/training/anwesenheit"
+          routerLinkActive="is-active"
+        >
           <app-icon name="clipboard" /> Anwesenheit
         </a>
       }
       @if (store.isAdmin()) {
-        <a (click)="closeMenu()" routerLink="/training/einstellungen" routerLinkActive="is-active">
+        <a
+          class="tone-violet"
+          (click)="closeMenu()"
+          routerLink="/training/einstellungen"
+          routerLinkActive="is-active"
+        >
           <app-icon name="gear" /> Einstellungen
         </a>
       }
 
       <p class="group">Warteliste</p>
-      <a (click)="closeMenu()" routerLink="/warteliste/anmelden" routerLinkActive="is-active">
+      <a
+        class="tone-rose"
+        (click)="closeMenu()"
+        routerLink="/warteliste/anmelden"
+        routerLinkActive="is-active"
+      >
         <app-icon name="list" /> Anmelden
       </a>
       @if (store.isAdmin()) {
-        <a (click)="closeMenu()" routerLink="/intern/warteliste" routerLinkActive="is-active">
+        <a
+          class="tone-blue"
+          (click)="closeMenu()"
+          routerLink="/intern/warteliste"
+          routerLinkActive="is-active"
+        >
           <app-icon name="users" /> Intern
         </a>
       }

@@ -94,10 +94,7 @@
                 </span>
               </td>
               <td>
-                <span
-                  class="tag"
-                  [class]="registered ? 'tag is-success is-light' : 'tag is-danger is-light'"
-                >
+                <span class="pill" [class]="registered ? 'pill is-ok' : 'pill is-bad'">
                   {{ registered ? 'Angemeldet' : 'Abgemeldet' }}
                 </span>
                 @if (!registered && row.response?.reason) {
@@ -110,12 +107,7 @@
               <td>{{ row.time }}</td>
               <td>{{ row.groups }}</td>
               <td>
-                <span
-                  class="tag"
-                  [class]="
-                    row.role === 'trainer' ? 'tag is-success is-light' : 'tag is-info is-light'
-                  "
-                >
+                <span class="pill" [class]="row.role === 'trainer' ? 'pill is-ok' : 'pill is-info'">
                   {{ row.role === 'trainer' ? 'Trainer' : 'Schwimmer' }}
                 </span>
               </td>
