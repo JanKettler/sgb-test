@@ -34,22 +34,21 @@
       Gemeldete Trainingseinheiten <span class="count">{{ data.reported.length }}</span>
     </h3>
     <div class="table-scroll">
-      <table class="data-table has-cols">
+      <table class="table is-fullwidth is-hoverable is-narrow">
         <thead>
           <tr>
             <th scope="col"><span class="is-sr-only">Aktionen</span></th>
-            <th scope="col">Status</th>
             <th scope="col">Datum</th>
             <th scope="col">Uhrzeit</th>
             <th scope="col">Gruppe</th>
-            <th scope="col">Als</th>
+            <th scope="col">Rolle</th>
           </tr>
         </thead>
         <tbody>
           @for (row of data.reported; track row.session.id + row.role) {
             @let registered = row.response?.status === 'registered';
-            <tr [class.is-ok-row]="registered" [class.is-bad-row]="!registered">
-              <td class="is-left">
+            <tr>
+              <td>
                 <span class="icon-row">
                   @if (registered) {
                     <button
@@ -93,26 +92,25 @@
                   }
                 </span>
               </td>
-              <td class="is-center status" [class.is-registered]="registered">
-                {{ registered ? 'Angemeldet' : 'Abgemeldet' }}
-                @if (!registered) {
-                  <small>{{ row.response?.reason }}</small>
-                }
-              </td>
-              <td class="is-center">
+              <td>
                 {{ row.date }}<small>{{ row.weekday }}</small>
               </td>
-              <td class="is-center">{{ row.time }}</td>
-              <td class="is-center">{{ row.groups }}</td>
-              <td class="is-center">
-                <span class="pill" [class]="row.role === 'trainer' ? 'pill is-ok' : 'pill is-info'">
+              <td>{{ row.time }}</td>
+              <td>{{ row.groups }}</td>
+              <td>
+                <span
+                  class="tag"
+                  [class]="
+                    row.role === 'trainer' ? 'tag is-success is-light' : 'tag is-info is-light'
+                  "
+                >
                   {{ row.role === 'trainer' ? 'Trainer' : 'Schwimmer' }}
                 </span>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="empty">Noch keine Rückmeldungen abgegeben.</td>
+              <td colspan="5" class="empty">Noch keine Rückmeldungen abgegeben.</td>
             </tr>
           }
         </tbody>
@@ -124,7 +122,7 @@
         Anmeldung möglich <span class="count">{{ data.open.length }}</span>
       </h3>
       <div class="table-scroll">
-        <table class="data-table has-cols">
+        <table class="table is-fullwidth is-hoverable is-narrow">
           <thead>
             <tr>
               <th scope="col"><span class="is-sr-only">Aktionen</span></th>
@@ -137,7 +135,7 @@
           <tbody>
             @for (row of data.open; track row.session.id) {
               <tr>
-                <td class="is-left">
+                <td>
                   <span class="icon-row">
                     <button
                       type="button"
@@ -168,12 +166,12 @@
                     </button>
                   </span>
                 </td>
-                <td class="is-center">
+                <td>
                   {{ row.date }}<small>{{ row.weekday }}</small>
                 </td>
-                <td class="is-center">{{ row.time }}</td>
-                <td class="is-center">{{ row.deadline }}</td>
-                <td class="is-center">{{ row.groups }}</td>
+                <td>{{ row.time }}</td>
+                <td>{{ row.deadline }}</td>
+                <td>{{ row.groups }}</td>
               </tr>
             } @empty {
               <tr>
@@ -191,7 +189,7 @@
         <span class="count">{{ data.trainerOpen.length }}</span>
       </h3>
       <div class="table-scroll">
-        <table class="data-table has-cols">
+        <table class="table is-fullwidth is-hoverable is-narrow">
           <thead>
             <tr>
               <th scope="col"><span class="is-sr-only">Aktionen</span></th>
@@ -204,7 +202,7 @@
           <tbody>
             @for (row of data.trainerOpen; track row.session.id) {
               <tr>
-                <td class="is-left">
+                <td>
                   <span class="icon-row">
                     <button
                       type="button"
@@ -235,12 +233,12 @@
                     </button>
                   </span>
                 </td>
-                <td class="is-center">
+                <td>
                   {{ row.date }}<small>{{ row.weekday }}</small>
                 </td>
-                <td class="is-center">{{ row.time }}</td>
-                <td class="is-center">{{ row.deadline }}</td>
-                <td class="is-center">{{ row.groups }}</td>
+                <td>{{ row.time }}</td>
+                <td>{{ row.deadline }}</td>
+                <td>{{ row.groups }}</td>
               </tr>
             } @empty {
               <tr>

@@ -1,7 +1,18 @@
 .defaults {
+  align-items: start;
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  grid-template-columns: minmax(0, 1fr) 15rem;
+}
+
+.trainer-table {
+  background: transparent;
+}
+
+@media (max-width: 700px) {
+  .defaults {
+    grid-template-columns: 1fr;
+  }
 }
 
 .two {

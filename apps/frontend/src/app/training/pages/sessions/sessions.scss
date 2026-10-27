@@ -28,3 +28,23 @@
   opacity: 0.4;
   pointer-events: none;
 }
+
+/* The table scrolls inside its own box so that the heading stays visible. */
+.is-tall {
+  max-height: 70vh;
+  overflow: auto;
+  position: relative;
+
+  th {
+    background: var(--sgb-hover);
+    position: sticky;
+    text-align: center;
+    top: 0;
+    z-index: 1;
+  }
+
+  /* The second heading row sits below the first one. */
+  thead tr + tr th {
+    top: 2.4rem;
+  }
+}

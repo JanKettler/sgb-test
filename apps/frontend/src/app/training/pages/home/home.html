@@ -31,16 +31,17 @@
             <div class="line" [style.height.px]="hourHeight"></div>
           }
           @for (event of day.events; track event.id) {
-            <div
-              class="event"
+            <a
+              routerLink="/training/anmeldung"
               [class]="'event ' + event.groupClass"
+              [attr.aria-label]="'Zur Anmeldung: ' + event.title + ' ' + event.time"
               [style.top.px]="event.top"
               [style.height.px]="event.height"
             >
               <strong>{{ event.title }}</strong>
               <span>{{ event.time }}</span>
               <span class="detail">{{ event.detail }}</span>
-            </div>
+            </a>
           }
         </div>
       </div>
