@@ -1,0 +1,102 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SwimmingBadge {
+  SEAHORSE
+  DSA_BRONZE
+  DSA_SILVER
+  DSA_GOLD
+}
+
+enum SwimmingStyle {
+  BUTTERFLY
+  BACKSTROKE
+  BREASTSTROKE
+  FREESTYLE
+}
+
+enum SwimmingGroup {
+  GROUP_1
+  GROUP_2
+  GROUP_3
+  GROUP_4
+}
+
+enum WaitlistStatus {
+  UNASSIGNED
+  WAITING
+  INVITED
+  TRIAL_COMPLETED
+  ACCEPTED
+  CANCELLED
+}
+
+enum StatusLinkDeliveryStatus {
+  NONE
+  PENDING
+  SENDING
+  SENT
+  FAILED
+}
+
+model WaitlistEntry {
+  id             String                @id @default(uuid()) @db.Uuid
+  firstName      String                @db.VarChar(100)
+  lastName       String                @db.VarChar(100)
+  birthDate      DateTime              @db.Date
+  email          String                @db.VarChar(254)
+  badges         SwimmingBadge[]
+  swimmingStyles SwimmingStyle[]
+  message        String?               @db.Text
+  internalNotes  String?               @db.Text
+  registeredAt   DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime              @updatedAt @db.Timestamptz(3)
+  status         WaitlistStatus        @default(UNASSIGNED)
+  group          SwimmingGroup?
+  // Internal ordering key, not the displayed waiting position.
+  queueOrder     Int?
+  // Issued only when preparing status-link delivery; never persist the bearer token.
+  statusTokenHash String?               @unique @db.Char(64)
+  statusLinkDelivery StatusLinkDeliveryStatus @default(NONE)
+  statusLinkAttemptId String?           @db.Uuid
+  statusLinkAttemptAt DateTime?         @db.Timestamptz(3)
+  statusLinkSentAt DateTime?            @db.Timestamptz(3)
+  orderChanges   WaitlistOrderChange[]
+  groupChanges   WaitlistGroupChange[]
+
+  @@unique([group, queueOrder])
+  @@index([group, status, queueOrder])
+  @@index([registeredAt, id])
+}
+
+model WaitlistGroupChange {
+  id            String        @id @default(uuid()) @db.Uuid
+  entryId       String        @db.Uuid
+  entry         WaitlistEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  previousGroup SwimmingGroup?
+  newGroup      SwimmingGroup
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
+
+  @@index([entryId, createdAt])
+}
+
+model WaitlistOrderChange {
+  id               String        @id @default(uuid()) @db.Uuid
+  entryId          String        @db.Uuid
+  entry            WaitlistEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  group            SwimmingGroup
+  previousPosition Int
+  newPosition      Int
+  reason           String        @db.Text
+  createdAt        DateTime      @default(now()) @db.Timestamptz(3)
+
+  @@index([entryId, createdAt])
+}

@@ -1,0 +1,239 @@
+<section class="section">
+  <div class="container">
+    <h2 class="title is-3">Interne Warteliste</h2>
+    <div class="notification is-warning is-light">
+      Entwicklungsansicht: Bitte ausschließlich Testdaten verwenden. Der Zugriff über
+      Benutzerberechtigungen folgt später.
+    </div>
+    @if (state() === 'loading') {
+      <p role="status">Anmeldungen werden geladen …</p>
+    } @else if (state() === 'disabled') {
+      <p class="notification is-info is-light" role="status">
+        Die interne Warteliste ist nicht freigeschaltet.
+      </p>
+    } @else if (state() === 'error') {
+      <p class="notification is-danger is-light" role="alert">
+        Die Warteliste konnte nicht geladen werden.
+      </p>
+      <button class="button" type="button" (click)="load()">Erneut laden</button>
+    } @else {
+      <nav class="tabs" aria-label="Wartelisten nach Gruppe">
+        <ul>
+          <li [class.is-active]="activeTab() === 'UNASSIGNED'">
+            <button
+              type="button"
+              [attr.aria-pressed]="activeTab() === 'UNASSIGNED'"
+              [disabled]="saving()"
+              (click)="selectTab('UNASSIGNED')"
+            >
+              Nicht zugeordnet ({{ count('UNASSIGNED') }})
+            </button>
+          </li>
+          @for (group of tabGroups; track group.value) {
+            <li [class.is-active]="activeTab() === group.value">
+              <button
+                type="button"
+                [attr.aria-pressed]="activeTab() === group.value"
+                [disabled]="saving()"
+                (click)="selectTab(group.value)"
+              >
+                Gruppe {{ group.value.slice(-1) }} ({{ count(group.value) }})
+              </button>
+            </li>
+          }
+        </ul>
+      </nav>
+      <div class="mb-4">
+        <button class="button" type="button" [disabled]="saving()" (click)="load()">
+          Aktualisieren
+        </button>
+      </div>
+      @if (saveError()) {
+        <p class="notification is-danger is-light" role="alert">{{ saveError() }}</p>
+      }
+      @if (saved()) {
+        <p class="notification is-success is-light" role="status">
+          {{ saved() }}
+        </p>
+      }
+      @if (selectedEntry()) {
+        <nav class="detail-navigation mb-4" aria-label="Einträge durchsehen">
+          <button class="button" type="button" [disabled]="saving()" (click)="selectedId.set(null)">
+            Zurück zur Liste
+          </button>
+          <div class="detail-pagination">
+            <button
+              class="button"
+              type="button"
+              [disabled]="saving() || selectedIndex() === 0"
+              (click)="navigateDetail(-1)"
+            >
+              Vorheriger Eintrag
+            </button>
+            <span role="status">{{ selectedIndex() + 1 }} von {{ visibleEntries().length }}</span>
+            <button
+              class="button"
+              type="button"
+              [disabled]="saving() || selectedIndex() === visibleEntries().length - 1"
+              (click)="navigateDetail(1)"
+            >
+              Nächster Eintrag
+            </button>
+          </div>
+        </nav>
+      }
+      @if (!selectedEntry() && activeTab() !== 'UNASSIGNED') {
+        <div class="table-container">
+          <table class="table is-fullwidth is-striped is-hoverable">
+            <caption class="has-text-left mb-3">
+              {{
+                label(activeTab())
+              }}
+              – Wartende nach Warteplatz
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Status</th>
+                <th scope="col">Warteplatz</th>
+                <th scope="col">Name</th>
+                <th scope="col">Alter</th>
+                <th scope="col">Schwimmabzeichen</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of visibleEntries(); track entry.id) {
+                <tr>
+                  <td>
+                    <span class="tag is-info is-light">{{ label(entry.status) }}</span>
+                  </td>
+                  <td>
+                    {{ entry.position }}
+                  </td>
+                  <th scope="row">
+                    <button
+                      class="entry-link"
+                      type="button"
+                      (click)="selectedId.set(entry.id)"
+                      [attr.aria-label]="'Details für ' + entry.firstName + ' ' + entry.lastName"
+                    >
+                      {{ entry.firstName }} {{ entry.lastName }}
+                    </button>
+                  </th>
+                  <td>{{ age(entry.birthDate) }} Jahre</td>
+                  <td>
+                    @for (badge of entry.badges; track badge) {
+                      <span class="tag mr-2">{{ label(badge) }}</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5">Keine Wartenden in dieser Gruppe.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        @for (entry of cardEntries(); track entry.id) {
+          <article class="box">
+            <h3 class="title is-5">{{ entry.firstName }} {{ entry.lastName }}</h3>
+            @if (!selectedEntry()) {
+              <button
+                class="button is-small mb-3"
+                type="button"
+                [disabled]="saving()"
+                (click)="selectedId.set(entry.id)"
+              >
+                Details und interne Notizen
+              </button>
+            }
+            <p class="mb-3">
+              <span class="tag is-info is-light">{{ label(entry.status) }}</span>
+            </p>
+            <dl class="details">
+              <dt>Geburtsdatum</dt>
+              <dd>{{ entry.birthDate + 'T00:00:00Z' | date: 'dd.MM.yyyy' : 'UTC' }}</dd>
+              <dt>Alter</dt>
+              <dd>{{ age(entry.birthDate) }} Jahre</dd>
+              <dt>E-Mail</dt>
+              <dd>{{ entry.email }}</dd>
+              <dt>Anmeldung</dt>
+              <dd>{{ entry.registeredAt | date: 'dd.MM.yyyy HH:mm' }}</dd>
+              <dt>Schwimmabzeichen</dt>
+              <dd>
+                @for (badge of entry.badges; track badge) {
+                  <span class="tag mr-2">{{ label(badge) }}</span>
+                }
+              </dd>
+              <dt>Schwimmstile</dt>
+              <dd>
+                @for (style of entry.swimmingStyles; track style) {
+                  <span class="tag mr-2">{{ label(style) }}</span>
+                }
+              </dd>
+              <dt>Mitteilung</dt>
+              <dd class="message-text">{{ entry.message || 'Keine Mitteilung' }}</dd>
+              <dt>Gruppe</dt>
+              <dd>{{ entry.group ? label(entry.group) : 'Noch nicht zugeteilt' }}</dd>
+              <dt>Warteplatz</dt>
+              <dd>
+                {{ entry.position ?? 'Noch kein Warteplatz' }}
+                @if (selectedEntry() && entry.group && entry.position !== null) {
+                  <app-waitlist-position-editor
+                    [entryId]="entry.id"
+                    [group]="entry.group"
+                    [position]="entry.position"
+                    [queueLength]="count(entry.group)"
+                    [disabled]="saving()"
+                    (busy)="saving.set($event)"
+                    (changed)="actionSaved($event)"
+                  />
+                }
+              </dd>
+            </dl>
+            @if (entry.status === 'UNASSIGNED' || entry.status === 'WAITING') {
+              <div class="field mt-4">
+                <label class="label" [for]="'assignment-' + entry.id">Schwimmgruppe zuweisen</label>
+                <div class="field is-grouped is-grouped-multiline">
+                  <div class="control select">
+                    <select
+                      #assignment
+                      [id]="'assignment-' + entry.id"
+                      [value]="entry.group || ''"
+                      [disabled]="saving()"
+                    >
+                      <option value="" disabled>Bitte auswählen</option>
+                      @for (group of groups; track group.value) {
+                        <option [value]="group.value">{{ group.label }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="control">
+                    <button
+                      class="button is-link assignment-button"
+                      type="button"
+                      [disabled]="saving()"
+                      (click)="assign(entry, assignment.value)"
+                    >
+                      Zuteilung speichern
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+            @if (selectedEntry()) {
+              <app-waitlist-entry-actions
+                [entryId]="entry.id"
+                (busy)="saving.set($event)"
+                (changed)="actionSaved($event)"
+              />
+            }
+          </article>
+        } @empty {
+          <p>Keine nicht zugeordneten Anmeldungen vorhanden.</p>
+        }
+      }
+    }
+  </div>
+</section>

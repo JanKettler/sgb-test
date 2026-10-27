@@ -1,0 +1,54 @@
+<section class="section" aria-labelledby="waitlist-status-heading">
+  <div class="container waitlist-status">
+    <h2 id="waitlist-status-heading" class="title is-3">Status deiner Anmeldung</h2>
+    <div [attr.aria-busy]="state() === 'loading'">
+      @switch (state()) {
+        @case ('loading') {
+          <p class="notification is-info is-light" role="status">
+            Der aktuelle Status wird geladen …
+          </p>
+        }
+        @case ('unavailable') {
+          <p class="notification is-warning is-light" role="alert">
+            Dieser Statuslink ist nicht verfügbar. Bitte öffne den vollständigen Link aus deiner
+            E-Mail.
+          </p>
+        }
+        @case ('error') {
+          <p class="notification is-warning is-light" role="alert">
+            Der Status kann gerade nicht geladen werden. Bitte versuche es später erneut.
+          </p>
+        }
+        @case ('limited') {
+          <p class="notification is-warning is-light" role="alert">
+            Der Status wurde zu oft abgerufen. Bitte warte eine Minute und versuche es erneut.
+          </p>
+        }
+        @case ('ready') {
+          @if (details(); as entry) {
+            <div class="box" role="status">
+              <dl class="status-details">
+                <dt>Status</dt>
+                <dd>{{ statusLabels[entry.status] }}</dd>
+                @if (entry.group; as group) {
+                  <dt>Schwimmgruppe</dt>
+                  <dd>{{ groupLabels[group] }}</dd>
+                }
+                @if (entry.position !== null) {
+                  <dt>Aktueller Warteplatz</dt>
+                  <dd class="has-text-weight-bold">{{ entry.position }}</dd>
+                }
+              </dl>
+              @if (entry.status === 'UNASSIGNED') {
+                <p class="mt-4">
+                  Deine Anmeldung ist eingegangen. Die Zuordnung zu einer Schwimmgruppe steht noch
+                  aus. Ein Warteplatz steht deshalb noch nicht fest.
+                </p>
+              }
+            </div>
+          }
+        }
+      }
+    </div>
+  </div>
+</section>

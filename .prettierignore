@@ -1,0 +1,10 @@
+**/node_modules/
+**/dist/
+**/dist-dev/
+**/coverage/
+**/.angular/
+**/*.tsbuildinfo
+package-lock.json
+.env
+.env.*
+**/src/generated/

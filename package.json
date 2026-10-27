@@ -1,0 +1,60 @@
+{
+  "name": "sgb-portal",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend"
+  ],
+  "engines": {
+    "node": ">=24.15.0 <25",
+    "npm": ">=11 <12"
+  },
+  "packageManager": "npm@11.13.0",
+  "scripts": {
+    "mail:up": "docker compose --env-file .env -f infra/compose.yaml up --detach --wait mailpit",
+    "mail:status": "docker compose --env-file .env -f infra/compose.yaml ps mailpit",
+    "mail:down": "docker compose --env-file .env -f infra/compose.yaml stop mailpit",
+    "mail:verify": "npm run build:backend && npm run mail:verify --workspace=apps/backend",
+    "start:frontend": "npm run start --workspace=apps/frontend",
+    "start:backend": "npm run start:dev --workspace=apps/backend",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "npm run build --workspace=apps/frontend",
+    "build:backend": "npm run build --workspace=apps/backend",
+    "test:frontend": "npm run test --workspace=apps/frontend -- --watch=false",
+    "test:backend": "npm run test --workspace=apps/backend",
+    "format": "prettier --write .",
+    "lint:frontend": "npm run lint --workspace=apps/frontend",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "check": "npm run prisma:validate && npm run prisma:generate && npm run format:check && npm run lint && npm run test:frontend && npm run test:backend && npm run test:backend:e2e && npm run build",
+    "format:check": "prettier --check .",
+    "lint:backend": "npm run lint --workspace=apps/backend",
+    "prepare": "husky",
+    "commitlint": "commitlint",
+    "test:backend:e2e": "npm run test:e2e --workspace=apps/backend",
+    "db:logs": "docker compose --env-file .env -f infra/compose.yaml logs --follow postgres",
+    "db:up": "docker compose --env-file .env -f infra/compose.yaml up --detach --wait",
+    "db:check": "docker compose --env-file .env -f infra/compose.yaml exec -T postgres psql -U sgb_portal -d sgb_portal --command=\"SELECT 1 AS connection_check;\"",
+    "db:status": "docker compose --env-file .env -f infra/compose.yaml ps",
+    "db:shell": "docker compose --env-file .env -f infra/compose.yaml exec postgres psql -U sgb_portal -d sgb_portal",
+    "db:down": "docker compose --env-file .env -f infra/compose.yaml down",
+    "prisma:generate": "npm run prisma:generate --workspace=apps/backend",
+    "prisma:validate": "npm run prisma:validate --workspace=apps/backend",
+    "prisma:migrate:dev": "npm run prisma:migrate:dev --workspace=apps/backend",
+    "prisma:migrate:deploy": "npm run prisma:migrate:deploy --workspace=apps/backend",
+    "db:check:prisma": "npm run db:check:prisma --workspace=apps/backend",
+    "db:verify:waitlist": "npm run build:backend && npm run db:verify:waitlist --workspace=apps/backend"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "husky": "^9.1.7",
+    "prettier": "3.9.9",
+    "prisma": "7.10.0"
+  },
+  "overrides": {
+    "mysql2": "3.24.5",
+    "deepmerge-ts": "8.0.2"
+  }
+}

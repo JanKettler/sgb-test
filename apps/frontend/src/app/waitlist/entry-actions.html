@@ -1,0 +1,125 @@
+<section class="mt-5" aria-label="Interne Bearbeitung">
+  @if (error()) {
+    <p class="notification is-danger is-light" role="alert">{{ error() }}</p>
+  }
+  @if (loading()) {
+    <p role="status">Interne Angaben werden geladen …</p>
+  } @else if (!details()) {
+    <button class="button" type="button" (click)="load()">Erneut laden</button>
+  } @else {
+    <h4 class="title is-5">Interne Notizen</h4>
+    <form (submit)="$event.preventDefault(); saveNotes(notes.value)">
+      <div class="field">
+        <label class="label" for="internal-notes">Notizen zu dieser Anmeldung</label>
+        <textarea
+          #notes
+          id="internal-notes"
+          class="textarea"
+          rows="4"
+          maxlength="5000"
+          [value]="details()?.internalNotes || ''"
+          [disabled]="saving()"
+          aria-describedby="notes-help"
+        ></textarea>
+        <p id="notes-help" class="help">
+          Nur intern sichtbar. Höchstens 5.000 Zeichen. Eine leere Notiz löscht den bisherigen Text.
+        </p>
+      </div>
+      <button class="button is-link is-light" type="submit" [disabled]="saving()">
+        Notizen speichern
+      </button>
+    </form>
+    @if (details()?.statusLinkDelivery; as delivery) {
+      <h4 class="title is-5 mt-5">Mail mit Statuslink</h4>
+      <p role="status">
+        @switch (delivery.status) {
+          @case ('NONE') {
+            Noch kein Statuslink versendet.
+          }
+          @case ('PENDING') {
+            Der erste Versand steht noch aus.
+          }
+          @case ('SENDING') {
+            Ein Versandversuch läuft.
+          }
+          @case ('SENT') {
+            Die Mail wurde vom Mailserver angenommen.
+          }
+          @case ('FAILED') {
+            Der Versand wurde nicht bestätigt.
+          }
+          @case ('UNKNOWN') {
+            Der Ausgang des letzten Versandversuchs ist unklar.
+          }
+        }
+      </p>
+      @if (delivery.sentAt) {
+        <p class="help">
+          Vom Mailserver angenommen am {{ delivery.sentAt | date: 'dd.MM.yyyy HH:mm' }}.
+        </p>
+      }
+      @if (deliveryMessage()) {
+        <p class="notification is-info is-light mt-3" role="status">{{ deliveryMessage() }}</p>
+      }
+      @if (delivery.canSend) {
+        <p class="help my-3">
+          Ein neuer Versand erzeugt einen neuen Link. Ein eventuell bereits zugestellter bisheriger
+          Link wird dadurch ungültig.
+        </p>
+        <button
+          class="button is-link is-light"
+          type="button"
+          (click)="sendStatusLink()"
+          [disabled]="saving() || refreshingDelivery()"
+        >
+          {{ delivery.status === 'NONE' ? 'Statuslink versenden' : 'Versand erneut versuchen' }}
+        </button>
+      }
+      <button
+        class="button is-light mt-2"
+        type="button"
+        (click)="reloadDelivery()"
+        [disabled]="saving() || refreshingDelivery()"
+      >
+        Versandstatus aktualisieren
+      </button>
+    }
+    <h4 class="title is-5 mt-5">Historie der Anmeldung</h4>
+    @if (details()?.groupHistoryIncomplete) {
+      <p class="notification is-info is-light">
+        Frühere Gruppenzuteilungen wurden noch nicht protokolliert. Ihr Zeitpunkt ist nicht bekannt.
+      </p>
+    }
+    @for (change of details()?.history; track change.id) {
+      <div class="box">
+        <p>
+          <strong>{{ change.createdAt | date: 'dd.MM.yyyy HH:mm' }}</strong>
+          @switch (change.type) {
+            @case ('STATUS_LINK_SENT') {
+              · Mail mit Statuslink vom Mailserver angenommen
+            }
+            @case ('REGISTERED') {
+              · Anmeldung eingegangen
+            }
+            @case ('GROUP_ASSIGNED') {
+              · Erste Gruppenzuteilung: Gruppe {{ change.group?.slice(-1) }}
+            }
+            @case ('GROUP_CHANGED') {
+              · Gruppenwechsel: Gruppe {{ change.previousGroup?.slice(-1) }} → Gruppe
+              {{ change.group?.slice(-1) }}
+            }
+            @case ('POSITION_CHANGED') {
+              · Gruppe {{ change.group?.slice(-1) }} · Platz {{ change.previousPosition }} →
+              {{ change.newPosition }}
+            }
+          }
+        </p>
+        <p class="mt-2" style="white-space: pre-wrap; overflow-wrap: anywhere">
+          {{ change.reason }}
+        </p>
+      </div>
+    } @empty {
+      <p>Noch keine Historieneinträge vorhanden.</p>
+    }
+  }
+</section>
