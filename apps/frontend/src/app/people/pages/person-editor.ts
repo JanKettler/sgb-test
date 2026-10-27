@@ -28,6 +28,16 @@ import { PayAccountForm } from './pay-account';
 type Tab = 'master' | 'roles' | 'family' | 'material' | 'payment' | 'access' | 'extra';
 type TextKey =
   | 'firstName'
+  | 'street'
+  | 'houseNo'
+  | 'zip'
+  | 'city'
+  | 'email1'
+  | 'email2'
+  | 'phone1'
+  | 'phone2'
+  | 'officialSince'
+  | 'officialUntil'
   | 'startRight'
   | 'codeOfConductOn'
   | 'refereeAwUntil'
@@ -232,6 +242,7 @@ export class PersonEditor {
       return;
     }
     this.store.save(member);
+    this.fees.generate();
     this.store.flash.set(`${fullName(member)} wurde gespeichert.`);
     void this.router.navigate(['/personen']);
   }

@@ -101,6 +101,19 @@ function buildMember(person: Person, index: number, today: string): Member {
     member.refereeAwUntil = addDays(today, 400 + index);
     member.refereeSchUntil = addDays(today, 300 + index);
   }
+  const streets = ['Musterweg', 'Lindenallee', 'Am Sportplatz', 'Birkenstraße', 'Gartenweg'];
+  Object.assign(member, {
+    street: streets[index % streets.length],
+    houseNo: String(2 + ((index * 3) % 40)),
+    zip: '49406',
+    city: 'Barnstorf',
+    email1: birthYear(member) < 2008 ? `${slug(firstName)}.${slug(rest.join(''))}@example.org` : '',
+    phone1: `05442 ${String(100000 + index * 137).slice(0, 6)}`,
+  } satisfies Partial<Member>);
+  if (member.official) {
+    member.officialSince = addDays(today, -700 - index);
+    member.officialUntil = addDays(today, 365 + index);
+  }
   if (member.official) member.appRoles = [...member.appRoles, 'board'];
   if (member.trainer || member.official) {
     member.username = `${slug(firstName)}.${slug(rest.join(''))}`;

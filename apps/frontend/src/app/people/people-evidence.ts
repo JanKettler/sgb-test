@@ -11,7 +11,7 @@ export type EvidenceKind =
   | 'refereeLicense';
 
 export const EVIDENCE_LABELS: Record<EvidenceKind, string> = {
-  attest: 'Attest',
+  attest: 'Sportgesundheit',
   firstAid: 'Erste Hilfe',
   lifeSaving: 'Rettungsnachweis',
   criminalRecord: 'Führungszeugnis',
@@ -59,7 +59,7 @@ function row(
   const label = EVIDENCE_LABELS[kind];
   const base = { member, kind, label, role, date };
   if (!date) {
-    const text = kind === 'attest' ? 'Kein Attest hinterlegt' : `${label} fehlt`;
+    const text = `${label} fehlt`;
     return { ...base, days: null, missing: true, tone: 'bad', text };
   }
   if (kind === 'criminalRecord' || kind === 'codeOfConduct') {

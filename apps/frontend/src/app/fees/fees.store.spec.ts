@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { PeopleStore } from '../people/people.store';
 import { FeesStore } from './fees.store';
 
 describe('FeesStore', () => {
@@ -41,5 +42,27 @@ describe('FeesStore', () => {
     const purpose = store.purposeOf(store.payments()[0]);
     expect(purpose).toContain(String(store.year));
     expect(purpose).not.toContain('[');
+  });
+
+  it('lets a new child join the payment of its family', () => {
+    const people = TestBed.inject(PeopleStore);
+    const store = TestBed.inject(FeesStore);
+    const payment = store
+      .payments()
+      .find((item) => item.memberIds.length === 1 && item.payerId.startsWith('e-'));
+    expect(payment).toBeDefined();
+    const parent = people.parents().find((item) => item.id === payment!.payerId)!;
+    const child = {
+      ...people.newMember(),
+      firstName: 'Neu',
+      lastName: 'Kind',
+      parentIds: [parent.id],
+    };
+    people.save({ ...child, swimmerGroupIds: ['G1'] });
+    const { adjusted } = store.generate();
+    expect(adjusted).toBe(1);
+    const after = store.payments().find((item) => item.id === payment!.id)!;
+    expect(after.memberIds).toContain(child.id);
+    expect(after.memberIds.length).toBe(2);
   });
 });

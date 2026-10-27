@@ -23,23 +23,11 @@
     </div>
     <div>
       <label class="field-label" for="export-from">Von</label>
-      <input
-        id="export-from"
-        class="input"
-        type="date"
-        [value]="from()"
-        (input)="from.set(value($event))"
-      />
+      <app-date-field inputId="export-from" [(value)]="from" />
     </div>
     <div>
       <label class="field-label" for="export-to">Bis</label>
-      <input
-        id="export-to"
-        class="input"
-        type="date"
-        [value]="to()"
-        (input)="to.set(value($event))"
-      />
+      <app-date-field inputId="export-to" [(value)]="to" />
     </div>
   </div>
   <div class="chips">

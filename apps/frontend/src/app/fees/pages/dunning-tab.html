@@ -70,7 +70,6 @@
   <button type="button" class="btn is-primary" [disabled]="chosen().length === 0" (click)="send()">
     <app-icon name="mail" /> Mahnungen versenden ({{ chosen().length }})
   </button>
-  <button type="button" class="btn" (click)="exportCsv()"><app-icon name="sheet" /> Excel</button>
 </div>
 
 @if (shown(); as row) {

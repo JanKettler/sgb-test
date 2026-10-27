@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GroupChips } from '../../../ui/group-chips';
+import { DateField } from '../../../ui/date-field';
 import { Icon } from '../../../ui/icon';
 import { ModalDialog } from '../../../ui/modal-dialog';
 import { MailDialog } from '../../dialogs/mail-dialog';
@@ -32,7 +33,7 @@ interface SessionRow {
 
 @Component({
   selector: 'app-sessions',
-  imports: [RouterLink, Icon, GroupChips, ModalDialog, RegisteredDialog, MailDialog],
+  imports: [RouterLink, Icon, DateField, GroupChips, ModalDialog, RegisteredDialog, MailDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sessions.html',
   styleUrl: './sessions.scss',

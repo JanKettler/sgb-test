@@ -105,6 +105,7 @@ export class ParentEditor {
       return;
     }
     this.store.saveParent(parent, this.childIds());
+    this.fees.generate();
     this.store.flash.set(`${parent.name} wurde gespeichert.`);
     void this.router.navigate(['/personen']);
   }

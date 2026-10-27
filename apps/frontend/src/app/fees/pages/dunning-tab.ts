@@ -65,7 +65,7 @@ export class DunningTab {
     this.notice.emit(`Demo: ${sent} Mahnungen vorbereitet, nichts wurde versendet.`);
   }
 
-  protected exportCsv(): void {
+  exportCsv(): void {
     const lines = [
       ['Zahler', 'Person', 'Offen', 'Gebühr', 'Gesamt', 'Stufe'],
       ...this.chosen().map((row) => [

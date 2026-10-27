@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { DateField } from '../../../ui/date-field';
 import { Icon } from '../../../ui/icon';
 import { ExportDialog } from '../../dialogs/export-dialog';
 import { MailDialog } from '../../dialogs/mail-dialog';
-import { addMonthKey, dayMonth, monthKey, monthLabel, weekdayShort } from '../../training-dates';
+import { addDays, addMonths, dayMonth, monthKey, weekdayShort } from '../../training-dates';
 import { GroupId, TrainingSession } from '../../training.models';
 import { ActionNeeded, TrainingStore } from '../../training.store';
 
@@ -15,18 +16,17 @@ interface MailRequest {
 
 @Component({
   selector: 'app-attendance-overview',
-  imports: [Icon, MailDialog, ExportDialog],
+  imports: [Icon, DateField, MailDialog, ExportDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './attendance-overview.html',
   styleUrl: './attendance-overview.scss',
 })
 export class AttendanceOverview {
   protected readonly store = inject(TrainingStore);
-  protected readonly monthLabel = monthLabel;
 
   protected readonly groupId = signal<GroupId>('WK');
-  protected readonly from = signal(addMonthKey(monthKey(this.store.today), -1));
-  protected readonly to = signal(monthKey(this.store.today));
+  protected readonly from = signal(`${monthKey(addMonths(this.store.today, -1))}-01`);
+  protected readonly to = signal(addDays(this.store.today, -1));
   protected readonly exporting = signal(false);
   protected readonly mailRequest = signal<MailRequest | null>(null);
   protected readonly message = signal('');
@@ -58,8 +58,8 @@ export class AttendanceOverview {
   }
 
   protected shift(months: number): void {
-    this.from.set(addMonthKey(this.from(), months));
-    this.to.set(addMonthKey(this.to(), months));
+    this.from.set(addMonths(this.from(), months));
+    this.to.set(addMonths(this.to(), months));
   }
 
   protected mailTemplate(request: MailRequest): string {

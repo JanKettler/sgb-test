@@ -76,18 +76,20 @@ export class PaymentsTab {
     this.notice.emit(`${count} Zahlung gelöscht.`);
   }
 
-  protected generate(): void {
-    const created = this.store.generate();
+  generate(): void {
+    const { created, adjusted } = this.store.generate();
     this.notice.emit(
-      created ? `${created} neue Zahlung erzeugt.` : 'Alle Mitglieder haben schon eine Zahlung.',
+      created + adjusted === 0
+        ? 'Alle Mitglieder haben schon eine Zahlung.'
+        : `${created} neue Zahlung erzeugt, ${adjusted} bestehende angepasst.`,
     );
   }
 
-  protected exportCsv(): void {
+  exportCsv(): void {
     downloadText('Zahlungen.csv', this.store.paymentsCsv(this.rows()));
   }
 
-  protected exportSepa(): void {
+  exportSepa(): void {
     downloadText('Lastschrift-Demo.xml', this.store.sepaText(this.rows()));
   }
 }

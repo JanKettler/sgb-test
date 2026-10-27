@@ -75,6 +75,18 @@ export function feeTypeFor(
   return birthYear(member) <= year - 19 ? 'adult' : 'youth';
 }
 
+/** Fee type and list label for a group of members that pay together. */
+export function describeGroup(group: Member[], year: number): { typeId: string; label: string } {
+  const youth = group.every((member) => birthYear(member) > year - 19);
+  return {
+    typeId: feeTypeFor(group[0], year, group.length, youth),
+    label:
+      group.length >= 3
+        ? `Familie ${group[0].lastName} (${group.map((member) => member.firstName).join(', ')})`
+        : group.map((member) => fullName(member)).join(', '),
+  };
+}
+
 /** Builds one payment per paying household for the current year. */
 export function createPaymentSample(
   today: string,
@@ -95,16 +107,12 @@ export function createPaymentSample(
   for (const group of households.values()) {
     const first = group[0];
     const parent = parents.find((item) => item.id === first.parentIds[0]);
-    const youth = group.every((member) => birthYear(member) > year - 19);
-    const typeId = feeTypeFor(first, year, group.length, youth);
+    const { typeId, label } = describeGroup(group, year);
     const method = parent?.account.method ?? 'Überweisung';
     payments.push({
       id: `z-${index}`,
       memberIds: group.map((member) => member.id),
-      label:
-        group.length >= 3
-          ? `Familie ${first.lastName} (${group.map((member) => member.firstName).join(', ')})`
-          : group.map((member) => fullName(member)).join(', '),
+      label,
       payerId: parent?.id ?? first.id,
       payerName: parent?.name ?? fullName(first),
       feeTypeId: typeId,

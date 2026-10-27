@@ -87,21 +87,9 @@
       <app-icon name="chevron-left" />
     </button>
     <span>von</span>
-    <div class="select">
-      <select aria-label="Von" (change)="from.set(value($event))">
-        @for (month of store.monthOptions(); track month) {
-          <option [value]="month" [selected]="month === from()">{{ monthLabel(month) }}</option>
-        }
-      </select>
-    </div>
+    <app-date-field label="Von" [(value)]="from" />
     <span>bis</span>
-    <div class="select">
-      <select aria-label="Bis" (change)="to.set(value($event))">
-        @for (month of store.monthOptions(); track month) {
-          <option [value]="month" [selected]="month === to()">{{ monthLabel(month) }}</option>
-        }
-      </select>
-    </div>
+    <app-date-field label="Bis" [(value)]="to" />
     <button type="button" class="icon-btn round" aria-label="Einen Monat vor" (click)="shift(1)">
       <app-icon name="chevron-right" />
     </button>

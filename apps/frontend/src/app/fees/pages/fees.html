@@ -29,6 +29,34 @@
         }
       </button>
     }
+    <div class="tab-actions">
+      @switch (tab()) {
+        @case ('payments') {
+          <button type="button" class="btn is-small" (click)="payments()?.exportCsv()">
+            <app-icon name="sheet" /> Excel
+          </button>
+          <button type="button" class="btn is-small" (click)="payments()?.exportSepa()">
+            <app-icon name="download" /> SEPA-Lastschriftdatei
+          </button>
+          <button type="button" class="btn is-small is-primary" (click)="payments()?.generate()">
+            <app-icon name="plus" /> Zahlungen erzeugen
+          </button>
+        }
+        @case ('dunning') {
+          <button type="button" class="btn is-small" (click)="dunning()?.exportCsv()">
+            <app-icon name="sheet" /> Excel
+          </button>
+        }
+        @case ('types') {
+          <button type="button" class="btn is-small" (click)="types()?.exportCsv()">
+            <app-icon name="sheet" /> Excel
+          </button>
+          <button type="button" class="btn is-small is-primary" (click)="types()?.add()">
+            <app-icon name="plus" /> Neue Beitragsart
+          </button>
+        }
+      }
+    </div>
   </div>
 
   @switch (tab()) {

@@ -658,3 +658,17 @@ app-icon {
 .rdp-table tr.is-picked > td {
   background: var(--sgb-hover);
 }
+
+app-date-field {
+  display: block;
+  width: 11rem;
+}
+
+.tabbar .tab-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: auto;
+  padding-bottom: 0.25rem;
+}

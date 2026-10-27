@@ -9,7 +9,7 @@ describe('evidence', () => {
     const member = emptyMember('m1', 1, TODAY);
     expect(statusOf(evidenceOf(member, TODAY))).toEqual({
       tone: 'bad',
-      text: 'Kein Attest hinterlegt',
+      text: 'Sportgesundheit fehlt',
     });
   });
 
@@ -17,7 +17,7 @@ describe('evidence', () => {
     const member = { ...emptyMember('m1', 1, TODAY), attestUntil: addDays(TODAY, 21) };
     expect(statusOf(evidenceOf(member, TODAY))).toEqual({
       tone: 'warn',
-      text: 'Attest läuft in 21 Tagen ab',
+      text: 'Sportgesundheit läuft in 21 Tagen ab',
     });
     const expired = { ...member, attestUntil: addDays(TODAY, -3) };
     expect(statusOf(evidenceOf(expired, TODAY)).tone).toBe('bad');
