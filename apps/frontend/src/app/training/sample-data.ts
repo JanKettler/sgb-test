@@ -145,6 +145,26 @@ function createRandom(seed: number): () => number {
   };
 }
 
+const INFO_MAIL = [
+  'Hallo {Name},',
+  '',
+  'uns ist aufgefallen, dass du zuletzt nicht beim Training warst.',
+  'Gib uns bitte kurz Bescheid, ob alles in Ordnung ist.',
+  '',
+  'Sportliche Grüße',
+  'Dein Trainerteam',
+].join('\n');
+
+const INACTIVE_MAIL = [
+  'Hallo {Name},',
+  '',
+  'da wir länger nichts von dir gehört haben, setzen wir dich vorerst auf inaktiv.',
+  'Melde dich gern, wenn du wieder mitschwimmen möchtest.',
+  '',
+  'Sportliche Grüße',
+  'Dein Trainerteam',
+].join('\n');
+
 const GROUP_IDS: GroupId[] = ['G1', 'G2', 'G3', 'WK', 'MA'];
 
 function isInGroups(person: Person, groupIds: GroupId[]): boolean {
@@ -316,10 +336,8 @@ export function createSampleData(today: string): SampleData {
     automation: {
       infoMailAfter: 2,
       inactiveAfter: 3,
-      infoMailTemplate:
-        'Hallo {Name},\n\nuns ist aufgefallen, dass du zuletzt nicht beim Training warst. Gib uns bitte kurz Bescheid, ob alles in Ordnung ist.\n\nSportliche Grüße\nDein Trainerteam',
-      inactiveMailTemplate:
-        'Hallo {Name},\n\nda wir länger nichts von dir gehört haben, setzen wir dich vorerst auf inaktiv. Melde dich gern, wenn du wieder mitschwimmen möchtest.\n\nSportliche Grüße\nDein Trainerteam',
+      infoMailTemplate: INFO_MAIL,
+      inactiveMailTemplate: INACTIVE_MAIL,
     },
   };
 }
