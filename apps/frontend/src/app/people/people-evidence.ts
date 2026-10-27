@@ -2,13 +2,20 @@ import { parseIsoDate } from '../training/training-dates';
 import { Member } from './people.models';
 
 export type EvidenceKind =
-  'attest' | 'firstAid' | 'lifeSaving' | 'criminalRecord' | 'license' | 'refereeLicense';
+  | 'attest'
+  | 'firstAid'
+  | 'lifeSaving'
+  | 'criminalRecord'
+  | 'codeOfConduct'
+  | 'license'
+  | 'refereeLicense';
 
 export const EVIDENCE_LABELS: Record<EvidenceKind, string> = {
   attest: 'Attest',
   firstAid: 'Erste Hilfe',
   lifeSaving: 'Rettungsnachweis',
   criminalRecord: 'Führungszeugnis',
+  codeOfConduct: 'Ehrenkodex',
   license: 'Trainerlizenz',
   refereeLicense: 'Kampfrichter-Lizenz',
 };
@@ -55,7 +62,7 @@ function row(
     const text = kind === 'attest' ? 'Kein Attest hinterlegt' : `${label} fehlt`;
     return { ...base, days: null, missing: true, tone: 'bad', text };
   }
-  if (kind === 'criminalRecord') {
+  if (kind === 'criminalRecord' || kind === 'codeOfConduct') {
     return { ...base, days: null, missing: false, tone: 'ok', text: 'liegt vor' };
   }
   const days = daysBetween(today, date);
@@ -76,6 +83,7 @@ export function evidenceOf(member: Member, today: string): EvidenceRow[] {
     rows.push(row(member, 'firstAid', 'Trainer', member.firstAidUntil, today));
     rows.push(row(member, 'lifeSaving', 'Trainer', member.lifeSavingUntil, today));
     rows.push(row(member, 'license', 'Trainer', member.licenseUntil, today));
+    rows.push(row(member, 'codeOfConduct', 'Trainer', member.codeOfConductOn, today));
   }
   if (member.referee) {
     rows.push(row(member, 'refereeLicense', 'Kampfrichter', member.refereeUntil, today));

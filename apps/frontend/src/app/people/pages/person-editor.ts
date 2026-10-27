@@ -7,7 +7,11 @@ import { fullDate } from '../../training/training-dates';
 import { GROUPS, GroupId } from '../../training/training.models';
 import { EvidenceRow } from '../people-evidence';
 import {
+  APP_ROLES,
+  AppRoleKey,
   LICENSE_KINDS,
+  SPECIAL_RIGHTS,
+  SpecialRightKey,
   Member,
   ROLES,
   RoleKey,
@@ -18,9 +22,15 @@ import {
 } from '../people.models';
 import { PeopleStore } from '../people.store';
 
-type Tab = 'master' | 'roles' | 'family';
+type Tab = 'master' | 'roles' | 'family' | 'material' | 'access' | 'extra';
 type TextKey =
   | 'firstName'
+  | 'startRight'
+  | 'codeOfConductOn'
+  | 'refereeAwUntil'
+  | 'refereeSchUntil'
+  | 'username'
+  | 'loginEmail'
   | 'birthDate'
   | 'exitDate'
   | 'lastName'
@@ -62,6 +72,10 @@ export class PersonEditor {
   protected readonly licenseKinds = LICENSE_KINDS;
   protected readonly fullDate = fullDate;
   protected readonly year = birthYear;
+  protected readonly appRoles = APP_ROLES;
+  protected readonly specialRights = SPECIAL_RIGHTS;
+  protected readonly notice = signal('');
+  private nextRow = 1;
   protected readonly tab = signal<Tab>('master');
 
   /** Working copy; it only reaches the store on "Speichern". */
@@ -116,6 +130,84 @@ export class PersonEditor {
     on: boolean,
   ): void {
     this.store.updateParent(id, { [key]: on });
+  }
+
+  protected readonly accessPill = computed(() => {
+    const access = this.draft().access;
+    return access === 'active'
+      ? { css: 'pill is-ok', text: 'Zugang aktiv' }
+      : access === 'blocked'
+        ? { css: 'pill is-bad', text: 'Zugang gesperrt' }
+        : { css: 'pill is-warn', text: 'Kein Zugang' };
+  });
+
+  protected setAccess(access: Member['access']): void {
+    this.draft.update((member) => ({ ...member, access }));
+  }
+
+  protected toggleAppRole(key: AppRoleKey): void {
+    this.draft.update((member) => ({
+      ...member,
+      appRoles: member.appRoles.includes(key)
+        ? member.appRoles.filter((item) => item !== key)
+        : [...member.appRoles, key],
+    }));
+  }
+
+  protected toggleRight(key: SpecialRightKey): void {
+    this.draft.update((member) => ({
+      ...member,
+      specialRights: member.specialRights.includes(key)
+        ? member.specialRights.filter((item) => item !== key)
+        : [...member.specialRights, key],
+    }));
+  }
+
+  protected addMaterial(): void {
+    this.draft.update((member) => ({
+      ...member,
+      material: [
+        ...member.material,
+        { id: `mat-${this.nextRow++}`, name: '', since: this.store.today },
+      ],
+    }));
+  }
+
+  protected setMaterial(id: string, key: 'name' | 'since', event: Event): void {
+    const value = this.value(event);
+    this.draft.update((member) => ({
+      ...member,
+      material: member.material.map((item) => (item.id === id ? { ...item, [key]: value } : item)),
+    }));
+  }
+
+  protected removeMaterial(id: string): void {
+    this.draft.update((member) => ({
+      ...member,
+      material: member.material.filter((item) => item.id !== id),
+    }));
+  }
+
+  protected addExtra(): void {
+    this.draft.update((member) => ({
+      ...member,
+      extra: [...member.extra, { id: `x-${this.nextRow++}`, label: '', value: '' }],
+    }));
+  }
+
+  protected setExtra(id: string, key: 'label' | 'value', event: Event): void {
+    const value = this.value(event);
+    this.draft.update((member) => ({
+      ...member,
+      extra: member.extra.map((item) => (item.id === id ? { ...item, [key]: value } : item)),
+    }));
+  }
+
+  protected removeExtra(id: string): void {
+    this.draft.update((member) => ({
+      ...member,
+      extra: member.extra.filter((item) => item.id !== id),
+    }));
   }
 
   protected cancel(): void {

@@ -54,6 +54,36 @@
   >
     Familie
   </button>
+  <button
+    type="button"
+    role="tab"
+    class="tab-btn"
+    [class.is-on]="tab() === 'material'"
+    [attr.aria-selected]="tab() === 'material'"
+    (click)="tab.set('material')"
+  >
+    Material
+  </button>
+  <button
+    type="button"
+    role="tab"
+    class="tab-btn"
+    [class.is-on]="tab() === 'access'"
+    [attr.aria-selected]="tab() === 'access'"
+    (click)="tab.set('access')"
+  >
+    Zugang und Rechte
+  </button>
+  <button
+    type="button"
+    role="tab"
+    class="tab-btn"
+    [class.is-on]="tab() === 'extra'"
+    [attr.aria-selected]="tab() === 'extra'"
+    (click)="tab.set('extra')"
+  >
+    Weitere Felder
+  </button>
 </div>
 
 @switch (tab()) {
@@ -208,6 +238,15 @@
                 (change)="setText('attestUntil', $event)"
               />
             </div>
+            <div>
+              <label class="field-label" for="s-start">Startrecht</label>
+              <input
+                id="s-start"
+                class="input"
+                [value]="draft().startRight"
+                (change)="setText('startRight', $event)"
+              />
+            </div>
           </div>
           <span class="field-label">Gruppen als Schwimmer</span>
           <div class="chips">
@@ -294,6 +333,16 @@
               />
             </div>
             <div>
+              <label class="field-label" for="t-code">Ehrenkodex vom</label>
+              <input
+                id="t-code"
+                class="input"
+                type="date"
+                [value]="draft().codeOfConductOn"
+                (change)="setText('codeOfConductOn', $event)"
+              />
+            </div>
+            <div>
               <label class="field-label" for="t-fee">Honorar in Euro pro Stunde</label>
               <input
                 id="t-fee"
@@ -374,6 +423,26 @@
                 (change)="setText('refereeUntil', $event)"
               />
             </div>
+            <div>
+              <label class="field-label" for="r-aw">AW gültig bis</label>
+              <input
+                id="r-aw"
+                class="input"
+                type="date"
+                [value]="draft().refereeAwUntil"
+                (change)="setText('refereeAwUntil', $event)"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="r-sch">SCH gültig bis</label>
+              <input
+                id="r-sch"
+                class="input"
+                type="date"
+                [value]="draft().refereeSchUntil"
+                (change)="setText('refereeSchUntil', $event)"
+              />
+            </div>
           </div>
         </section>
       }
@@ -403,15 +472,215 @@
       }
     </div>
   }
+  @case ('material') {
+    <section class="panel">
+      <div class="card-head">
+        <h3>Material</h3>
+        <button type="button" class="btn is-small" (click)="addMaterial()">
+          <app-icon name="plus" /> Material hinzufügen
+        </button>
+      </div>
+      <table class="rdp-table">
+        <thead>
+          <tr>
+            <th scope="col">Gegenstand</th>
+            <th scope="col">Ausgegeben am</th>
+            <th scope="col"><span class="is-sr-only">Aktionen</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of draft().material; track item.id) {
+            <tr>
+              <td>
+                <input
+                  class="input"
+                  [attr.aria-label]="'Gegenstand'"
+                  [value]="item.name"
+                  (change)="setMaterial(item.id, 'name', $event)"
+                />
+              </td>
+              <td>
+                <input
+                  class="input"
+                  type="date"
+                  [attr.aria-label]="'Ausgegeben am'"
+                  [value]="item.since"
+                  (change)="setMaterial(item.id, 'since', $event)"
+                />
+              </td>
+              <td class="actions">
+                <button
+                  type="button"
+                  class="icon-btn is-bad"
+                  [attr.aria-label]="item.name + ' entfernen'"
+                  title="Entfernen"
+                  (click)="removeMaterial(item.id)"
+                >
+                  <app-icon name="trash" />
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3" class="empty">Kein Material ausgegeben.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+  @case ('access') {
+    <section class="panel">
+      <div class="card-head">
+        <h3>Zugang</h3>
+        <span [class]="accessPill().css">{{ accessPill().text }}</span>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="a-user">Benutzername</label>
+          <input
+            id="a-user"
+            class="input"
+            [value]="draft().username"
+            (change)="setText('username', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="a-mail">E-Mail für Login und Hinweise</label>
+          <input
+            id="a-mail"
+            class="input"
+            type="email"
+            [value]="draft().loginEmail"
+            (change)="setText('loginEmail', $event)"
+          />
+        </div>
+      </div>
+      <div class="icon-row mt-3">
+        @if (draft().access === 'none') {
+          <button type="button" class="btn is-primary" (click)="setAccess('active')">
+            <app-icon name="mail" /> Zugang einrichten
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="btn"
+            (click)="notice.set('Demo: Ein neues Kennwort wurde nicht versendet.')"
+          >
+            <app-icon name="mail" /> Neues Kennwort senden
+          </button>
+          @if (draft().access === 'active') {
+            <button type="button" class="btn is-danger" (click)="setAccess('blocked')">
+              Zugang sperren
+            </button>
+          } @else {
+            <button type="button" class="btn" (click)="setAccess('active')">
+              Zugang entsperren
+            </button>
+          }
+        }
+      </div>
+      @if (notice()) {
+        <p class="sub">{{ notice() }}</p>
+      }
+    </section>
+    <section class="panel">
+      <h3>Rollen</h3>
+      <p class="sub">
+        Dieselben Rollen wie in der Benutzerverwaltung. Änderungen gelten an beiden Stellen.
+      </p>
+      @for (item of appRoles; track item.key) {
+        <label class="checkbox block">
+          <input
+            type="checkbox"
+            [checked]="draft().appRoles.includes(item.key)"
+            (change)="toggleAppRole(item.key)"
+          />
+          <strong>{{ item.label }}</strong>
+          <small class="sub">{{ item.hint }}</small>
+        </label>
+      }
+    </section>
+    <section class="panel">
+      <h3>Sonderrechte</h3>
+      <p class="sub">
+        Dieselben Sonderrechte wie in der Benutzerverwaltung, hier nur für
+        {{ draft().firstName || 'diese Person' }}.
+      </p>
+      @for (item of specialRights; track item.key) {
+        <label class="checkbox block">
+          <input
+            type="checkbox"
+            [checked]="draft().specialRights.includes(item.key)"
+            (change)="toggleRight(item.key)"
+          />
+          <strong>{{ item.label }}</strong>
+          <small class="sub">{{ item.hint }}</small>
+        </label>
+      }
+    </section>
+  }
+  @case ('extra') {
+    <section class="panel">
+      <div class="card-head">
+        <h3>Weitere Felder</h3>
+        <button type="button" class="btn is-small" (click)="addExtra()">
+          <app-icon name="plus" /> Feld hinzufügen
+        </button>
+      </div>
+      @for (item of draft().extra; track item.id) {
+        <div class="form-grid">
+          <div>
+            <label class="field-label" [for]="'x-l-' + item.id">Bezeichnung</label>
+            <input
+              [id]="'x-l-' + item.id"
+              class="input"
+              [value]="item.label"
+              (change)="setExtra(item.id, 'label', $event)"
+            />
+          </div>
+          <div>
+            <label class="field-label" [for]="'x-v-' + item.id">Wert</label>
+            <input
+              [id]="'x-v-' + item.id"
+              class="input"
+              [value]="item.value"
+              (change)="setExtra(item.id, 'value', $event)"
+            />
+          </div>
+          <div class="actions">
+            <button
+              type="button"
+              class="icon-btn is-bad"
+              [attr.aria-label]="item.label + ' entfernen'"
+              title="Entfernen"
+              (click)="removeExtra(item.id)"
+            >
+              <app-icon name="trash" />
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <p class="sub">Keine weiteren Felder, z. B. Konfektionsgröße oder Notfallkontakt.</p>
+      }
+    </section>
+  }
   @case ('family') {
     <div class="cols">
       <section class="panel">
-        <h3>Eltern und Erziehungsberechtigte</h3>
+        <div class="card-head">
+          <h3>Eltern und Erziehungsberechtigte</h3>
+          <a class="btn is-small" routerLink="/personen/eltern/neu">
+            <app-icon name="plus" /> Elternteil hinzufügen
+          </a>
+        </div>
         @for (parent of parents(); track parent.id) {
           <div class="parent">
             <div class="parent-head">
               <div>
-                <strong>{{ parent.name }}</strong>
+                <a [routerLink]="['/personen/eltern', parent.id]"
+                  ><strong>{{ parent.name }}</strong></a
+                >
                 <span class="sub">{{ parent.relation }} · {{ parent.email }}</span>
               </div>
               <span

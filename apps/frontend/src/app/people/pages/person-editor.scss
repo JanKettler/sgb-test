@@ -81,3 +81,12 @@
   justify-content: space-between;
   margin-bottom: 0.5rem;
 }
+
+.checkbox.block {
+  display: block;
+  margin-bottom: 0.6rem;
+
+  small {
+    margin-left: 1.5rem;
+  }
+}

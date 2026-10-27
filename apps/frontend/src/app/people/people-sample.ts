@@ -84,6 +84,26 @@ function buildMember(person: Person, index: number, today: string): Member {
       criminalRecordOn: member.criminalRecordOn || addDays(today, -200),
     } satisfies Partial<Member>);
   }
+  if (member.swimmer) member.startRight = 'DSV, Landesverband Niedersachsen';
+  if (member.trainer) {
+    member.codeOfConductOn = trainerNo % 3 === 1 ? '' : addDays(today, -600);
+    member.appRoles = ['trainer'];
+  }
+  if (member.referee) {
+    member.refereeAwUntil = addDays(today, 400 + index);
+    member.refereeSchUntil = addDays(today, 300 + index);
+  }
+  if (member.official) member.appRoles = [...member.appRoles, 'board'];
+  if (member.trainer || member.official) {
+    member.username = `${slug(firstName)}.${slug(rest.join(''))}`;
+    member.loginEmail = `${member.username}@example.org`;
+    member.access = 'active';
+  }
+  if (member.trainer) {
+    member.material = [
+      { id: `${person.id}-mat-1`, name: 'Vereinsjacke', since: `${2018 + (index % 6)}-10-01` },
+    ];
+  }
   return member;
 }
 
