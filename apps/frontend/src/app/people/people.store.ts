@@ -3,7 +3,8 @@ import { GroupId } from '../training/training.models';
 import { TrainingStore } from '../training/training.store';
 import { EvidenceRow, MemberStatus, evidenceOf, statusOf } from './people-evidence';
 import { createPeopleSample } from './people-sample';
-import { Member, Parent, ROLES, emptyMember, fullName } from './people.models';
+import { fullDate } from '../training/training-dates';
+import { Member, Parent, ROLES, emptyMember, fullName, isActive } from './people.models';
 
 /** Byte order mark, so that Excel opens the file as UTF-8. */
 const BOM = String.fromCharCode(0xfeff);
@@ -23,6 +24,10 @@ export class PeopleStore {
   readonly parents = signal<Parent[]>(this.sample.parents);
   /** One-time message shown after saving on another page. */
   readonly flash = signal('');
+  /** Hide evidence that was never entered, in every list. */
+  readonly hideMissing = signal(false);
+  /** Single evidence entries the user hid, as "memberId:kind". */
+  readonly dismissed = signal<ReadonlySet<string>>(new Set());
 
   readonly activeMembers = computed(() => this.members().filter((member) => member.active));
 
@@ -33,7 +38,7 @@ export class PeopleStore {
   /** Evidence of all active members, most urgent first. */
   readonly evidence = computed<EvidenceRow[]>(() =>
     this.activeMembers()
-      .flatMap((member) => evidenceOf(member, this.today))
+      .flatMap((member) => this.evidenceOf(member))
       .sort(
         (a, b) =>
           (a.days ?? Number.NEGATIVE_INFINITY) - (b.days ?? Number.NEGATIVE_INFINITY) ||
@@ -72,11 +77,29 @@ export class PeopleStore {
   }
 
   statusOf(member: Member): MemberStatus {
-    return statusOf(evidenceOf(member, this.today));
+    return statusOf(this.evidenceOf(member));
   }
 
+  /** Evidence without what the user chose to hide. */
   evidenceOf(member: Member): EvidenceRow[] {
+    const hidden = this.dismissed();
+    const hideMissing = this.hideMissing();
+    return this.allEvidenceOf(member).filter(
+      (item) => !(hideMissing && item.missing) && !hidden.has(`${member.id}:${item.kind}`),
+    );
+  }
+
+  /** All evidence, for the edit page where nothing may be hidden. */
+  allEvidenceOf(member: Member): EvidenceRow[] {
     return evidenceOf(member, this.today);
+  }
+
+  dismiss(item: EvidenceRow): void {
+    this.dismissed.update((all) => new Set(all).add(`${item.member.id}:${item.kind}`));
+  }
+
+  showDismissed(): void {
+    this.dismissed.set(new Set());
   }
 
   newMember(): Member {
@@ -84,7 +107,8 @@ export class PeopleStore {
     return emptyMember(`m-new-${this.nextId++}`, highest + 1, this.today);
   }
 
-  save(member: Member): void {
+  save(input: Member): void {
+    const member = { ...input, active: isActive(input, this.today) };
     const exists = this.memberById().has(member.id);
     this.members.update((all) =>
       exists ? all.map((item) => (item.id === member.id ? member : item)) : [...all, member],
@@ -143,11 +167,19 @@ export class PeopleStore {
   /** Semicolon separated text with a BOM, so that Excel opens it correctly. */
   membersCsv(members: Member[]): string {
     const lines = [
-      ['Mitgliedsnummer', 'Name', 'Jahrgang', 'Rollen', 'Schwimmer in', 'Trainer in', 'Nachweise'],
+      [
+        'Mitgliedsnummer',
+        'Name',
+        'Geburtsdatum',
+        'Rollen',
+        'Schwimmer in',
+        'Trainer in',
+        'Nachweise',
+      ],
       ...members.map((member) => [
         String(member.memberNo),
         fullName(member),
-        String(member.birthYear),
+        fullDate(member.birthDate),
         this.roleChips(member)
           .map((role) => role.label)
           .join(', '),

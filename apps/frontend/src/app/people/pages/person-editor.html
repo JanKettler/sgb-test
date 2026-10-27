@@ -3,7 +3,7 @@
   <div class="who">
     <h2>{{ name() }}</h2>
     <p class="sub">
-      Jg. {{ draft().birthYear }} · Mitgliedsnummer {{ draft().memberNo }} · Eintritt
+      Jg. {{ year(draft()) }} · Mitgliedsnummer {{ draft().memberNo }} · Eintritt
       {{ fullDate(draft().entry) }}
       @if (!draft().active) {
         · inaktiv
@@ -80,13 +80,13 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-birth">Geburtsjahr</label>
+          <label class="field-label" for="p-birth">Geburtsdatum</label>
           <input
             id="p-birth"
             class="input"
-            type="number"
-            [value]="draft().birthYear"
-            (change)="setNumber('birthYear', $event)"
+            type="date"
+            [value]="draft().birthDate"
+            (change)="setText('birthDate', $event)"
           />
         </div>
         <div>
@@ -110,26 +110,23 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-active">Status</label>
-          <div class="select is-fullwidth">
-            <select id="p-active" (change)="setActive($event)">
-              <option value="active" [selected]="draft().active">Aktiv</option>
-              <option value="inactive" [selected]="!draft().active">Inaktiv</option>
-            </select>
-          </div>
+          <span class="field-label">Status</span>
+          <span [class]="active() ? 'pill is-ok' : 'pill is-bad'">
+            {{ active() ? 'Aktiv' : 'Inaktiv' }}
+          </span>
+          <small class="sub">Automatisch: aktiv mit mindestens einer Rolle.</small>
         </div>
         <div>
-          <label class="field-label" for="p-clearance">Führungszeugnis vom</label>
+          <label class="field-label" for="p-exit">Austritt am</label>
           <input
-            id="p-clearance"
+            id="p-exit"
             class="input"
             type="date"
-            [value]="draft().criminalRecordOn"
-            (change)="setText('criminalRecordOn', $event)"
+            [value]="draft().exitDate"
+            (change)="setText('exitDate', $event)"
           />
         </div>
       </div>
-      <p class="sub">Das Führungszeugnis wird nur einmal pro Person erfasst, nicht je Rolle.</p>
     </section>
   }
   @case ('roles') {
@@ -148,6 +145,21 @@
           <p class="sub">Ohne Rolle gibt es keine Nachweise.</p>
         }
       </div>
+      @if (draft().trainer || draft().referee || draft().official) {
+        <div class="form-grid mt-4">
+          <div>
+            <label class="field-label" for="p-clearance">Führungszeugnis vom</label>
+            <input
+              id="p-clearance"
+              class="input"
+              type="date"
+              [value]="draft().criminalRecordOn"
+              (change)="setText('criminalRecordOn', $event)"
+            />
+            <small class="sub">Wird nur einmal pro Person erfasst, nicht je Rolle.</small>
+          </div>
+        </div>
+      }
     </section>
 
     @if (missingRoles().length > 0) {
@@ -441,7 +453,7 @@
             <a [routerLink]="['/personen', sibling.id]"
               >{{ sibling.firstName }} {{ sibling.lastName }}</a
             >
-            <span class="sub">Jg. {{ sibling.birthYear }}</span>
+            <span class="sub">Jg. {{ year(sibling) }}</span>
           </p>
         } @empty {
           <p class="sub">Keine Geschwister im Verein.</p>

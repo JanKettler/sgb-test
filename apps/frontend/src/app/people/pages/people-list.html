@@ -75,8 +75,8 @@
           <label class="field-label" for="people-status">Status</label>
           <div class="select">
             <select id="people-status" (change)="status.set($any(value($event))); resetPage()">
-              <option value="active" [selected]="status() === 'active'">Nur aktive</option>
               <option value="all" [selected]="status() === 'all'">Alle</option>
+              <option value="active" [selected]="status() === 'active'">Nur aktive</option>
               <option value="inactive" [selected]="status() === 'inactive'">Nur inaktive</option>
             </select>
           </div>
@@ -117,14 +117,16 @@
                 </td>
                 <td>
                   <strong>{{ row.name }}</strong>
-                  <small class="sub">Jg. {{ row.member.birthYear }}</small>
+                  <small class="sub">Jg. {{ year(row.member) }}</small>
                 </td>
                 <td>{{ row.member.memberNo }}</td>
                 <td>
                   @if (row.member.swimmer) {
                     <app-group-chips [groupIds]="row.member.swimmerGroupIds" [short]="true" />
                     @if (row.swimmer; as hint) {
-                      <span [class]="'pill is-' + tone(hint.tone)">{{ hint.text }}</span>
+                      <span [class]="'pill is-' + tone(hint.tone)" [title]="hint.title">{{
+                        hint.text
+                      }}</span>
                     }
                   } @else {
                     <span class="sub">–</span>
@@ -134,7 +136,9 @@
                   @if (row.member.trainer) {
                     <app-group-chips [groupIds]="row.member.trainerGroupIds" [short]="true" />
                     @if (row.trainer; as hint) {
-                      <span [class]="'pill is-' + tone(hint.tone)">{{ hint.text }}</span>
+                      <span [class]="'pill is-' + tone(hint.tone)" [title]="hint.title">{{
+                        hint.text
+                      }}</span>
                     }
                   } @else {
                     <span class="sub">–</span>
@@ -146,7 +150,9 @@
                       <span class="pill is-warn">{{ row.member.refereeNo }}</span>
                     }
                     @if (row.referee; as hint) {
-                      <span [class]="'pill is-' + tone(hint.tone)">{{ hint.text }}</span>
+                      <span [class]="'pill is-' + tone(hint.tone)" [title]="hint.title">{{
+                        hint.text
+                      }}</span>
                     }
                   } @else {
                     <span class="sub">–</span>

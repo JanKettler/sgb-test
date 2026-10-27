@@ -7,7 +7,7 @@ import { fullDate } from '../../training/training-dates';
 import { EvidenceRow, statusOf } from '../people-evidence';
 import { downloadText } from '../../training/training-download';
 import { GROUPS, GroupId } from '../../training/training.models';
-import { fullName, Member, ROLES, RoleKey } from '../people.models';
+import { birthYear, fullName, Member, ROLES, RoleKey } from '../people.models';
 import { PeopleStore } from '../people.store';
 import { EvidenceTable } from './evidence-table';
 import { ParentsTable } from './parents-table';
@@ -21,7 +21,10 @@ const PAGE_SIZE = 25;
 /** Evidence of one role, reduced to the most urgent hint for the list. */
 export interface RoleHint {
   tone: string;
+  /** Short text for the narrow table. */
   text: string;
+  /** Full text on hover. */
+  title: string;
 }
 
 @Component({
@@ -48,6 +51,7 @@ export class PeopleList {
   protected readonly openId = signal('');
   protected readonly toDelete = signal<Member | null>(null);
   protected readonly fullDate = fullDate;
+  protected readonly year = birthYear;
 
   protected readonly rows = computed(() => {
     const term = this.search().trim().toLowerCase();
@@ -154,8 +158,21 @@ export class PeopleList {
   }
 
   private hint(rows: EvidenceRow[], role: string): RoleHint | null {
-    const status = statusOf(rows.filter((item) => item.role === role));
-    return status.tone === 'ok' ? null : status;
+    const worst = statusOf(rows.filter((item) => item.role === role));
+    if (worst.tone === 'ok') return null;
+    const item = rows
+      .filter(
+        (entry) => entry.role === role && entry.tone === worst.tone && entry.text === worst.text,
+      )
+      .at(0);
+    const text = !item
+      ? worst.text
+      : item.missing
+        ? `${item.label} fehlt`
+        : item.days !== null && item.days < 0
+          ? `${item.label} abgelaufen`
+          : `${item.label} ${item.days} T.`;
+    return { tone: worst.tone, text, title: worst.text };
   }
 
   protected value(event: Event): string {

@@ -16,7 +16,7 @@ type Period = 'all' | 'overdue' | '30' | '90';
   templateUrl: './evidence-table.html',
 })
 export class EvidenceTable {
-  private readonly store = inject(PeopleStore);
+  protected readonly store = inject(PeopleStore);
   protected readonly kinds = EVIDENCE_KINDS;
   protected readonly labels = EVIDENCE_LABELS;
   protected readonly fullDate = fullDate;

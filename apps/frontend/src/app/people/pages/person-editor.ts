@@ -6,12 +6,23 @@ import { Icon } from '../../ui/icon';
 import { fullDate } from '../../training/training-dates';
 import { GROUPS, GroupId } from '../../training/training.models';
 import { EvidenceRow } from '../people-evidence';
-import { LICENSE_KINDS, Member, ROLES, RoleKey, fullName, initials } from '../people.models';
+import {
+  LICENSE_KINDS,
+  Member,
+  ROLES,
+  RoleKey,
+  birthYear,
+  fullName,
+  initials,
+  isActive,
+} from '../people.models';
 import { PeopleStore } from '../people.store';
 
 type Tab = 'master' | 'roles' | 'family';
 type TextKey =
   | 'firstName'
+  | 'birthDate'
+  | 'exitDate'
   | 'lastName'
   | 'entry'
   | 'criminalRecordOn'
@@ -50,14 +61,16 @@ export class PersonEditor {
   protected readonly groups = GROUPS;
   protected readonly licenseKinds = LICENSE_KINDS;
   protected readonly fullDate = fullDate;
+  protected readonly year = birthYear;
   protected readonly tab = signal<Tab>('master');
 
   /** Working copy; it only reaches the store on "Speichern". */
   protected readonly draft = signal<Member>(this.load());
+  protected readonly active = computed(() => isActive(this.draft(), this.store.today));
   protected readonly isNew = computed(() => !this.store.member(this.draft().id));
   protected readonly parents = computed(() => this.store.parentsOf(this.draft()));
   protected readonly siblings = computed(() => this.store.siblingsOf(this.draft()));
-  protected readonly evidence = computed(() => this.store.evidenceOf(this.draft()));
+  protected readonly evidence = computed(() => this.store.allEvidenceOf(this.draft()));
   protected readonly chips = computed(() => this.store.roleChips(this.draft()));
   protected readonly name = computed(() => fullName(this.draft()) || 'Neue Person');
   protected readonly initials = computed(() => initials(this.draft()) || '+');
@@ -77,12 +90,8 @@ export class PersonEditor {
     this.draft.update((member) => ({ ...member, [key]: this.value(event) }));
   }
 
-  protected setNumber(key: 'birthYear' | 'memberNo', event: Event): void {
+  protected setNumber(key: 'memberNo', event: Event): void {
     this.draft.update((member) => ({ ...member, [key]: Number(this.value(event)) || 0 }));
-  }
-
-  protected setActive(event: Event): void {
-    this.draft.update((member) => ({ ...member, active: this.value(event) === 'active' }));
   }
 
   protected setRole(key: RoleKey, on: boolean): void {

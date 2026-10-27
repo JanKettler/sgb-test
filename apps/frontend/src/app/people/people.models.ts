@@ -5,11 +5,15 @@ export interface Member {
   id: string;
   firstName: string;
   lastName: string;
-  birthYear: number;
+  /** ISO date, yyyy-MM-dd */
+  birthDate: string;
   memberNo: number;
   /** ISO date, yyyy-MM-dd */
   entry: string;
+  /** Set automatically on saving, see isActive(). */
   active: boolean;
+  /** ISO date of leaving the club; empty while still a member. */
+  exitDate: string;
   /** Date of the police clearance certificate; needed once per person. */
   criminalRecordOn: string;
   swimmer: boolean;
@@ -67,6 +71,23 @@ export function fullName(member: Pick<Member, 'firstName' | 'lastName'>): string
   return `${member.firstName} ${member.lastName}`.trim();
 }
 
+export function birthYear(member: Pick<Member, 'birthDate'>): number {
+  return Number(member.birthDate.slice(0, 4));
+}
+
+/**
+ * A person counts as active while they hold at least one role (a swimmer needs a group) and
+ * have not left the club yet.
+ */
+export function isActive(member: Member, today: string): boolean {
+  const hasRole =
+    (member.swimmer && member.swimmerGroupIds.length > 0) ||
+    member.trainer ||
+    member.referee ||
+    member.official;
+  return hasRole && (!member.exitDate || member.exitDate > today);
+}
+
 export function initials(member: Pick<Member, 'firstName' | 'lastName'>): string {
   return `${member.firstName.charAt(0)}${member.lastName.charAt(0)}`.toUpperCase();
 }
@@ -76,10 +97,11 @@ export function emptyMember(id: string, memberNo: number, today: string): Member
     id,
     firstName: '',
     lastName: '',
-    birthYear: Number(today.slice(0, 4)) - 10,
+    birthDate: `${Number(today.slice(0, 4)) - 10}-01-01`,
     memberNo,
     entry: today,
     active: true,
+    exitDate: '',
     criminalRecordOn: '',
     swimmer: true,
     swimmerGroupIds: [],

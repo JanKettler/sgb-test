@@ -1,6 +1,6 @@
 import { addDays } from '../training/training-dates';
 import { GroupId, Person } from '../training/training.models';
-import { Member, Parent, Relation, emptyMember } from './people.models';
+import { Member, Parent, Relation, birthYear, emptyMember } from './people.models';
 
 /**
  * Invented demo members, derived from the training demo people so that both modules show the
@@ -47,7 +47,7 @@ function buildMember(person: Person, index: number, today: string): Member {
   Object.assign(member, {
     firstName,
     lastName: rest.join(' '),
-    birthYear: birth,
+    birthDate: `${birth}-${String(1 + (index % 12)).padStart(2, '0')}-${String(1 + ((index * 5) % 28)).padStart(2, '0')}`,
     entry: `${2014 + (index % 10)}-09-01`,
     swimmer: person.groupId !== null,
     swimmerGroupIds: person.groupId ? [person.groupId] : [],
@@ -92,7 +92,7 @@ function buildParents(members: Member[]): Parent[] {
   const parents: Parent[] = [];
   const families = new Map<string, Member[]>();
   for (const member of members) {
-    if (!member.swimmer || member.birthYear < 2008) continue;
+    if (!member.swimmer || birthYear(member) < 2008) continue;
     families.set(member.lastName, [...(families.get(member.lastName) ?? []), member]);
   }
   let counter = 0;

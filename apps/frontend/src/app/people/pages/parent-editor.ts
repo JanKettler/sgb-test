@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { Icon } from '../../ui/icon';
-import { Parent, Relation, fullName } from '../people.models';
+import { Parent, Relation, birthYear, fullName } from '../people.models';
 import { PeopleStore } from '../people.store';
 
 const RELATIONS: readonly Relation[] = ['Mutter', 'Vater', 'Erziehungsberechtigte'];
@@ -47,7 +47,7 @@ export class ParentEditor {
           !this.childIds().includes(member.id) && fullName(member).toLowerCase().includes(term),
       )
       .slice(0, 6)
-      .map((member) => ({ id: member.id, name: fullName(member), year: member.birthYear }));
+      .map((member) => ({ id: member.id, name: fullName(member), year: birthYear(member) }));
   });
 
   private load(): Parent {

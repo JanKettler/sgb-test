@@ -45,14 +45,24 @@
       </div>
     </div>
     <div>
-      <label class="field-label" for="filter-time">Zeitraum</label>
-      <div class="select">
-        <select id="filter-time" (change)="setTime($event)">
-          @for (item of timeOptions; track item.id) {
-            <option [value]="item.id" [selected]="item.id === time()">{{ item.label }}</option>
-          }
-        </select>
-      </div>
+      <label class="field-label" for="filter-from">Von</label>
+      <input
+        id="filter-from"
+        class="input"
+        type="date"
+        [value]="from()"
+        (change)="from.set(value($event))"
+      />
+    </div>
+    <div>
+      <label class="field-label" for="filter-to">Bis</label>
+      <input
+        id="filter-to"
+        class="input"
+        type="date"
+        [value]="to()"
+        (change)="to.set(value($event))"
+      />
     </div>
     <div class="chips range">
       @if (filtered()) {

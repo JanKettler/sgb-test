@@ -16,6 +16,7 @@ export type IconName =
   | 'chevron-left'
   | 'chevron-right'
   | 'chevron-up'
+  | 'eye-slash'
   | 'chevron-down'
   | 'home'
   | 'gear'
@@ -40,6 +41,7 @@ const FONT_AWESOME: Record<IconName, string> = {
   'chevron-left': 'fa-chevron-left',
   'chevron-right': 'fa-chevron-right',
   'chevron-up': 'fa-chevron-up',
+  'eye-slash': 'fa-eye-slash',
   'chevron-down': 'fa-chevron-down',
   home: 'fa-house',
   gear: 'fa-gear',
