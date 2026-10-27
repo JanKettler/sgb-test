@@ -27,7 +27,10 @@ describe('TrainingStore', () => {
   });
 
   it('takes the registration over into the attendance and lets the trainer override it', () => {
-    const session = upcoming();
+    // A session of another group, so Lena has no sample answer for it yet.
+    const session = store
+      .sessions()
+      .find((item) => item.date >= store.today && !item.groupIds.includes('G2'))!;
     expect(store.stateOf(session, 'p-lena', 'swimmer')).toBe('missing');
     store.respond(session.id, 'p-lena', 'swimmer', 'registered');
     expect(store.stateOf(session, 'p-lena', 'swimmer')).toBe('present');
