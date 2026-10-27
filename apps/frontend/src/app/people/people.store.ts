@@ -1,0 +1,122 @@
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { GroupId } from '../training/training.models';
+import { TrainingStore } from '../training/training.store';
+import { EvidenceRow, MemberStatus, evidenceOf, statusOf } from './people-evidence';
+import { createPeopleSample } from './people-sample';
+import { Member, Parent, ROLES, emptyMember, fullName } from './people.models';
+
+/** Byte order mark, so that Excel opens the file as UTF-8. */
+const BOM = String.fromCharCode(0xfeff);
+
+/**
+ * In-memory stand-in for the future members API. The training module has its own small list of
+ * people; the real database will join both.
+ */
+@Injectable({ providedIn: 'root' })
+export class PeopleStore {
+  private readonly training = inject(TrainingStore);
+  readonly today = this.training.today;
+  private readonly sample = createPeopleSample(this.today, this.training.people());
+  private nextId = 1;
+
+  readonly members = signal<Member[]>(this.sample.members);
+  readonly parents = signal<Parent[]>(this.sample.parents);
+  /** One-time message shown after saving on another page. */
+  readonly flash = signal('');
+
+  readonly activeMembers = computed(() => this.members().filter((member) => member.active));
+
+  private readonly memberById = computed(
+    () => new Map(this.members().map((member) => [member.id, member])),
+  );
+
+  /** Evidence of all active members, most urgent first. */
+  readonly evidence = computed<EvidenceRow[]>(() =>
+    this.activeMembers()
+      .flatMap((member) => evidenceOf(member, this.today))
+      .sort(
+        (a, b) =>
+          (a.days ?? Number.NEGATIVE_INFINITY) - (b.days ?? Number.NEGATIVE_INFINITY) ||
+          a.member.lastName.localeCompare(b.member.lastName, 'de'),
+      ),
+  );
+
+  /** Evidence that is missing, expired or runs out within 90 days. */
+  readonly dueEvidence = computed(() =>
+    this.evidence().filter((item) => item.missing || (item.days !== null && item.days <= 90)),
+  );
+
+  member(id: string): Member | undefined {
+    return this.memberById().get(id);
+  }
+
+  parentsOf(member: Member): Parent[] {
+    const ids = new Set(member.parentIds);
+    return this.parents().filter((parent) => ids.has(parent.id));
+  }
+
+  childrenOf(parent: Parent): Member[] {
+    return this.members().filter((member) => member.parentIds.includes(parent.id));
+  }
+
+  /** Siblings are members that share at least one parent. */
+  siblingsOf(member: Member): Member[] {
+    return this.members().filter(
+      (other) =>
+        other.id !== member.id && other.parentIds.some((id) => member.parentIds.includes(id)),
+    );
+  }
+
+  roleChips(member: Member): { label: string; css: string }[] {
+    return ROLES.filter((role) => member[role.key]);
+  }
+
+  statusOf(member: Member): MemberStatus {
+    return statusOf(evidenceOf(member, this.today));
+  }
+
+  evidenceOf(member: Member): EvidenceRow[] {
+    return evidenceOf(member, this.today);
+  }
+
+  newMember(): Member {
+    const highest = Math.max(0, ...this.members().map((member) => member.memberNo));
+    return emptyMember(`m-new-${this.nextId++}`, highest + 1, this.today);
+  }
+
+  save(member: Member): void {
+    const exists = this.memberById().has(member.id);
+    this.members.update((all) =>
+      exists ? all.map((item) => (item.id === member.id ? member : item)) : [...all, member],
+    );
+  }
+
+  updateParent(id: string, change: Partial<Parent>): void {
+    this.parents.update((all) =>
+      all.map((parent) => (parent.id === id ? { ...parent, ...change } : parent)),
+    );
+  }
+
+  /** Semicolon separated text with a BOM, so that Excel opens it correctly. */
+  membersCsv(members: Member[]): string {
+    const lines = [
+      ['Mitgliedsnummer', 'Name', 'Jahrgang', 'Rollen', 'Schwimmer in', 'Trainer in', 'Nachweise'],
+      ...members.map((member) => [
+        String(member.memberNo),
+        fullName(member),
+        String(member.birthYear),
+        this.roleChips(member)
+          .map((role) => role.label)
+          .join(', '),
+        member.swimmerGroupIds.map((id) => this.training.groupName(id)).join(', '),
+        member.trainerGroupIds.map((id) => this.training.groupName(id)).join(', '),
+        this.statusOf(member).text,
+      ]),
+    ];
+    return BOM + lines.map((line) => line.join(';')).join('\r\n');
+  }
+
+  groupName(id: GroupId): string {
+    return this.training.groupName(id);
+  }
+}

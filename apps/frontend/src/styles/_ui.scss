@@ -358,6 +358,11 @@ app-icon {
   min-width: 1.7rem;
   padding: 0 0.45rem;
   text-align: center;
+
+  &.is-bad {
+    background: var(--bad-bg);
+    color: var(--bad-fg);
+  }
 }
 
 .notice {
@@ -421,4 +426,44 @@ app-icon {
 .select select option {
   background-color: var(--sgb-card);
   color: var(--sgb-ink);
+}
+
+/* Tabs of a page, e.g. Mitglieder, Eltern, Nachweise. */
+.tabbar {
+  border-bottom: 1px solid var(--sgb-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.tab-btn {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  color: var(--sgb-soft);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 600;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+
+  &.is-on {
+    border-bottom-color: var(--sgb-strong);
+    color: var(--sgb-ink);
+  }
+}
+
+.group-pick {
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0.6;
+  padding: 0.3rem 0.9rem;
+
+  &.is-on {
+    border-color: currentcolor;
+    opacity: 1;
+  }
 }

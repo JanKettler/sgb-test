@@ -1,0 +1,41 @@
+<div class="table-scroll">
+  <table class="table is-fullwidth is-hoverable">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Beziehung</th>
+        <th scope="col">E-Mail</th>
+        <th scope="col">Kinder im Verein</th>
+        <th scope="col">Zugang</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.parent.id) {
+        <tr>
+          <td>
+            <strong>{{ row.parent.name }}</strong>
+          </td>
+          <td>{{ row.parent.relation }}</td>
+          <td>{{ row.parent.email }}</td>
+          <td>
+            @for (child of row.children; track child.id) {
+              <a class="mr-3" [routerLink]="['/personen', child.id]">{{ child.name }}</a>
+            }
+          </td>
+          <td>
+            <span
+              class="pill"
+              [class]="row.parent.access === 'active' ? 'pill is-ok' : 'pill is-warn'"
+            >
+              {{ row.parent.access === 'active' ? 'Zugang aktiv' : 'Einladung offen' }}
+            </span>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="5" class="empty">Noch keine Eltern erfasst.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
