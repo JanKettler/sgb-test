@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 export type IconName =
   | 'check'
@@ -22,8 +22,31 @@ export type IconName =
   | 'sheet'
   | 'save';
 
+const FONT_AWESOME: Record<IconName, string> = {
+  check: 'fa-check',
+  x: 'fa-xmark',
+  minus: 'fa-minus',
+  plus: 'fa-plus',
+  users: 'fa-user-group',
+  clipboard: 'fa-clipboard-list',
+  pencil: 'fa-pen',
+  copy: 'fa-copy',
+  trash: 'fa-trash',
+  download: 'fa-download',
+  mail: 'fa-envelope',
+  calendar: 'fa-calendar-days',
+  'chevron-left': 'fa-chevron-left',
+  'chevron-right': 'fa-chevron-right',
+  home: 'fa-house',
+  gear: 'fa-gear',
+  warning: 'fa-triangle-exclamation',
+  list: 'fa-list',
+  sheet: 'fa-table',
+  save: 'fa-floppy-disk',
+};
+
 /**
- * Small inline SVG icon set. Keeping all icons in one place makes it easy to switch to
+ * Font Awesome icons behind one component. Keeping all icons in one place makes it easy to switch to
  * Font Awesome later without touching the pages.
  */
 @Component({
@@ -33,4 +56,5 @@ export type IconName =
 })
 export class Icon {
   readonly name = input.required<IconName>();
+  protected readonly cssClass = computed(() => `app-icon fa-solid ${FONT_AWESOME[this.name()]}`);
 }

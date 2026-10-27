@@ -42,3 +42,16 @@ small {
   color: var(--sgb-soft);
   display: block;
 }
+
+.group-pick {
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0.6;
+  padding: 0.3rem 0.9rem;
+
+  &.is-on {
+    border-color: currentcolor;
+    opacity: 1;
+  }
+}
