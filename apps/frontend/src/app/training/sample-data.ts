@@ -145,6 +145,12 @@ function createRandom(seed: number): () => number {
   };
 }
 
+const GROUP_IDS: GroupId[] = ['G1', 'G2', 'G3', 'WK', 'MA'];
+
+function isInGroups(person: Person, groupIds: GroupId[]): boolean {
+  return person.groupId !== null && groupIds.includes(person.groupId);
+}
+
 export function markKey(sessionId: string, personId: string): string {
   return `${sessionId}:${personId}`;
 }
@@ -231,9 +237,8 @@ export function createSampleData(today: string): SampleData {
         });
       }
     }
-    for (const swimmer of swimmers.filter((person) =>
-      session.groupIds.includes(person.groupId as GroupId),
-    )) {
+    const groupSwimmers = swimmers.filter((person) => isInGroups(person, session.groupIds));
+    for (const swimmer of groupSwimmers) {
       const roll = random();
       if (isPast) {
         if (alwaysMissing.get(swimmer.id)?.has(session.id)) {
@@ -284,20 +289,22 @@ export function createSampleData(today: string): SampleData {
     }
   }
 
-  const defaults = Object.fromEntries(
-    (['G1', 'G2', 'G3', 'WK', 'MA'] as GroupId[]).map((groupId): [GroupId, GroupDefaults] => [
-      groupId,
-      {
-        venueId: groupId === 'MA' ? 'v-delfin' : 'v-roshop',
-        durationMinutes: groupId === 'WK' ? 90 : 60,
-        deadlineDaysBefore: 1,
-        deadlineTime: '14:00',
-        maxSwimmers: 15,
-        maxTrainers: 2,
-        trainerIds: TRAINERS.filter(([, , groups]) => groups.includes(groupId)).map(([id]) => id),
-      },
-    ]),
-  ) as Record<GroupId, GroupDefaults>;
+  const defaults = {} as Record<GroupId, GroupDefaults>;
+  for (const groupId of GROUP_IDS) {
+    const trainerIds: string[] = [];
+    for (const [id, , groups] of TRAINERS) {
+      if (groups.includes(groupId)) trainerIds.push(id);
+    }
+    defaults[groupId] = {
+      venueId: groupId === 'MA' ? 'v-delfin' : 'v-roshop',
+      durationMinutes: groupId === 'WK' ? 90 : 60,
+      deadlineDaysBefore: 1,
+      deadlineTime: '14:00',
+      maxSwimmers: 15,
+      maxTrainers: 2,
+      trainerIds,
+    };
+  }
 
   return {
     people,
