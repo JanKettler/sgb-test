@@ -1,10 +1,9 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { createSampleData, markKey, PARENT_CHILD_IDS, DEMO_TRAINER_ID } from './sample-data';
+import { createSampleData, DEMO_TRAINER_ID, markKey, PARENT_CHILD_IDS } from './sample-data';
 import {
   addDays,
   addMonths,
   dayMonth,
-  fullDate,
   monthKey,
   parseIsoDate,
   shortDay,
@@ -16,10 +15,13 @@ import {
   AttendanceState,
   AutomationSettings,
   DeclineReason,
+  DEFAULT_REASONS,
   DemoRole,
   GROUPS,
   GroupDefaults,
   GroupId,
+  MailTemplate,
+  OTHER_REASON,
   Person,
   PersonRole,
   Presence,
@@ -39,10 +41,19 @@ export interface RepeatOptions {
 export interface ActionNeeded {
   person: Person;
   streak: number;
+  /** True when the person had registered for every missed session. */
+  registered: boolean;
+}
+
+export interface Attendee {
+  person: Person;
+  role: PersonRole;
 }
 
 export interface MatrixRow {
   person: Person;
+  isTrainer: boolean;
+  /** One cell per session; null when the person is not part of that session. */
   cells: (AttendanceState | null)[];
 }
 
@@ -54,9 +65,14 @@ export interface Matrix {
 export type ExportContent = 'blank' | 'filled';
 
 const MAX_SERIES_LENGTH = 120;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function compareSessions(a: TrainingSession, b: TrainingSession): number {
   return `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`);
+}
+
+function byName(a: Person, b: Person): number {
+  return a.name.localeCompare(b.name, 'de');
 }
 
 function responseKey(sessionId: string, personId: string, role: PersonRole): string {
@@ -72,25 +88,39 @@ export class TrainingStore {
   readonly today = toIsoDate(new Date());
   readonly groups: readonly TrainingGroup[] = GROUPS;
   readonly role = signal<DemoRole>('admin');
+  /** One-time message shown after saving on another page. */
+  readonly flash = signal('');
 
   private readonly sample = createSampleData(this.today);
   private nextSessionNumber = this.sample.sessions.length + 1;
-  private nextVenueNumber = this.sample.venues.length + 1;
+  private nextId = 1;
 
   readonly people = signal<Person[]>(this.sample.people);
   readonly venues = signal<Venue[]>(this.sample.venues);
   readonly sessions = signal<TrainingSession[]>([...this.sample.sessions].sort(compareSessions));
-  readonly responses = signal<SessionResponse[]>(this.sample.responses);
+  readonly responses = signal(this.sample.responses);
   readonly marks = signal<Record<string, Presence>>(this.sample.marks);
   readonly defaults = signal<Record<GroupId, GroupDefaults>>(this.sample.defaults);
   readonly automation = signal<AutomationSettings>(this.sample.automation);
+  readonly templates = signal<MailTemplate[]>(this.sample.templates);
+  readonly reasons = signal<DeclineReason[]>([...DEFAULT_REASONS]);
   /** Swimmers that were set to inactive or informed by mail from the action list. */
   readonly handledIds = signal<string[]>([]);
   readonly inactiveIds = signal<string[]>([]);
 
-  readonly trainers = computed(() => this.people().filter((person) => person.role === 'trainer'));
-  readonly swimmers = computed(() => this.people().filter((person) => person.role === 'swimmer'));
-
+  readonly swimmers = computed(() =>
+    this.people()
+      .filter((person) => person.groupId !== null)
+      .sort(byName),
+  );
+  readonly trainers = computed(() =>
+    this.people()
+      .filter((person) => person.trainerGroupIds.length > 0)
+      .sort(byName),
+  );
+  private readonly peopleById = computed(
+    () => new Map(this.people().map((person) => [person.id, person])),
+  );
   private readonly responseMap = computed(() => {
     const map = new Map<string, SessionResponse>();
     for (const response of this.responses()) {
@@ -98,20 +128,30 @@ export class TrainingStore {
     }
     return map;
   });
+  private readonly responsesBySession = computed(() => {
+    const map = new Map<string, SessionResponse[]>();
+    for (const response of this.responses()) {
+      const list = map.get(response.sessionId);
+      if (list) list.push(response);
+      else map.set(response.sessionId, [response]);
+    }
+    return map;
+  });
 
   /** Persons whose registrations the current demo user manages. */
   readonly actors = computed<Person[]>(() => {
     const ids = this.role() === 'parent' ? PARENT_CHILD_IDS : [DEMO_TRAINER_ID];
-    return ids
-      .map((id) => this.people().find((person) => person.id === id))
-      .filter((person): person is Person => person !== undefined);
+    const byId = this.peopleById();
+    return ids.map((id) => byId.get(id)).filter((person): person is Person => !!person);
   });
 
   readonly canManage = computed(() => this.role() !== 'parent');
   readonly isAdmin = computed(() => this.role() === 'admin');
 
+  // --- Lookups --------------------------------------------------------------------------------
+
   person(id: string): Person | undefined {
-    return this.people().find((person) => person.id === id);
+    return this.peopleById().get(id);
   }
 
   personName(id: string): string {
@@ -120,6 +160,10 @@ export class TrainingStore {
 
   groupName(id: GroupId): string {
     return this.groups.find((group) => group.id === id)?.name ?? id;
+  }
+
+  groupNames(session: TrainingSession): string {
+    return session.groupIds.map((id) => this.groupName(id)).join(', ');
   }
 
   venueName(id: string): string {
@@ -136,24 +180,44 @@ export class TrainingStore {
   }
 
   deadlineOpen(session: TrainingSession, now = new Date()): boolean {
-    const deadline = new Date(`${session.deadlineDate}T${session.deadlineTime}:00`);
-    return deadline.getTime() > now.getTime();
+    return new Date(`${session.deadlineDate}T${session.deadlineTime}:00`).getTime() > now.getTime();
   }
 
   deadlineLabel(session: TrainingSession): string {
     return `${weekdayShort(session.deadlineDate)} ${dayMonth(session.deadlineDate)}, ${session.deadlineTime}`;
   }
 
-  /** Swimmers expected at a session: members of the selected groups plus extra swimmers. */
+  // --- Participants ---------------------------------------------------------------------------
+
+  /** How a person takes part in a session. Somebody who trains it does not also swim it. */
+  roleIn(session: TrainingSession, person: Person): PersonRole | null {
+    if (session.trainerIds.includes(person.id)) return 'trainer';
+    const inGroup = person.groupId !== null && session.groupIds.includes(person.groupId);
+    return inGroup || session.extraSwimmerIds.includes(person.id) ? 'swimmer' : null;
+  }
+
+  /** Swimmers expected at a session: group members and extra swimmers, without its trainers. */
   sessionSwimmers(session: TrainingSession): Person[] {
-    const extras = new Set(session.extraSwimmerIds);
-    return this.swimmers()
-      .filter(
-        (person) =>
-          (person.groupId !== null && session.groupIds.includes(person.groupId)) ||
-          extras.has(person.id),
-      )
-      .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+    return this.swimmers().filter((person) => this.roleIn(session, person) === 'swimmer');
+  }
+
+  /** Everybody on the attendance list: trainers first, then swimmers. */
+  attendees(session: TrainingSession): Attendee[] {
+    const byId = this.peopleById();
+    const trainerIds = new Set(session.trainerIds);
+    for (const response of this.responsesBySession().get(session.id) ?? []) {
+      if (response.asRole === 'trainer') trainerIds.add(response.personId);
+    }
+    const trainers: Attendee[] = [];
+    for (const id of trainerIds) {
+      const person = byId.get(id);
+      if (person) trainers.push({ person, role: 'trainer' });
+    }
+    trainers.sort((a, b) => byName(a.person, b.person));
+    const swimmers = this.sessionSwimmers(session)
+      .filter((person) => !trainerIds.has(person.id))
+      .map((person): Attendee => ({ person, role: 'swimmer' }));
+    return [...trainers, ...swimmers];
   }
 
   responseOf(sessionId: string, personId: string, role: PersonRole): SessionResponse | undefined {
@@ -182,38 +246,33 @@ export class TrainingStore {
 
   /** Registered persons of a session; trainers first, then swimmers. */
   registered(session: TrainingSession): { trainers: Person[]; swimmers: Person[] } {
-    const byName = (a: Person, b: Person) => a.name.localeCompare(b.name, 'de');
-    const people = this.people();
-    const registeredIds = (role: PersonRole) =>
-      this.responses()
-        .filter(
-          (item) =>
-            item.sessionId === session.id && item.asRole === role && item.status === 'registered',
-        )
-        .map((item) => item.personId);
-    return {
-      trainers: registeredIds('trainer')
-        .map((id) => people.find((person) => person.id === id))
-        .filter((person): person is Person => person !== undefined)
-        .sort(byName),
-      swimmers: registeredIds('swimmer')
-        .map((id) => people.find((person) => person.id === id))
-        .filter((person): person is Person => person !== undefined)
-        .sort(byName),
-    };
+    const byId = this.peopleById();
+    const result = { trainers: [] as Person[], swimmers: [] as Person[] };
+    for (const response of this.responsesBySession().get(session.id) ?? []) {
+      const person = byId.get(response.personId);
+      if (!person || response.status !== 'registered') continue;
+      if (response.asRole === 'trainer') result.trainers.push(person);
+      else if (this.roleIn(session, person) === 'swimmer') result.swimmers.push(person);
+    }
+    result.trainers.sort(byName);
+    result.swimmers.sort(byName);
+    return result;
   }
 
+  // --- Attendance -----------------------------------------------------------------------------
+
+  /**
+   * Taken from the registration, the trainer can override it:
+   * registered means present, declined means excused, no answer means missing.
+   */
   stateOf(session: TrainingSession, personId: string, role: PersonRole): AttendanceState {
     const response = this.responseOf(session.id, personId, role);
     if (response?.status === 'declined') return 'excused';
-    return this.marks()[markKey(session.id, personId)] === 'present' ? 'present' : 'missing';
+    const mark = this.marks()[markKey(session.id, personId)];
+    if (mark) return mark;
+    return response?.status === 'registered' ? 'present' : 'missing';
   }
 
-  setPresence(sessionId: string, personId: string, presence: Presence): void {
-    this.marks.update((marks) => ({ ...marks, [markKey(sessionId, personId)]: presence }));
-  }
-
-  /** The trainer's choice overrides the registration: present/missing clears a decline. */
   setAttendance(
     sessionId: string,
     personId: string,
@@ -221,40 +280,30 @@ export class TrainingStore {
     state: AttendanceState,
   ): void {
     if (state === 'excused') {
-      this.respond(sessionId, personId, role, 'declined', 'Sonstiges');
+      this.respond(sessionId, personId, role, 'declined', OTHER_REASON);
       return;
     }
     if (this.responseOf(sessionId, personId, role)?.status === 'declined') {
       this.respond(sessionId, personId, role, 'registered');
     }
-    this.setPresence(sessionId, personId, state);
+    this.marks.update((marks) => ({ ...marks, [markKey(sessionId, personId)]: state }));
   }
 
-  /** Everybody who belongs on the attendance list of a session. */
-  attendees(session: TrainingSession): { person: Person; role: PersonRole }[] {
-    const trainerIds = new Set([
-      ...session.trainerIds,
-      ...this.registered(session).trainers.map((trainer) => trainer.id),
-    ]);
-    const trainers = this.trainers()
-      .filter((trainer) => trainerIds.has(trainer.id))
-      .map((person) => ({ person, role: 'trainer' as PersonRole }));
-    const swimmers = this.sessionSwimmers(session).map((person) => ({
-      person,
-      role: 'swimmer' as PersonRole,
-    }));
-    return [...trainers, ...swimmers];
-  }
-
-  addWalkIn(sessionId: string, personId: string): void {
+  /** Adds somebody without a registration; pure trainers join as trainer, all others swim. */
+  addWithoutRegistration(sessionId: string, person: Person): void {
     this.sessions.update((all) =>
-      all.map((session) =>
-        session.id === sessionId && !session.extraSwimmerIds.includes(personId)
-          ? { ...session, extraSwimmerIds: [...session.extraSwimmerIds, personId] }
-          : session,
-      ),
+      all.map((session) => {
+        if (session.id !== sessionId) return session;
+        if (person.groupId === null) {
+          return { ...session, trainerIds: [...new Set([...session.trainerIds, person.id])] };
+        }
+        return {
+          ...session,
+          extraSwimmerIds: [...new Set([...session.extraSwimmerIds, person.id])],
+        };
+      }),
     );
-    this.setPresence(sessionId, personId, 'present');
+    this.marks.update((marks) => ({ ...marks, [markKey(sessionId, person.id)]: 'present' }));
   }
 
   // --- Sessions -------------------------------------------------------------------------------
@@ -304,9 +353,7 @@ export class TrainingStore {
       date <= repeat.until && dates.length < MAX_SERIES_LENGTH;
       date = addDays(date, 1)
     ) {
-      const weekIndex = Math.floor(
-        (parseIsoDate(date).getTime() - baseTime) / (7 * 24 * 60 * 60 * 1000),
-      );
+      const weekIndex = Math.floor((parseIsoDate(date).getTime() - baseTime) / (7 * DAY_MS));
       if (weekIndex % stepWeeks === 0 && repeat.weekdays.includes(weekdayIndex(date))) {
         dates.push(date);
       }
@@ -322,7 +369,7 @@ export class TrainingStore {
       );
       return 1;
     }
-    const offset = (Date.parse(session.deadlineDate) - Date.parse(session.date)) / 86400000;
+    const offset = (Date.parse(session.deadlineDate) - Date.parse(session.date)) / DAY_MS;
     const dates = repeat ? this.repeatDates(session.date, repeat) : [session.date];
     const created = dates.map((date) => ({
       ...session,
@@ -334,17 +381,20 @@ export class TrainingStore {
     return created.length;
   }
 
-  copySession(id: string): TrainingSession | undefined {
-    const original = this.sessions().find((session) => session.id === id);
-    if (!original) return undefined;
+  findSession(id: string): TrainingSession | undefined {
+    return this.sessions().find((session) => session.id === id);
+  }
+
+  /** A copy of a session one week later, not saved yet. */
+  copyOf(session: TrainingSession): TrainingSession {
     return {
-      ...original,
+      ...session,
       id: '',
-      date: addDays(original.date, 7),
-      deadlineDate: addDays(original.deadlineDate, 7),
-      groupIds: [...original.groupIds],
-      trainerIds: [...original.trainerIds],
-      extraSwimmerIds: [...original.extraSwimmerIds],
+      date: addDays(session.date, 7),
+      deadlineDate: addDays(session.deadlineDate, 7),
+      groupIds: [...session.groupIds],
+      trainerIds: [...session.trainerIds],
+      extraSwimmerIds: [...session.extraSwimmerIds],
     };
   }
 
@@ -353,18 +403,18 @@ export class TrainingStore {
     this.responses.update((all) => all.filter((item) => item.sessionId !== id));
   }
 
-  // --- Venues and settings -------------------------------------------------------------------
+  // --- Venues, reasons, templates and defaults ------------------------------------------------
 
   addVenue(name: string): void {
     const trimmed = name.trim();
-    if (!trimmed) return;
-    this.venues.update((all) => [...all, { id: `v-new-${this.nextVenueNumber++}`, name: trimmed }]);
+    if (trimmed)
+      this.venues.update((all) => [...all, { id: `v-new-${this.nextId++}`, name: trimmed }]);
   }
 
   renameVenue(id: string, name: string): void {
-    this.venues.update((all) =>
-      all.map((venue) => (venue.id === id ? { ...venue, name: name.trim() || venue.name } : venue)),
-    );
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    this.venues.update((all) => all.map((v) => (v.id === id ? { ...v, name: trimmed } : v)));
   }
 
   venueInUse(id: string): boolean {
@@ -380,6 +430,40 @@ export class TrainingStore {
     return true;
   }
 
+  addReason(name: string): void {
+    const trimmed = name.trim();
+    if (trimmed && !this.reasons().includes(trimmed)) {
+      this.reasons.update((all) => [
+        ...all.filter((r) => r !== OTHER_REASON),
+        trimmed,
+        OTHER_REASON,
+      ]);
+    }
+  }
+
+  removeReason(name: string): void {
+    if (name !== OTHER_REASON)
+      this.reasons.update((all) => all.filter((reason) => reason !== name));
+  }
+
+  saveTemplate(template: MailTemplate): void {
+    const exists = this.templates().some((item) => item.id === template.id);
+    this.templates.update((all) =>
+      exists
+        ? all.map((item) => (item.id === template.id ? template : item))
+        : [...all, { ...template, id: `t-new-${this.nextId++}` }],
+    );
+  }
+
+  deleteTemplate(id: string): void {
+    this.templates.update((all) => all.filter((item) => item.id !== id));
+  }
+
+  templateText(id: string, name: string): string {
+    const text = this.templates().find((item) => item.id === id)?.text ?? '';
+    return text.replace('{Name}', name.split(' ')[0]);
+  }
+
   updateDefaults(groupId: GroupId, change: Partial<GroupDefaults>): void {
     this.defaults.update((all) => ({ ...all, [groupId]: { ...all[groupId], ...change } }));
   }
@@ -388,7 +472,7 @@ export class TrainingStore {
     this.automation.update((current) => ({ ...current, ...change }));
   }
 
-  // --- Calendar --------------------------------------------------------------------------------
+  // --- Calendar -------------------------------------------------------------------------------
 
   /** Sessions in the next seven days that are relevant for the current demo user. */
   weekEntries(): { session: TrainingSession; labels: string[] }[] {
@@ -400,40 +484,30 @@ export class TrainingStore {
       if (session.date < this.today || session.date > last) continue;
       if (role === 'admin') {
         entries.push({ session, labels: [] });
-      } else if (role === 'trainer') {
-        if (session.trainerIds.includes(DEMO_TRAINER_ID)) entries.push({ session, labels: [] });
-      } else {
-        const children = actors.filter((child) =>
-          this.sessionSwimmers(session).some((swimmer) => swimmer.id === child.id),
-        );
-        if (children.length > 0) {
-          entries.push({ session, labels: children.map((child) => child.name.split(' ')[0]) });
-        }
+        continue;
       }
+      const labels: string[] = [];
+      for (const actor of actors) {
+        if (this.roleIn(session, actor))
+          labels.push(role === 'parent' ? actor.name.split(' ')[0] : '');
+      }
+      if (labels.length > 0) entries.push({ session, labels: labels.filter(Boolean) });
     }
     return entries;
   }
 
   // --- Attendance overview --------------------------------------------------------------------
 
-  /** Past sessions that are relevant for a person, oldest first. */
-  personSessions(person: Person, from?: string, to?: string): TrainingSession[] {
+  /** Past sessions in which a person took part, oldest first. */
+  personSessions(person: Person): TrainingSession[] {
     return this.sessions().filter(
-      (session) =>
-        session.date < this.today &&
-        (from === undefined || session.date >= from) &&
-        (to === undefined || session.date <= to) &&
-        ((person.groupId !== null && session.groupIds.includes(person.groupId)) ||
-          session.extraSwimmerIds.includes(person.id)),
+      (session) => session.date < this.today && this.roleIn(session, person) === 'swimmer',
     );
   }
 
   matrix(groupId: GroupId, fromMonth: string, toMonth: string): Matrix {
     const from = `${fromMonth}-01`;
     const to = `${toMonth}-31`;
-    const people = this.swimmers()
-      .filter((person) => person.groupId === groupId)
-      .sort((a, b) => a.name.localeCompare(b.name, 'de'));
     const sessions = this.sessions().filter(
       (session) =>
         session.date < this.today &&
@@ -441,36 +515,47 @@ export class TrainingStore {
         session.date <= to &&
         session.groupIds.includes(groupId),
     );
-    return {
-      sessions,
-      rows: people.map((person) => ({
-        person,
-        cells: sessions.map((session) => this.stateOf(session, person.id, 'swimmer')),
-      })),
-    };
+    const members = this.people()
+      .filter((person) => person.groupId === groupId || person.trainerGroupIds.includes(groupId))
+      .sort(byName);
+    const rows = members.map((person): MatrixRow => {
+      const cells = sessions.map((session) => {
+        const role = this.roleIn(session, person);
+        return role ? this.stateOf(session, person.id, role) : null;
+      });
+      return { person, isTrainer: person.groupId !== groupId, cells };
+    });
+    rows.sort((a, b) => Number(b.isTrainer) - Number(a.isTrainer));
+    return { sessions, rows };
   }
 
-  /** Number of missed sessions in a row, counted from the most recent session. */
-  missingStreak(person: Person): number {
+  /** Missed sessions in a row, counted from the most recent one. */
+  missingStreak(person: Person): { count: number; registered: boolean } {
     const sessions = this.personSessions(person);
-    let streak = 0;
+    let count = 0;
+    let registered = true;
     for (let index = sessions.length - 1; index >= 0; index--) {
-      if (this.stateOf(sessions[index], person.id, 'swimmer') !== 'missing') break;
-      streak++;
+      const session = sessions[index];
+      if (this.stateOf(session, person.id, 'swimmer') !== 'missing') break;
+      count++;
+      if (this.responseOf(session.id, person.id, 'swimmer')?.status !== 'registered') {
+        registered = false;
+      }
     }
-    return streak;
+    return { count, registered };
   }
 
-  actionNeeded(groupId?: GroupId): { inactive: ActionNeeded[]; info: ActionNeeded[] } {
+  actionNeeded(): { inactive: ActionNeeded[]; info: ActionNeeded[] } {
     const settings = this.automation();
+    const skip = new Set([...this.handledIds(), ...this.inactiveIds()]);
     const inactive: ActionNeeded[] = [];
     const info: ActionNeeded[] = [];
     for (const person of this.swimmers()) {
-      if (groupId && person.groupId !== groupId) continue;
-      if (this.handledIds().includes(person.id) || this.inactiveIds().includes(person.id)) continue;
-      const streak = this.missingStreak(person);
-      if (streak >= settings.inactiveAfter) inactive.push({ person, streak });
-      else if (streak >= settings.infoMailAfter) info.push({ person, streak });
+      if (skip.has(person.id)) continue;
+      const { count, registered } = this.missingStreak(person);
+      const entry = { person, streak: count, registered };
+      if (count >= settings.inactiveAfter) inactive.push(entry);
+      else if (count >= settings.infoMailAfter) info.push(entry);
     }
     return { inactive, info };
   }
@@ -491,49 +576,30 @@ export class TrainingStore {
   // --- Excel / CSV export ---------------------------------------------------------------------
 
   /** Semicolon separated text with a BOM: opens directly in German Excel. */
-  attendanceCsv(
-    groupId: GroupId,
-    content: ExportContent,
-    fromMonth: string,
-    toMonth: string,
-  ): string {
-    const matrix = this.matrix(groupId, fromMonth, toMonth);
-    // Include future sessions of the range when the list is meant to be filled in by hand.
-    const sessions =
-      content === 'blank'
-        ? this.sessions().filter(
-            (session) =>
-              session.groupIds.includes(groupId) &&
-              monthKey(session.date) >= fromMonth &&
-              monthKey(session.date) <= toMonth,
-          )
-        : matrix.sessions;
-    const label = (session: TrainingSession) => `${shortDay(session.date)} ${session.time}`;
-    const lines = [['Name', ...sessions.map(label)]];
-    const names = this.swimmers()
-      .filter((person) => person.groupId === groupId)
-      .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  attendanceCsv(groupId: GroupId, content: ExportContent, from: string, to: string): string {
+    const sessions = this.sessions().filter(
+      (session) =>
+        session.groupIds.includes(groupId) &&
+        session.date >= from &&
+        session.date <= to &&
+        (content === 'blank' || session.date < this.today),
+    );
     const words: Record<AttendanceState, string> = {
       present: 'anwesend',
       missing: 'fehlt',
       excused: 'abgemeldet',
     };
-    for (const person of names) {
+    const lines = [['Name', ...sessions.map((s) => `${shortDay(s.date)} ${s.time}`)]];
+    for (const person of this.swimmers().filter((candidate) => candidate.groupId === groupId)) {
       lines.push([
         person.name,
-        ...sessions.map((session) =>
-          content === 'blank' ? '' : words[this.stateOf(session, person.id, 'swimmer')],
-        ),
+        ...sessions.map((session) => {
+          if (content === 'blank') return '';
+          const role = this.roleIn(session, person);
+          return role ? words[this.stateOf(session, person.id, role)] : '';
+        }),
       ]);
     }
     return '﻿' + lines.map((line) => line.join(';')).join('\r\n');
-  }
-
-  formatSessionTitle(session: TrainingSession): string {
-    return `${shortDay(session.date)} ${session.time}`;
-  }
-
-  formatFullDate(iso: string): string {
-    return fullDate(iso);
   }
 }

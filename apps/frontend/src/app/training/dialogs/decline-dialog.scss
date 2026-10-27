@@ -1,0 +1,25 @@
+.reasons {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.reason {
+  background: var(--sgb-card);
+  border: 1.5px dashed var(--sgb-soft);
+  border-radius: 12px;
+  color: var(--sgb-ink);
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 3.4rem;
+
+  &:hover {
+    background: var(--sgb-hover);
+  }
+
+  &.is-selected {
+    background: var(--warn-bg);
+    border: 1.5px solid var(--warn-fg);
+    color: var(--warn-fg);
+  }
+}

@@ -1,0 +1,54 @@
+<app-modal-dialog heading="Excel-Liste" accent="green" [wide]="true" (closed)="closed.emit()">
+  <div class="form-grid">
+    <div>
+      <label class="field-label" for="export-group">Gruppe</label>
+      <div class="select is-fullwidth">
+        <select id="export-group" (change)="setGroup($event)">
+          @for (group of store.groups; track group.id) {
+            <option [value]="group.id" [selected]="group.id === currentGroup()">
+              {{ group.name }}
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="field-label" for="export-content">Inhalt</label>
+      <div class="select is-fullwidth">
+        <select id="export-content" (change)="setContent($event)">
+          <option value="blank" [selected]="content() === 'blank'">Leer (zum Ausfüllen)</option>
+          <option value="filled" [selected]="content() === 'filled'">Mit Anwesenheit</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="field-label" for="export-from">Von</label>
+      <input
+        id="export-from"
+        class="input"
+        type="date"
+        [value]="from()"
+        (input)="from.set(value($event))"
+      />
+    </div>
+    <div>
+      <label class="field-label" for="export-to">Bis</label>
+      <input
+        id="export-to"
+        class="input"
+        type="date"
+        [value]="to()"
+        (input)="to.set(value($event))"
+      />
+    </div>
+  </div>
+  <div class="chips">
+    <button type="button" class="chip is-solid" (click)="thisMonthRange()">Dieser Monat</button>
+    <button type="button" class="chip is-solid" (click)="lastThreeMonths()">Letzte 3 Monate</button>
+    <button type="button" class="chip is-solid" (click)="season()">Saison</button>
+  </div>
+  <ng-container dialogActions>
+    <button type="button" class="btn" (click)="closed.emit()">Abbrechen</button>
+    <button type="button" class="btn is-ok" (click)="download()">Excel erstellen</button>
+  </ng-container>
+</app-modal-dialog>

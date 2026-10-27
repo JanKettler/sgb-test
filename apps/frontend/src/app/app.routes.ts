@@ -5,36 +5,59 @@ export const routes: Routes = [
     path: '',
     pathMatch: 'full',
     title: 'Startseite – SGB Portal',
-    loadComponent: () => import('./training/home').then((module) => module.Home),
+    loadComponent: () => import('./training/pages/home/home').then((module) => module.Home),
   },
   {
     path: 'training/anmeldung',
     title: 'Trainingsanmeldung – SGB Portal',
     loadComponent: () =>
-      import('./training/registration').then((module) => module.TrainingRegistration),
+      import('./training/pages/registration/registration').then(
+        (module) => module.TrainingRegistration,
+      ),
   },
   {
     path: 'training/termine',
     title: 'Trainingstermine – SGB Portal',
-    loadComponent: () => import('./training/sessions').then((module) => module.Sessions),
+    loadComponent: () =>
+      import('./training/pages/sessions/sessions').then((module) => module.Sessions),
+  },
+  {
+    path: 'training/termine/neu',
+    title: 'Neuer Termin – SGB Portal',
+    loadComponent: () =>
+      import('./training/pages/session-editor/session-editor').then(
+        (module) => module.SessionEditor,
+      ),
+  },
+  {
+    path: 'training/termine/:id',
+    title: 'Termin bearbeiten – SGB Portal',
+    loadComponent: () =>
+      import('./training/pages/session-editor/session-editor').then(
+        (module) => module.SessionEditor,
+      ),
   },
   {
     path: 'training/anwesenheit',
     title: 'Anwesenheit – SGB Portal',
     loadComponent: () =>
-      import('./training/attendance-overview').then((module) => module.AttendanceOverview),
+      import('./training/pages/attendance-overview/attendance-overview').then(
+        (module) => module.AttendanceOverview,
+      ),
   },
   {
     path: 'training/anwesenheit/:id',
     title: 'Anwesenheit – SGB Portal',
     loadComponent: () =>
-      import('./training/attendance-session').then((module) => module.AttendanceSession),
+      import('./training/pages/attendance-session/attendance-session').then(
+        (module) => module.AttendanceSession,
+      ),
   },
   {
     path: 'training/einstellungen',
     title: 'Trainingseinstellungen – SGB Portal',
     loadComponent: () =>
-      import('./training/training-settings').then((module) => module.TrainingSettings),
+      import('./training/pages/settings/settings').then((module) => module.TrainingSettings),
   },
   {
     path: 'warteliste/status',

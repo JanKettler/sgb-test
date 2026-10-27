@@ -1,0 +1,27 @@
+.picker-list {
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.picker-item {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--sgb-line);
+  color: var(--sgb-ink);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.6rem 0.25rem;
+  text-align: left;
+  width: 100%;
+
+  &:hover {
+    background: var(--sgb-hover);
+  }
+}
+
+.picker-detail {
+  color: var(--sgb-soft);
+  font-size: 0.8rem;
+}

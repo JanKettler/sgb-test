@@ -15,13 +15,13 @@ export const GROUPS: readonly TrainingGroup[] = [
 
 export type PersonRole = 'swimmer' | 'trainer';
 
+/** A member. Somebody can swim in a group and train other groups at the same time. */
 export interface Person {
   id: string;
   name: string;
-  role: PersonRole;
-  /** Training group of a swimmer; trainers have none. */
+  /** Training group as a swimmer; null for people who only train. */
   groupId: GroupId | null;
-  /** Groups a trainer is responsible for by default. */
+  /** Groups the person trains by default; empty for pure swimmers. */
   trainerGroupIds: GroupId[];
 }
 
@@ -50,9 +50,16 @@ export interface TrainingSession {
 }
 
 export type ResponseStatus = 'registered' | 'declined';
-export type DeclineReason = 'Krank' | 'Termin' | 'Schule' | 'Sonstiges';
+/** "Sonstiges" additionally takes an optional remark. */
+export type DeclineReason = string;
+export const OTHER_REASON = 'Sonstiges';
 
-export const DECLINE_REASONS: readonly DeclineReason[] = ['Krank', 'Termin', 'Schule', 'Sonstiges'];
+export const DEFAULT_REASONS: readonly DeclineReason[] = [
+  'Krank',
+  'Termin',
+  'Schule',
+  OTHER_REASON,
+];
 
 export interface SessionResponse {
   sessionId: string;
@@ -82,8 +89,13 @@ export interface GroupDefaults {
 export interface AutomationSettings {
   infoMailAfter: number;
   inactiveAfter: number;
-  infoMailTemplate: string;
-  inactiveMailTemplate: string;
+}
+
+export interface MailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  text: string;
 }
 
 export type DemoRole = 'parent' | 'trainer' | 'admin';

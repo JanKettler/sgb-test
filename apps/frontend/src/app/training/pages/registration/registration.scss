@@ -1,0 +1,18 @@
+small {
+  color: var(--sgb-soft);
+  display: block;
+  font-size: 0.78rem;
+}
+
+.status {
+  color: var(--bad-fg);
+  font-weight: 700;
+
+  &.is-registered {
+    color: var(--ok-fg);
+  }
+}
+
+.for-person {
+  margin: 0;
+}

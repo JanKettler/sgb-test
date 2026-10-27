@@ -1,0 +1,44 @@
+<app-modal-dialog
+  heading="Abmelden"
+  accent="amber"
+  [subtitle]="subtitle()"
+  (closed)="closed.emit()"
+>
+  <div class="reasons">
+    @for (reason of store.reasons(); track reason) {
+      <button
+        type="button"
+        class="reason"
+        [class.is-selected]="reason === other && otherSelected()"
+        (click)="choose(reason)"
+      >
+        {{ reason }}
+      </button>
+    }
+  </div>
+  @if (otherSelected()) {
+    <label class="field-label mt-4" for="decline-note">Bemerkung (optional)</label>
+    <input
+      id="decline-note"
+      class="input"
+      type="text"
+      placeholder="z. B. Arzttermin"
+      [value]="note()"
+      (input)="setNote($event)"
+    />
+  }
+  <ng-container dialogActions>
+    @if (otherSelected()) {
+      <button type="button" class="btn" (click)="otherSelected.set(false)">Zurück</button>
+      <button
+        type="button"
+        class="btn is-danger"
+        (click)="chosen.emit({ reason: other, note: note() })"
+      >
+        Abmelden
+      </button>
+    } @else {
+      <button type="button" class="btn" (click)="closed.emit()">Abbrechen</button>
+    }
+  </ng-container>
+</app-modal-dialog>

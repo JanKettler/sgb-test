@@ -1,0 +1,49 @@
+<section class="panel">
+  <h3 class="title"><app-icon name="calendar" /> Nächste 7 Tage</h3>
+  <p class="hint">
+    @switch (role()) {
+      @case ('parent') {
+        Einheiten der Gruppen deiner Kinder
+      }
+      @case ('trainer') {
+        Einheiten, bei denen du eingeteilt bist
+      }
+      @default {
+        Alle Einheiten
+      }
+    }
+  </p>
+  <div class="week">
+    <div class="times">
+      <div class="head"></div>
+      @for (hour of hours(); track hour) {
+        <div class="time" [style.height.px]="hourHeight">{{ hour }}:00</div>
+      }
+    </div>
+    @for (day of days(); track day.iso) {
+      <div class="day" [class.is-today]="day.isToday">
+        <div class="head">
+          <span class="weekday">{{ day.weekday }}</span>
+          <span class="date" [class.is-today]="day.isToday">{{ day.label }}</span>
+        </div>
+        <div class="body" [style.height.px]="bodyHeight()">
+          @for (hour of hours(); track hour) {
+            <div class="line" [style.height.px]="hourHeight"></div>
+          }
+          @for (event of day.events; track event.id) {
+            <div
+              class="event"
+              [class]="'event ' + event.groupClass"
+              [style.top.px]="event.top"
+              [style.height.px]="event.height"
+            >
+              <strong>{{ event.title }}</strong>
+              <span>{{ event.time }}</span>
+              <span class="detail">{{ event.detail }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</section>

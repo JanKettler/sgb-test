@@ -1,0 +1,281 @@
+<header class="page-head">
+  <div>
+    <h2>Trainingsanmeldung</h2>
+    <p>Rückmeldungen zu den Trainingseinheiten</p>
+  </div>
+</header>
+
+@if (message()) {
+  <div class="notice">
+    <span>{{ message() }}</span>
+    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+  </div>
+}
+
+<section class="panel">
+  @if (person(); as current) {
+    <div class="chips mb-3">
+      <span class="field-label for-person">Anmeldung für</span>
+      @for (actor of actors(); track actor.id) {
+        <button
+          type="button"
+          class="chip"
+          [class.is-on]="current.id === actor.id"
+          [attr.aria-pressed]="current.id === actor.id"
+          (click)="select(actor.id)"
+        >
+          {{ actor.name }}
+        </button>
+      }
+    </div>
+
+    @let data = rows();
+    <h3 class="band is-ok">
+      Gemeldete Trainingseinheiten <span class="count">{{ data.reported.length }}</span>
+    </h3>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col"><span class="is-sr-only">Aktionen</span></th>
+            <th scope="col">Status</th>
+            <th scope="col">Datum</th>
+            <th scope="col">Uhrzeit</th>
+            <th scope="col">Gruppe</th>
+            <th scope="col">Als</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of data.reported; track row.session.id + row.role) {
+            @let registered = row.response?.status === 'registered';
+            <tr [class.is-ok-row]="registered" [class.is-bad-row]="!registered">
+              <td class="is-left">
+                <span class="icon-row">
+                  @if (registered) {
+                    <button
+                      type="button"
+                      class="icon-btn is-bad"
+                      aria-label="Abmelden"
+                      title="Abmelden"
+                      (click)="declining.set({ session: row.session, role: row.role })"
+                    >
+                      <app-icon name="x" />
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="icon-btn is-ok"
+                      aria-label="Wieder anmelden"
+                      title="Wieder anmelden"
+                      (click)="register(row)"
+                    >
+                      <app-icon name="check" />
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="icon-btn is-violet"
+                    aria-label="Angemeldete anzeigen"
+                    title="Angemeldete"
+                    (click)="viewing.set(row.session)"
+                  >
+                    <app-icon name="users" />
+                  </button>
+                  @if (row.canTakeAttendance) {
+                    <a
+                      class="icon-btn is-teal"
+                      [routerLink]="['/training/anwesenheit', row.session.id]"
+                      aria-label="Anwesenheit führen"
+                      title="Anwesenheit"
+                    >
+                      <app-icon name="clipboard" />
+                    </a>
+                  }
+                </span>
+              </td>
+              <td class="is-center status" [class.is-registered]="registered">
+                {{ registered ? 'Angemeldet' : 'Abgemeldet' }}
+                @if (!registered) {
+                  <small>{{ row.response?.reason }}</small>
+                }
+              </td>
+              <td class="is-center">
+                {{ row.date }}<small>{{ row.weekday }}</small>
+              </td>
+              <td class="is-center">{{ row.time }}</td>
+              <td class="is-center">{{ row.groups }}</td>
+              <td class="is-center">
+                <span class="pill" [class]="row.role === 'trainer' ? 'pill is-ok' : 'pill is-info'">
+                  {{ row.role === 'trainer' ? 'Trainer' : 'Schwimmer' }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty">Noch keine Rückmeldungen abgegeben.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (current.groupId) {
+      <h3 class="band is-warn">
+        Anmeldung möglich <span class="count">{{ data.open.length }}</span>
+      </h3>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col"><span class="is-sr-only">Aktionen</span></th>
+              <th scope="col">Datum</th>
+              <th scope="col">Uhrzeit</th>
+              <th scope="col">Meldeschluss</th>
+              <th scope="col">Gruppe</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data.open; track row.session.id) {
+              <tr>
+                <td class="is-left">
+                  <span class="icon-row">
+                    <button
+                      type="button"
+                      class="icon-btn is-ok"
+                      aria-label="Anmelden"
+                      title="Anmelden"
+                      (click)="register(row)"
+                    >
+                      <app-icon name="check" />
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn is-bad"
+                      aria-label="Abmelden"
+                      title="Abmelden"
+                      (click)="declining.set({ session: row.session, role: row.role })"
+                    >
+                      <app-icon name="x" />
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn is-violet"
+                      aria-label="Angemeldete anzeigen"
+                      title="Angemeldete"
+                      (click)="viewing.set(row.session)"
+                    >
+                      <app-icon name="users" />
+                    </button>
+                  </span>
+                </td>
+                <td class="is-center">
+                  {{ row.date }}<small>{{ row.weekday }}</small>
+                </td>
+                <td class="is-center">{{ row.time }}</td>
+                <td class="is-center">{{ row.deadline }}</td>
+                <td class="is-center">{{ row.groups }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty">Alle offenen Einheiten sind beantwortet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (current.trainerGroupIds.length > 0) {
+      <h3 class="band is-violet">
+        Einheiten, bei denen du Trainer bist
+        <span class="count">{{ data.trainerOpen.length }}</span>
+      </h3>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col"><span class="is-sr-only">Aktionen</span></th>
+              <th scope="col">Datum</th>
+              <th scope="col">Uhrzeit</th>
+              <th scope="col">Meldeschluss</th>
+              <th scope="col">Gruppe</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data.trainerOpen; track row.session.id) {
+              <tr>
+                <td class="is-left">
+                  <span class="icon-row">
+                    <button
+                      type="button"
+                      class="icon-btn is-ok"
+                      aria-label="Anmelden"
+                      title="Anmelden"
+                      (click)="register(row)"
+                    >
+                      <app-icon name="check" />
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn is-bad"
+                      aria-label="Abmelden"
+                      title="Abmelden"
+                      (click)="declining.set({ session: row.session, role: row.role })"
+                    >
+                      <app-icon name="x" />
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn is-violet"
+                      aria-label="Angemeldete anzeigen"
+                      title="Angemeldete"
+                      (click)="viewing.set(row.session)"
+                    >
+                      <app-icon name="users" />
+                    </button>
+                  </span>
+                </td>
+                <td class="is-center">
+                  {{ row.date }}<small>{{ row.weekday }}</small>
+                </td>
+                <td class="is-center">{{ row.time }}</td>
+                <td class="is-center">{{ row.deadline }}</td>
+                <td class="is-center">{{ row.groups }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty">Alle Einheiten sind beantwortet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>
+
+@if (declining(); as target) {
+  <app-decline-dialog
+    [session]="target.session"
+    (chosen)="decline($event)"
+    (closed)="declining.set(null)"
+  />
+}
+
+@if (viewing(); as session) {
+  <app-registered-dialog
+    [session]="session"
+    (closed)="viewing.set(null)"
+    (mail)="mailing.set(session); viewing.set(null)"
+  />
+}
+
+@if (mailing(); as session) {
+  <app-mail-dialog
+    [recipients]="mailRecipients(session)"
+    (closed)="mailing.set(null)"
+    (sent)="
+      mailing.set(null); message.set('Demo: Die Mail wurde vorbereitet, aber nicht versendet.')
+    "
+  />
+}

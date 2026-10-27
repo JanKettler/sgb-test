@@ -1,0 +1,34 @@
+@let data = view();
+<app-modal-dialog
+  heading="Angemeldet"
+  accent="violet"
+  [badge]="data.badge"
+  [subtitle]="data.subtitle"
+  (closed)="closed.emit()"
+>
+  <p class="label-trainer">Trainer</p>
+  <ul>
+    @for (trainer of data.trainers; track trainer.id) {
+      <li>{{ trainer.name }}</li>
+    } @empty {
+      <li class="none">Noch niemand angemeldet</li>
+    }
+  </ul>
+  <p class="label-swimmer">Schwimmer</p>
+  <ul>
+    @for (swimmer of data.swimmers; track swimmer.id) {
+      <li>{{ swimmer.name }}</li>
+    } @empty {
+      <li class="none">Noch niemand angemeldet</li>
+    }
+  </ul>
+  @if (data.more > 0) {
+    <p class="more">+ {{ data.more }} weitere</p>
+  }
+  <ng-container dialogActions>
+    @if (canMail()) {
+      <button type="button" class="btn" (click)="mail.emit()">Mail an Angemeldete</button>
+    }
+    <button type="button" class="btn" (click)="closed.emit()">Schließen</button>
+  </ng-container>
+</app-modal-dialog>

@@ -4,6 +4,8 @@ import { TrainingStore } from './training.store';
 describe('TrainingStore', () => {
   let store: TrainingStore;
 
+  const upcoming = () => store.sessions().find((item) => item.date >= store.today)!;
+
   beforeEach(() => {
     store = TestBed.inject(TrainingStore);
   });
@@ -15,7 +17,7 @@ describe('TrainingStore', () => {
   });
 
   it('replaces an earlier answer when a person responds again', () => {
-    const session = store.sessions().find((item) => item.date >= store.today)!;
+    const session = upcoming();
     store.respond(session.id, 'p-lena', 'swimmer', 'declined', 'Krank');
     expect(store.responseOf(session.id, 'p-lena', 'swimmer')?.reason).toBe('Krank');
     store.respond(session.id, 'p-lena', 'swimmer', 'registered');
@@ -24,14 +26,29 @@ describe('TrainingStore', () => {
     expect(response?.reason).toBeUndefined();
   });
 
-  it('derives excused from a decline and lets the trainer override it', () => {
-    const session = store.sessions().find((item) => item.date >= store.today)!;
+  it('takes the registration over into the attendance and lets the trainer override it', () => {
+    // A session of another group, so Lena has no sample answer for it yet.
+    const session = store
+      .sessions()
+      .find((item) => item.date >= store.today && !item.groupIds.includes('G2'))!;
+    expect(store.stateOf(session, 'p-lena', 'swimmer')).toBe('missing');
+    store.respond(session.id, 'p-lena', 'swimmer', 'registered');
+    expect(store.stateOf(session, 'p-lena', 'swimmer')).toBe('present');
+    store.setAttendance(session.id, 'p-lena', 'swimmer', 'missing');
+    expect(store.stateOf(session, 'p-lena', 'swimmer')).toBe('missing');
     store.respond(session.id, 'p-lena', 'swimmer', 'declined', 'Schule');
     expect(store.stateOf(session, 'p-lena', 'swimmer')).toBe('excused');
     store.setAttendance(session.id, 'p-lena', 'swimmer', 'present');
     expect(store.stateOf(session, 'p-lena', 'swimmer')).toBe('present');
-    store.setAttendance(session.id, 'p-lena', 'swimmer', 'excused');
-    expect(store.stateOf(session, 'p-lena', 'swimmer')).toBe('excused');
+  });
+
+  it('lists somebody who trains a session only once, as trainer', () => {
+    const jonas = store.person('t-jonas')!;
+    const session = { ...upcoming(), groupIds: ['WK' as const], trainerIds: ['t-anna'] };
+    expect(store.roleIn(session, jonas)).toBe('swimmer');
+    const withTrainer = { ...session, trainerIds: ['t-anna', 't-jonas'] };
+    expect(store.roleIn(withTrainer, jonas)).toBe('trainer');
+    expect(store.sessionSwimmers(withTrainer).some((p) => p.id === 't-jonas')).toBe(false);
   });
 
   it('expands a weekly series on the chosen weekdays', () => {
@@ -55,18 +72,14 @@ describe('TrainingStore', () => {
   it('saves a series with a shifted deadline for every date', () => {
     const base = store.emptySession();
     const before = store.sessions().length;
-    const created = store.saveSession(base, {
-      rhythm: 'weekly',
-      until: base.date,
-      weekdays: [],
-    });
+    const created = store.saveSession(base, { rhythm: 'weekly', until: base.date, weekdays: [] });
     expect(created).toBe(1);
     expect(store.sessions().length).toBe(before + 1);
   });
 
-  it('reports a person who missed the latest sessions in a row', () => {
+  it('reports a swimmer who missed the latest sessions in a row', () => {
     const finn = store.person('p-finn')!;
-    expect(store.missingStreak(finn)).toBeGreaterThanOrEqual(3);
+    expect(store.missingStreak(finn).count).toBeGreaterThanOrEqual(3);
     expect(store.actionNeeded().inactive.some((entry) => entry.person.id === 'p-finn')).toBe(true);
   });
 
@@ -78,8 +91,7 @@ describe('TrainingStore', () => {
   });
 
   it('exports a semicolon separated list with one row per swimmer', () => {
-    const month = store.today.slice(0, 7);
-    const csv = store.attendanceCsv('WK', 'blank', month, month);
+    const csv = store.attendanceCsv('WK', 'blank', store.today, store.today);
     const lines = csv.split('\r\n');
     expect(lines[0].startsWith('﻿Name;')).toBe(true);
     expect(lines.length).toBe(1 + store.swimmers().filter((p) => p.groupId === 'WK').length);

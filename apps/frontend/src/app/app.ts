@@ -1,15 +1,24 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { timeout } from 'rxjs';
-import { Icon } from './training/icon';
+import { ThemeService } from './core/theme.service';
 import { DEMO_ROLES, DemoRole } from './training/training.models';
 import { TrainingStore } from './training/training.store';
+import { Icon } from './ui/icon';
 
 @Component({
   imports: [RouterLink, RouterLinkActive, RouterOutlet, Icon],
   selector: 'app-root',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
@@ -17,6 +26,7 @@ export class App implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly store = inject(TrainingStore);
+  protected readonly theme = inject(ThemeService);
   protected readonly demoRoles = DEMO_ROLES;
   protected readonly menuOpen = signal(false);
   protected readonly connectionStatus = signal<'loading' | 'connected' | 'unavailable'>('loading');

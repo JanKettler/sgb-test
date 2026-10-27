@@ -1,0 +1,30 @@
+li {
+  border-bottom: 1px solid var(--sgb-line);
+  font-size: 0.9rem;
+  padding: 0.35rem 0;
+}
+
+.none,
+.more {
+  color: var(--sgb-soft);
+}
+
+.more {
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.label-trainer,
+.label-swimmer {
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+.label-trainer {
+  color: var(--ok-fg);
+}
+
+.label-swimmer {
+  color: var(--info-fg);
+}

@@ -1,0 +1,19 @@
+<app-modal-dialog [heading]="heading()" (closed)="closed.emit()">
+  <label class="field-label" for="picker-search">Suchen</label>
+  <input id="picker-search" class="input mb-3" type="search" (input)="setQuery($event)" />
+  <ul class="picker-list">
+    @for (match of matches(); track match.person.id) {
+      <li>
+        <button type="button" class="picker-item" (click)="picked.emit(match.person)">
+          <span>{{ match.person.name }}</span>
+          <span class="picker-detail">{{ match.detail }}</span>
+        </button>
+      </li>
+    } @empty {
+      <li class="empty">Niemand gefunden</li>
+    }
+  </ul>
+  <ng-container dialogActions>
+    <button type="button" class="btn" (click)="closed.emit()">Abbrechen</button>
+  </ng-container>
+</app-modal-dialog>
