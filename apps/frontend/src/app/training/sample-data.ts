@@ -176,24 +176,20 @@ export function markKey(sessionId: string, personId: string): string {
 export function createSampleData(today: string): SampleData {
   const random = createRandom(2027);
   const people: Person[] = [
-    ...TRAINERS.map(
-      ([id, name, trainerGroupIds]): Person => ({
-        id,
-        name,
-        role: 'trainer',
-        groupId: null,
-        trainerGroupIds,
-      }),
-    ),
-    ...SWIMMERS.map(
-      ([id, name, groupId]): Person => ({
-        id,
-        name,
-        role: 'swimmer',
-        groupId,
-        trainerGroupIds: [],
-      }),
-    ),
+    ...TRAINERS.map(([id, name, trainerGroupIds]): Person => ({
+      id,
+      name,
+      role: 'trainer',
+      groupId: null,
+      trainerGroupIds,
+    })),
+    ...SWIMMERS.map(([id, name, groupId]): Person => ({
+      id,
+      name,
+      role: 'swimmer',
+      groupId,
+      trainerGroupIds: [],
+    })),
   ];
 
   const sessions: TrainingSession[] = [];
