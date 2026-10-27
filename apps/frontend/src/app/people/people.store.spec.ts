@@ -34,4 +34,30 @@ describe('PeopleStore', () => {
     const store = TestBed.inject(PeopleStore);
     expect(store.membersCsv(store.members()).startsWith('﻿Mitgliedsnummer;Name')).toBe(true);
   });
+
+  it('links a saved parent to exactly the chosen children', () => {
+    const store = TestBed.inject(PeopleStore);
+    const [first, second] = store.members();
+    const parent = store.newParent();
+    parent.name = 'Test Elternteil';
+    store.saveParent(parent, [first.id]);
+    expect(store.childrenOf(parent).map((child) => child.id)).toEqual([first.id]);
+    store.saveParent(parent, [second.id]);
+    expect(store.childrenOf(parent).map((child) => child.id)).toEqual([second.id]);
+  });
+
+  it('removes a deleted parent from the children', () => {
+    const store = TestBed.inject(PeopleStore);
+    const parent = store.parents()[0];
+    store.deleteParent(parent.id);
+    expect(store.parents().some((item) => item.id === parent.id)).toBe(false);
+    expect(store.members().some((member) => member.parentIds.includes(parent.id))).toBe(false);
+  });
+
+  it('deletes a member', () => {
+    const store = TestBed.inject(PeopleStore);
+    const member = store.members()[0];
+    store.deleteMember(member.id);
+    expect(store.member(member.id)).toBeUndefined();
+  });
 });

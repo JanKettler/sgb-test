@@ -91,6 +91,49 @@ export class PeopleStore {
     );
   }
 
+  deleteMember(id: string): void {
+    this.members.update((all) => all.filter((member) => member.id !== id));
+  }
+
+  newParent(): Parent {
+    return {
+      id: `e-new-${this.nextId++}`,
+      name: '',
+      relation: 'Mutter',
+      email: '',
+      access: 'invited',
+      trainingRegistration: true,
+      competitionRegistration: true,
+    };
+  }
+
+  /** Saves a parent and links exactly the given children to them. */
+  saveParent(parent: Parent, childIds: string[]): void {
+    const exists = this.parents().some((item) => item.id === parent.id);
+    this.parents.update((all) =>
+      exists ? all.map((item) => (item.id === parent.id ? parent : item)) : [...all, parent],
+    );
+    this.members.update((all) =>
+      all.map((member) => {
+        const others = member.parentIds.filter((id) => id !== parent.id);
+        const linked = childIds.includes(member.id);
+        if (!linked && others.length === member.parentIds.length) return member;
+        return { ...member, parentIds: linked ? [...others, parent.id] : others };
+      }),
+    );
+  }
+
+  deleteParent(id: string): void {
+    this.parents.update((all) => all.filter((parent) => parent.id !== id));
+    this.members.update((all) =>
+      all.map((member) =>
+        member.parentIds.includes(id)
+          ? { ...member, parentIds: member.parentIds.filter((item) => item !== id) }
+          : member,
+      ),
+    );
+  }
+
   updateParent(id: string, change: Partial<Parent>): void {
     this.parents.update((all) =>
       all.map((parent) => (parent.id === id ? { ...parent, ...change } : parent)),

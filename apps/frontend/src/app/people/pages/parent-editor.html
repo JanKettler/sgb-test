@@ -1,0 +1,130 @@
+<header class="page-head">
+  <div>
+    <h2>{{ draft().name || 'Neue Eltern' }}</h2>
+    <p>Eltern bzw. Erziehungsberechtigte</p>
+  </div>
+  <div class="icon-row">
+    <button type="button" class="btn" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
+    <button type="button" class="btn is-primary" (click)="save()">
+      <app-icon name="save" /> Speichern
+    </button>
+  </div>
+</header>
+
+<section class="panel">
+  <h3>Stammdaten</h3>
+  <div class="form-grid">
+    <div>
+      <label class="field-label" for="e-name">Name</label>
+      <input
+        id="e-name"
+        class="input"
+        [class.is-danger]="invalid() && !draft().name.trim()"
+        [value]="draft().name"
+        (change)="set('name', $event)"
+      />
+      @if (invalid() && !draft().name.trim()) {
+        <p class="help is-danger">Bitte einen Namen eintragen.</p>
+      }
+    </div>
+    <div>
+      <label class="field-label" for="e-rel">Beziehung</label>
+      <div class="select">
+        <select id="e-rel" (change)="setRelation($event)">
+          @for (item of relations; track item) {
+            <option [value]="item" [selected]="item === draft().relation">{{ item }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="field-label" for="e-mail">E-Mail</label>
+      <input
+        id="e-mail"
+        class="input"
+        type="email"
+        [value]="draft().email"
+        (change)="set('email', $event)"
+      />
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <h3>Zugang und Anmeldungen</h3>
+  <p>
+    <span [class]="draft().access === 'active' ? 'pill is-ok' : 'pill is-warn'">
+      {{ draft().access === 'active' ? 'Zugang aktiv' : 'Einladung offen' }}
+    </span>
+    @if (draft().access === 'invited') {
+      <button type="button" class="btn is-small" (click)="invite()">
+        <app-icon name="mail" /> Einladung erneut senden
+      </button>
+    }
+  </p>
+  <div>
+    <label class="checkbox">
+      <input
+        type="checkbox"
+        [checked]="draft().trainingRegistration"
+        (change)="setFlag('trainingRegistration', $any($event.target).checked)"
+      />
+      Darf zum Training anmelden
+    </label>
+  </div>
+  <div>
+    <label class="checkbox">
+      <input
+        type="checkbox"
+        [checked]="draft().competitionRegistration"
+        (change)="setFlag('competitionRegistration', $any($event.target).checked)"
+      />
+      Darf zu Wettkämpfen anmelden
+    </label>
+  </div>
+</section>
+
+<section class="panel">
+  <h3>Kinder im Verein</h3>
+  <table class="rdp-table">
+    <tbody>
+      @for (child of children(); track child.id) {
+        <tr>
+          <td>
+            <a [routerLink]="['/personen', child.id]">{{ child.name }}</a>
+          </td>
+          <td>Nr. {{ child.no }}</td>
+          <td class="actions">
+            <button
+              type="button"
+              class="icon-btn is-bad"
+              [attr.aria-label]="child.name + ' entfernen'"
+              title="Verknüpfung entfernen"
+              (click)="removeChild(child.id)"
+            >
+              <app-icon name="x" />
+            </button>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td class="empty">Noch kein Kind verknüpft.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <label class="field-label" for="e-child">Kind hinzufügen</label>
+  <input
+    id="e-child"
+    class="input"
+    type="search"
+    placeholder="Name eingeben"
+    [value]="search()"
+    (input)="search.set(value($event))"
+  />
+  @for (item of candidates(); track item.id) {
+    <button type="button" class="btn is-small mt-2 mr-2" (click)="addChild(item.id)">
+      <app-icon name="plus" /> {{ item.name }} (Jg. {{ item.year }})
+    </button>
+  }
+</section>

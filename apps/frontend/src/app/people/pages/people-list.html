@@ -44,13 +44,13 @@
             type="search"
             placeholder="Name oder Mitgliedsnummer"
             [value]="search()"
-            (input)="search.set(value($event))"
+            (input)="search.set(value($event)); resetPage()"
           />
         </div>
         <div>
           <label class="field-label" for="people-role">Rolle</label>
           <div class="select">
-            <select id="people-role" (change)="role.set($any(value($event)))">
+            <select id="people-role" (change)="role.set($any(value($event))); resetPage()">
               <option value="">Alle Rollen</option>
               @for (item of roles; track item.key) {
                 <option [value]="item.key" [selected]="item.key === role()">
@@ -63,7 +63,7 @@
         <div>
           <label class="field-label" for="people-group">Gruppe</label>
           <div class="select">
-            <select id="people-group" (change)="group.set($any(value($event)))">
+            <select id="people-group" (change)="group.set($any(value($event))); resetPage()">
               <option value="">Alle Gruppen</option>
               @for (item of groups; track item.id) {
                 <option [value]="item.id" [selected]="item.id === group()">{{ item.name }}</option>
@@ -74,7 +74,7 @@
         <div>
           <label class="field-label" for="people-status">Status</label>
           <div class="select">
-            <select id="people-status" (change)="status.set($any(value($event)))">
+            <select id="people-status" (change)="status.set($any(value($event))); resetPage()">
               <option value="active" [selected]="status() === 'active'">Nur aktive</option>
               <option value="all" [selected]="status() === 'all'">Alle</option>
               <option value="inactive" [selected]="status() === 'inactive'">Nur inaktive</option>
@@ -84,59 +84,94 @@
       </div>
 
       <div class="table-scroll">
-        <table class="table is-fullwidth is-hoverable">
+        <table class="rdp-table">
           <thead>
             <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Rollen</th>
-              <th scope="col">Schwimmer in</th>
-              <th scope="col">Trainer in</th>
-              <th scope="col">Nachweise</th>
+              <th scope="col" class="narrow"><span class="is-sr-only">Status</span></th>
+              <th scope="col">
+                <button type="button" class="sort-btn" (click)="sortBy('name')">
+                  Name {{ sortMark('name') }}
+                </button>
+              </th>
+              <th scope="col">
+                <button type="button" class="sort-btn" (click)="sortBy('memberNo')">
+                  Nr. {{ sortMark('memberNo') }}
+                </button>
+              </th>
+              <th scope="col">Schwimmer</th>
+              <th scope="col">Trainer</th>
+              <th scope="col">Kampfrichter</th>
+              <th scope="col">Funktionär</th>
               <th scope="col"><span class="is-sr-only">Aktionen</span></th>
             </tr>
           </thead>
           <tbody>
-            @for (row of rows(); track row.member.id) {
+            @for (row of pageRows(); track row.member.id) {
               <tr>
-                <td>
-                  <strong>{{ row.name }}</strong>
-                  <small class="sub"
-                    >Jg. {{ row.member.birthYear }} · Nr. {{ row.member.memberNo }}</small
-                  >
+                <td class="narrow">
+                  <span
+                    class="status-dot"
+                    [class.is-off]="!row.member.active"
+                    [title]="row.member.active ? 'aktiv' : 'inaktiv'"
+                  ></span>
                 </td>
                 <td>
-                  @for (chip of row.chips; track chip.label) {
-                    <span [class]="chip.css + ' mr-1'">{{ chip.label }}</span>
+                  <strong>{{ row.name }}</strong>
+                  <small class="sub">Jg. {{ row.member.birthYear }}</small>
+                </td>
+                <td>{{ row.member.memberNo }}</td>
+                <td>
+                  @if (row.member.swimmer) {
+                    <app-group-chips [groupIds]="row.member.swimmerGroupIds" [short]="true" />
+                    @if (row.swimmer; as hint) {
+                      <span [class]="'pill is-' + tone(hint.tone)">{{ hint.text }}</span>
+                    }
+                  } @else {
+                    <span class="sub">–</span>
                   }
                 </td>
                 <td>
-                  {{
-                    row.member.swimmerGroupIds.length ? groupsText(row.member.swimmerGroupIds) : '–'
-                  }}
+                  @if (row.member.trainer) {
+                    <app-group-chips [groupIds]="row.member.trainerGroupIds" [short]="true" />
+                    @if (row.trainer; as hint) {
+                      <span [class]="'pill is-' + tone(hint.tone)">{{ hint.text }}</span>
+                    }
+                  } @else {
+                    <span class="sub">–</span>
+                  }
                 </td>
                 <td>
-                  {{
-                    row.member.trainerGroupIds.length ? groupsText(row.member.trainerGroupIds) : '–'
-                  }}
+                  @if (row.member.referee) {
+                    @if (row.member.refereeNo) {
+                      <span class="pill is-warn">{{ row.member.refereeNo }}</span>
+                    }
+                    @if (row.referee; as hint) {
+                      <span [class]="'pill is-' + tone(hint.tone)">{{ hint.text }}</span>
+                    }
+                  } @else {
+                    <span class="sub">–</span>
+                  }
                 </td>
                 <td>
-                  <span
-                    class="pill"
-                    [class]="
-                      'pill is-' +
-                      (row.status.tone === 'ok'
-                        ? 'ok'
-                        : row.status.tone === 'bad'
-                          ? 'bad'
-                          : row.status.tone === 'warn'
-                            ? 'warn'
-                            : 'violet')
-                    "
+                  @if (row.member.official) {
+                    <span class="pill is-violet">{{
+                      row.member.officialFunction || 'Funktionär'
+                    }}</span>
+                  } @else {
+                    <span class="sub">–</span>
+                  }
+                </td>
+                <td class="actions">
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    [attr.aria-expanded]="openId() === row.member.id"
+                    [attr.aria-label]="'Details zu ' + row.name"
+                    title="Details"
+                    (click)="toggle(row.member.id)"
                   >
-                    {{ row.status.text }}
-                  </span>
-                </td>
-                <td>
+                    <app-icon [name]="openId() === row.member.id ? 'chevron-up' : 'chevron-down'" />
+                  </button>
                   <a
                     class="icon-btn is-warn"
                     [routerLink]="['/personen', row.member.id]"
@@ -145,16 +180,70 @@
                   >
                     <app-icon name="pencil" />
                   </a>
+                  <button
+                    type="button"
+                    class="icon-btn is-bad"
+                    [attr.aria-label]="row.name + ' löschen'"
+                    title="Löschen"
+                    (click)="toDelete.set(row.member)"
+                  >
+                    <app-icon name="trash" />
+                  </button>
                 </td>
               </tr>
+              @if (openId() === row.member.id) {
+                <tr class="detail">
+                  <td colspan="8">
+                    <div class="detail-grid">
+                      <div class="detail-block">
+                        <h4>Mitglied</h4>
+                        <p>Eintritt: {{ fullDate(row.member.entry) }}</p>
+                        <p>Beitrag: {{ row.member.fee || '–' }}</p>
+                        <p>DSV-ID: {{ row.member.dsvId || '–' }}</p>
+                      </div>
+                      @for (item of row.evidence; track item.kind) {
+                        <div class="detail-block">
+                          <h4>{{ item.label }} ({{ item.role }})</h4>
+                          <span [class]="'pill is-' + tone(item.tone)">{{ item.text }}</span>
+                          @if (item.date) {
+                            <p>{{ fullDate(item.date) }}</p>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
             } @empty {
               <tr>
-                <td colspan="6" class="empty">Keine Personen für diese Auswahl.</td>
+                <td colspan="8" class="empty">Keine Personen für diese Auswahl.</td>
               </tr>
             }
           </tbody>
         </table>
       </div>
+
+      @if (pageCount() > 1) {
+        <div class="pager">
+          <button
+            type="button"
+            class="btn is-small"
+            [disabled]="page() === 0"
+            (click)="goto(page() - 1)"
+          >
+            <app-icon name="chevron-left" /> Zurück
+          </button>
+          <span>Seite {{ page() + 1 }} von {{ pageCount() }}</span>
+          <button
+            type="button"
+            class="btn is-small"
+            [disabled]="page() >= pageCount() - 1"
+            (click)="goto(page() + 1)"
+          >
+            Weiter <app-icon name="chevron-right" />
+          </button>
+        </div>
+      }
     }
     @case ('parents') {
       <app-parents-table />
@@ -164,3 +253,13 @@
     }
   }
 </section>
+
+@if (toDelete(); as member) {
+  <app-modal-dialog heading="Person löschen?" accent="red" (closed)="toDelete.set(null)">
+    <p>{{ member.firstName }} {{ member.lastName }} wird mit allen Angaben entfernt.</p>
+    <ng-container dialogActions>
+      <button type="button" class="btn" (click)="toDelete.set(null)">Abbrechen</button>
+      <button type="button" class="btn is-danger" (click)="confirmDelete()">Löschen</button>
+    </ng-container>
+  </app-modal-dialog>
+}
