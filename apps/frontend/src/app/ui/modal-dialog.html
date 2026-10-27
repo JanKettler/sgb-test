@@ -1,0 +1,28 @@
+<div class="backdrop">
+  <div
+    class="dialog"
+    [class]="'dialog accent-' + accent()"
+    [class.is-wide]="wide()"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="heading()"
+  >
+    <header class="head">
+      <div>
+        <h3>{{ heading() }}</h3>
+        @if (subtitle()) {
+          <p>{{ subtitle() }}</p>
+        }
+      </div>
+      @if (badge()) {
+        <span class="pill is-violet">{{ badge() }}</span>
+      }
+    </header>
+    <div class="body">
+      <ng-content />
+    </div>
+    <footer class="foot">
+      <ng-content select="[dialogActions]" />
+    </footer>
+  </div>
+</div>

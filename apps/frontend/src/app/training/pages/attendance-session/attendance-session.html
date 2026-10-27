@@ -1,0 +1,94 @@
+@if (session(); as current) {
+  <header class="page-head">
+    <div>
+      <h2>Anwesenheit</h2>
+      <p>{{ subtitle() }}</p>
+    </div>
+    <div class="page-actions">
+      <a class="btn" routerLink="/training/termine">
+        <app-icon name="chevron-left" /> Zurück zu den Terminen
+      </a>
+      <button type="button" class="btn" (click)="exportExcel()">
+        <app-icon name="sheet" /> Excel
+      </button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="tiles">
+      @for (tile of tiles(); track tile.label) {
+        <div class="tile">
+          <span class="field-label">{{ tile.label }}</span>
+          <strong [class]="'tone-' + tile.tone">{{ tile.value }}</strong>
+        </div>
+      }
+    </div>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="is-left" scope="col">Name</th>
+            <th class="is-left" scope="col">Gruppe</th>
+            <th class="is-left" scope="col">Anmeldung</th>
+            <th class="is-left" scope="col">Anwesenheit</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.person.id + row.role) {
+            <tr [class.is-excused-row]="row.registration === 'declined'">
+              <td class="name">{{ row.person.name }}</td>
+              <td>{{ row.group }}</td>
+              <td>
+                @switch (row.registration) {
+                  @case ('registered') {
+                    <span class="pill is-ok">Angemeldet</span>
+                  }
+                  @case ('declined') {
+                    <span class="pill is-warn">Abgemeldet: {{ row.reason.toLowerCase() }}</span>
+                  }
+                  @default {
+                    <span class="pill is-bad">Keine Rückmeldung</span>
+                  }
+                }
+              </td>
+              <td>
+                <span class="segments">
+                  @for (segment of segments; track segment.state) {
+                    <button
+                      type="button"
+                      [class]="'segment is-' + segment.state"
+                      [class.is-on]="row.state === segment.state"
+                      [attr.aria-pressed]="row.state === segment.state"
+                      (click)="set(row, segment.state)"
+                    >
+                      {{ segment.label }}
+                    </button>
+                  }
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <button type="button" class="btn mt-4" (click)="adding.set(true)">
+      <app-icon name="plus" /> Person ohne Anmeldung hinzufügen
+    </button>
+  </section>
+
+  @if (adding()) {
+    <app-person-picker-dialog
+      heading="Person hinzufügen"
+      [candidates]="addable()"
+      (picked)="add($event)"
+      (closed)="adding.set(false)"
+    />
+  }
+} @else {
+  <section class="panel">
+    <p>Dieser Termin wurde nicht gefunden.</p>
+    <a routerLink="/training/termine">Zurück zu den Terminen</a>
+  </section>
+}

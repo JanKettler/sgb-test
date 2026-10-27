@@ -1,0 +1,179 @@
+<header class="page-head">
+  <div>
+    <h2>Anwesenheit</h2>
+    <p>Alle Gruppen im Überblick</p>
+  </div>
+</header>
+
+@if (message()) {
+  <div class="notice">
+    <span>{{ message() }}</span>
+    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+  </div>
+}
+
+<section class="panel">
+  @if (hasAction()) {
+    <div class="action-card">
+      <h3>Handlungsbedarf</h3>
+      @for (entry of action().inactive; track entry.person.id) {
+        <div class="action-row">
+          <div>
+            <strong>{{ entry.person.name }}</strong> · {{ groupOf(entry) }}
+            <small>{{ reasonText(entry) }}</small>
+          </div>
+          <div class="icon-row">
+            <button
+              type="button"
+              class="btn"
+              (click)="mailRequest.set({ kind: 'info', entry: entry })"
+            >
+              Mail senden
+            </button>
+            <button
+              type="button"
+              class="btn is-primary"
+              (click)="mailRequest.set({ kind: 'inactive', entry: entry })"
+            >
+              Auf inaktiv setzen und informieren
+            </button>
+          </div>
+        </div>
+      }
+      @for (entry of action().info; track entry.person.id) {
+        <div class="action-row">
+          <div>
+            <strong>{{ entry.person.name }}</strong> · {{ groupOf(entry) }}
+            <small>{{ reasonText(entry) }}</small>
+          </div>
+          <button
+            type="button"
+            class="btn is-primary"
+            (click)="mailRequest.set({ kind: 'info', entry: entry })"
+          >
+            Info-Mail senden
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <div class="toolbar">
+    <div class="chips">
+      @for (group of store.groups; track group.id) {
+        <button
+          type="button"
+          class="chip is-solid"
+          [class.is-on]="groupId() === group.id"
+          [attr.aria-pressed]="groupId() === group.id"
+          (click)="groupId.set(group.id)"
+        >
+          {{ group.name }}
+        </button>
+      }
+    </div>
+    <button type="button" class="btn is-ok" (click)="exporting.set(true)">
+      <app-icon name="sheet" /> Excel
+    </button>
+  </div>
+
+  <div class="range">
+    <button
+      type="button"
+      class="icon-btn round"
+      aria-label="Einen Monat zurück"
+      (click)="shift(-1)"
+    >
+      <app-icon name="chevron-left" />
+    </button>
+    <span>von</span>
+    <div class="select">
+      <select aria-label="Von" (change)="from.set(value($event))">
+        @for (month of store.monthOptions(); track month) {
+          <option [value]="month" [selected]="month === from()">{{ monthLabel(month) }}</option>
+        }
+      </select>
+    </div>
+    <span>bis</span>
+    <div class="select">
+      <select aria-label="Bis" (change)="to.set(value($event))">
+        @for (month of store.monthOptions(); track month) {
+          <option [value]="month" [selected]="month === to()">{{ monthLabel(month) }}</option>
+        }
+      </select>
+    </div>
+    <button type="button" class="icon-btn round" aria-label="Einen Monat vor" (click)="shift(1)">
+      <app-icon name="chevron-right" />
+    </button>
+  </div>
+
+  @let data = matrix();
+  <div class="table-scroll matrix">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="is-left" scope="col">NAME</th>
+          @for (session of data.sessions; track session.id) {
+            <th scope="col">{{ columnDay(session) }}<br />{{ session.time }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of data.rows; track row.person.id) {
+          <tr>
+            <th class="is-left name" scope="row">
+              {{ row.person.name }}
+              @if (row.isTrainer) {
+                <small>Trainer</small>
+              }
+            </th>
+            @for (cell of row.cells; track $index) {
+              <td class="is-center">
+                @if (cell) {
+                  <span class="state-dot" [class]="'state-dot is-' + cell">
+                    @switch (cell) {
+                      @case ('present') {
+                        <app-icon name="check" />
+                      }
+                      @case ('excused') {
+                        <app-icon name="minus" />
+                      }
+                      @default {
+                        <app-icon name="x" />
+                      }
+                    }
+                  </span>
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <span
+      ><span class="state-dot is-present"><app-icon name="check" /></span> anwesend</span
+    >
+    <span
+      ><span class="state-dot is-excused"><app-icon name="minus" /></span> abgemeldet</span
+    >
+    <span
+      ><span class="state-dot is-missing"><app-icon name="x" /></span> fehlt</span
+    >
+  </div>
+</section>
+
+@if (exporting()) {
+  <app-export-dialog [initialGroup]="groupId()" (closed)="exporting.set(false)" />
+}
+
+@if (mailRequest(); as request) {
+  <app-mail-dialog
+    [recipients]="[request.entry.person.name]"
+    [templateId]="mailTemplate(request)"
+    (closed)="mailRequest.set(null)"
+    (sent)="mailSent(request)"
+  />
+}

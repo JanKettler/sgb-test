@@ -1,8 +1,9 @@
 import {
   AutomationSettings,
-  DECLINE_REASONS,
+  DEFAULT_REASONS,
   GroupDefaults,
   GroupId,
+  MailTemplate,
   Person,
   Presence,
   SessionResponse,
@@ -23,10 +24,14 @@ export interface SampleData {
   marks: Record<string, Presence>;
   defaults: Record<GroupId, GroupDefaults>;
   automation: AutomationSettings;
+  templates: MailTemplate[];
 }
 
 export const PARENT_CHILD_IDS = ['p-lena', 'p-ben', 'p-mats'];
-export const DEMO_TRAINER_ID = 't-anna';
+/** The demo trainer swims in the WK group and trains other groups. */
+export const DEMO_TRAINER_ID = 't-jonas';
+
+const GROUP_IDS: GroupId[] = ['G1', 'G2', 'G3', 'WK', 'MA'];
 
 const SWIMMERS: readonly [string, string, GroupId][] = [
   ['p-mats', 'Mats Hartmann', 'WK'],
@@ -61,11 +66,11 @@ const SWIMMERS: readonly [string, string, GroupId][] = [
   ['p-holger', 'Holger Winter', 'MA'],
 ];
 
-const TRAINERS: readonly [string, string, GroupId[]][] = [
-  ['t-anna', 'Anna Brandt', ['G1', 'G2', 'G3']],
-  ['t-jonas', 'Jonas Weber', ['WK', 'G1']],
-  ['t-mira', 'Mira Köhler', ['WK', 'G3', 'G2']],
-  ['t-tobias', 'Tobias Lorenz', ['MA']],
+const TRAINERS: readonly [string, string, GroupId[], GroupId | null][] = [
+  ['t-anna', 'Anna Brandt', ['G1', 'G2', 'G3'], null],
+  ['t-jonas', 'Jonas Weber', ['G1', 'G2'], 'WK'],
+  ['t-mira', 'Mira Köhler', ['WK', 'G3', 'G2'], null],
+  ['t-tobias', 'Tobias Lorenz', ['MA'], null],
 ];
 
 const VENUES: Venue[] = [
@@ -98,7 +103,7 @@ const SLOTS: readonly Slot[] = [
     duration: 90,
     venueId: 'v-roshop',
     groupIds: ['WK'],
-    trainerIds: ['t-mira', 't-jonas'],
+    trainerIds: ['t-mira', 't-anna'],
   },
   {
     weekday: 3,
@@ -122,7 +127,7 @@ const SLOTS: readonly Slot[] = [
     duration: 90,
     venueId: 'v-roshop',
     groupIds: ['WK'],
-    trainerIds: ['t-jonas', 't-mira'],
+    trainerIds: ['t-mira', 't-anna'],
   },
   {
     weekday: 6,
@@ -130,18 +135,9 @@ const SLOTS: readonly Slot[] = [
     duration: 90,
     venueId: 'v-hunteholz',
     groupIds: ['WK', 'G1'],
-    trainerIds: ['t-anna', 't-jonas'],
+    trainerIds: ['t-anna', 't-mira'],
   },
 ];
-
-/** Small deterministic random generator (linear congruential). */
-function createRandom(seed: number): () => number {
-  let state = seed;
-  return () => {
-    state = (state * 1664525 + 1013904223) % 4294967296;
-    return state / 4294967296;
-  };
-}
 
 const INFO_MAIL = [
   'Hallo {Name},',
@@ -163,40 +159,37 @@ const INACTIVE_MAIL = [
   'Dein Trainerteam',
 ].join('\n');
 
-const GROUP_IDS: GroupId[] = ['G1', 'G2', 'G3', 'WK', 'MA'];
-
-function isInGroups(person: Person, groupIds: GroupId[]): boolean {
-  return person.groupId !== null && groupIds.includes(person.groupId);
+/** Small deterministic random generator (linear congruential). */
+function createRandom(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (state * 1664525 + 1013904223) % 4294967296;
+    return state / 4294967296;
+  };
 }
 
 export function markKey(sessionId: string, personId: string): string {
   return `${sessionId}:${personId}`;
 }
 
-export function createSampleData(today: string): SampleData {
-  const random = createRandom(2027);
-  const people: Person[] = [
-    ...TRAINERS.map(([id, name, trainerGroupIds]): Person => ({
-      id,
-      name,
-      role: 'trainer',
-      groupId: null,
-      trainerGroupIds,
-    })),
-    ...SWIMMERS.map(([id, name, groupId]): Person => ({
-      id,
-      name,
-      role: 'swimmer',
-      groupId,
-      trainerGroupIds: [],
-    })),
-  ];
+function buildPeople(): Person[] {
+  const people: Person[] = [];
+  for (const [id, name, trainerGroupIds, groupId] of TRAINERS) {
+    people.push({ id, name, groupId, trainerGroupIds });
+  }
+  for (const [id, name, groupId] of SWIMMERS) {
+    people.push({ id, name, groupId, trainerGroupIds: [] });
+  }
+  return people;
+}
 
+function buildSessions(today: string): TrainingSession[] {
   const sessions: TrainingSession[] = [];
   const start = addDays(today, -42);
   for (let offset = 0; offset <= 70; offset++) {
     const date = addDays(start, offset);
-    for (const slot of SLOTS.filter((candidate) => candidate.weekday === weekdayIndex(date))) {
+    for (const slot of SLOTS) {
+      if (slot.weekday !== weekdayIndex(date)) continue;
       sessions.push({
         id: `s${sessions.length + 1}`,
         date,
@@ -208,101 +201,16 @@ export function createSampleData(today: string): SampleData {
         trainerIds: slot.trainerIds,
         extraSwimmerIds: [],
         maxSwimmers: 15,
-        maxTrainers: 2,
+        maxTrainers: 3,
         deadlineDate: addDays(date, -1),
         deadlineTime: '14:00',
       });
     }
   }
+  return sessions;
+}
 
-  const responses: SessionResponse[] = [];
-  const marks: Record<string, Presence> = {};
-  const swimmers = people.filter((person) => person.role === 'swimmer');
-  const pastSessions = sessions.filter((session) => session.date < today);
-
-  const alwaysMissing = new Map<string, Set<string>>();
-  const markProblem = (personId: string, groupId: GroupId, count: number): void => {
-    const recent = pastSessions
-      .filter((session) => session.groupIds.includes(groupId))
-      .slice(-count)
-      .map((session) => session.id);
-    alwaysMissing.set(personId, new Set(recent));
-  };
-  markProblem('p-finn', 'G2', 3);
-  markProblem('p-pia', 'G3', 2);
-
-  for (const session of sessions) {
-    const isPast = session.date < today;
-    for (const trainerId of session.trainerIds) {
-      if (isPast) {
-        responses.push({
-          sessionId: session.id,
-          personId: trainerId,
-          asRole: 'trainer',
-          status: 'registered',
-        });
-        marks[markKey(session.id, trainerId)] = 'present';
-      } else if (random() < 0.5) {
-        responses.push({
-          sessionId: session.id,
-          personId: trainerId,
-          asRole: 'trainer',
-          status: 'registered',
-        });
-      }
-    }
-    const groupSwimmers = swimmers.filter((person) => isInGroups(person, session.groupIds));
-    for (const swimmer of groupSwimmers) {
-      const roll = random();
-      if (isPast) {
-        if (alwaysMissing.get(swimmer.id)?.has(session.id)) {
-          marks[markKey(session.id, swimmer.id)] = 'missing';
-        } else if (roll < 0.7) {
-          responses.push({
-            sessionId: session.id,
-            personId: swimmer.id,
-            asRole: 'swimmer',
-            status: 'registered',
-          });
-          marks[markKey(session.id, swimmer.id)] = 'present';
-        } else if (roll < 0.78) {
-          responses.push({
-            sessionId: session.id,
-            personId: swimmer.id,
-            asRole: 'swimmer',
-            status: 'registered',
-          });
-          marks[markKey(session.id, swimmer.id)] = 'missing';
-        } else if (roll < 0.92) {
-          responses.push({
-            sessionId: session.id,
-            personId: swimmer.id,
-            asRole: 'swimmer',
-            status: 'declined',
-            reason: DECLINE_REASONS[Math.floor(random() * 3)],
-          });
-        } else {
-          marks[markKey(session.id, swimmer.id)] = 'missing';
-        }
-      } else if (roll < 0.5) {
-        responses.push({
-          sessionId: session.id,
-          personId: swimmer.id,
-          asRole: 'swimmer',
-          status: 'registered',
-        });
-      } else if (roll < 0.6) {
-        responses.push({
-          sessionId: session.id,
-          personId: swimmer.id,
-          asRole: 'swimmer',
-          status: 'declined',
-          reason: DECLINE_REASONS[Math.floor(random() * 3)],
-        });
-      }
-    }
-  }
-
+function buildDefaults(): Record<GroupId, GroupDefaults> {
   const defaults = {} as Record<GroupId, GroupDefaults>;
   for (const groupId of GROUP_IDS) {
     const trainerIds: string[] = [];
@@ -315,9 +223,69 @@ export function createSampleData(today: string): SampleData {
       deadlineDaysBefore: 1,
       deadlineTime: '14:00',
       maxSwimmers: 15,
-      maxTrainers: 2,
+      maxTrainers: 3,
       trainerIds,
     };
+  }
+  return defaults;
+}
+
+export function createSampleData(today: string): SampleData {
+  const random = createRandom(2027);
+  const people = buildPeople();
+  const sessions = buildSessions(today);
+  const responses: SessionResponse[] = [];
+  const marks: Record<string, Presence> = {};
+
+  // Two swimmers who missed the latest sessions in a row, to show the action list.
+  const problems = new Map<string, Set<string>>();
+  const pastSessions = sessions.filter((session) => session.date < today);
+  for (const [personId, groupId, count] of [
+    ['p-finn', 'G2', 3],
+    ['p-pia', 'G3', 2],
+  ] as const) {
+    const recent = pastSessions.filter((session) => session.groupIds.includes(groupId));
+    problems.set(personId, new Set(recent.slice(-count).map((session) => session.id)));
+  }
+
+  const answer = (
+    sessionId: string,
+    personId: string,
+    asRole: SessionResponse['asRole'],
+    status: SessionResponse['status'],
+  ): void => {
+    const response: SessionResponse = { sessionId, personId, asRole, status };
+    if (status === 'declined') response.reason = DEFAULT_REASONS[Math.floor(random() * 3)];
+    responses.push(response);
+  };
+
+  for (const session of sessions) {
+    const isPast = session.date < today;
+    for (const trainerId of session.trainerIds) {
+      if (isPast || random() < 0.5) answer(session.id, trainerId, 'trainer', 'registered');
+    }
+    const trainers = new Set(session.trainerIds);
+    for (const swimmer of people) {
+      const belongs = swimmer.groupId !== null && session.groupIds.includes(swimmer.groupId);
+      if (!belongs || trainers.has(swimmer.id)) continue;
+      const roll = random();
+      const key = markKey(session.id, swimmer.id);
+      if (!isPast) {
+        if (roll < 0.5) answer(session.id, swimmer.id, 'swimmer', 'registered');
+        else if (roll < 0.6) answer(session.id, swimmer.id, 'swimmer', 'declined');
+      } else if (problems.get(swimmer.id)?.has(session.id)) {
+        marks[key] = 'missing';
+      } else if (roll < 0.7) {
+        answer(session.id, swimmer.id, 'swimmer', 'registered');
+      } else if (roll < 0.78) {
+        answer(session.id, swimmer.id, 'swimmer', 'registered');
+        marks[key] = 'missing';
+      } else if (roll < 0.92) {
+        answer(session.id, swimmer.id, 'swimmer', 'declined');
+      } else {
+        marks[key] = 'missing';
+      }
+    }
   }
 
   return {
@@ -326,12 +294,21 @@ export function createSampleData(today: string): SampleData {
     sessions,
     responses,
     marks,
-    defaults,
-    automation: {
-      infoMailAfter: 2,
-      inactiveAfter: 3,
-      infoMailTemplate: INFO_MAIL,
-      inactiveMailTemplate: INACTIVE_MAIL,
-    },
+    defaults: buildDefaults(),
+    automation: { infoMailAfter: 2, inactiveAfter: 3 },
+    templates: [
+      {
+        id: 'info',
+        name: 'Info nach 2 Fehlzeiten',
+        subject: 'Wir vermissen dich',
+        text: INFO_MAIL,
+      },
+      {
+        id: 'inactive',
+        name: 'Auf inaktiv gesetzt',
+        subject: 'Status inaktiv',
+        text: INACTIVE_MAIL,
+      },
+    ],
   };
 }

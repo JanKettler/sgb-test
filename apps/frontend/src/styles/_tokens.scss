@@ -1,0 +1,82 @@
+// Design tokens shared with the Intranet: navy and gold, light and dark.
+// "dark" is applied by data-theme="dark" or, in auto mode, by the system setting.
+
+@mixin dark-tokens {
+  --sgb-bg: #0b1220;
+  --sgb-card: #131d30;
+  --sgb-line: #1f2a3d;
+  --sgb-ink: #e2e8f0;
+  --sgb-soft: #94a3b8;
+  --sgb-hover: #17233a;
+  --sgb-navy: #2b5f93;
+  --sgb-strong: #3a73ad;
+  --sgb-on-strong: #fff;
+  --ok-bg: rgba(34, 197, 94, 0.18);
+  --ok-fg: #86efac;
+  --warn-bg: rgba(245, 158, 11, 0.18);
+  --warn-fg: #fcd34d;
+  --bad-bg: rgba(239, 68, 68, 0.18);
+  --bad-fg: #fca5a5;
+  --info-bg: rgba(59, 130, 246, 0.2);
+  --info-fg: #93c5fd;
+  --violet-bg: rgba(168, 85, 247, 0.2);
+  --violet-fg: #d8b4fe;
+  --teal-bg: rgba(20, 184, 166, 0.18);
+  --teal-fg: #5eead4;
+  --g-G1-bg: rgba(59, 130, 246, 0.22);
+  --g-G1-fg: #93c5fd;
+  --g-G2-bg: rgba(245, 158, 11, 0.2);
+  --g-G2-fg: #fcd34d;
+  --g-G3-bg: rgba(34, 197, 94, 0.2);
+  --g-G3-fg: #86efac;
+  --g-WK-bg: rgba(168, 85, 247, 0.22);
+  --g-WK-fg: #d8b4fe;
+  --g-MA-bg: rgba(244, 63, 94, 0.2);
+  --g-MA-fg: #fda4af;
+  color-scheme: dark;
+}
+
+:root {
+  --sgb-bg: #f1f5f9;
+  --sgb-card: #fff;
+  --sgb-line: #e2e8f0;
+  --sgb-ink: #0f172a;
+  --sgb-soft: #64748b;
+  --sgb-hover: #f8fafc;
+  --sgb-navy: #12395c;
+  --sgb-strong: #12395c;
+  --sgb-on-strong: #fff;
+  --sgb-gold: #d6a23a;
+  --ok-bg: #dcfce7;
+  --ok-fg: #166534;
+  --warn-bg: #fef3c7;
+  --warn-fg: #92400e;
+  --bad-bg: #fee2e2;
+  --bad-fg: #991b1b;
+  --info-bg: #dbeafe;
+  --info-fg: #1e4f9b;
+  --violet-bg: #f3e8ff;
+  --violet-fg: #6b21a8;
+  --teal-bg: #ccfbf1;
+  --teal-fg: #0f766e;
+  --g-G1-bg: #dbeafe;
+  --g-G1-fg: #1e4f9b;
+  --g-G2-bg: #fef3c7;
+  --g-G2-fg: #92400e;
+  --g-G3-bg: #dcfce7;
+  --g-G3-fg: #166534;
+  --g-WK-bg: #f3e8ff;
+  --g-WK-fg: #6b21a8;
+  --g-MA-bg: #ffe4e6;
+  --g-MA-fg: #9f1239;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-tokens;
+  }
+}
+
+:root[data-theme='dark'] {
+  @include dark-tokens;
+}

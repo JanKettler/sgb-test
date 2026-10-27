@@ -1,0 +1,40 @@
+@let item = current();
+<app-modal-dialog
+  [heading]="item.id ? 'Vorlage bearbeiten' : 'Neue Vorlage'"
+  [wide]="true"
+  (closed)="closed.emit()"
+>
+  <label class="field-label" for="tpl-name">Name</label>
+  <input
+    id="tpl-name"
+    class="input mb-3"
+    type="text"
+    [value]="item.name"
+    (input)="patch({ name: text($event) })"
+  />
+  <label class="field-label" for="tpl-subject">Betreff</label>
+  <input
+    id="tpl-subject"
+    class="input mb-3"
+    type="text"
+    [value]="item.subject"
+    (input)="patch({ subject: text($event) })"
+  />
+  <label class="field-label" for="tpl-text">Text</label>
+  <textarea
+    id="tpl-text"
+    class="textarea"
+    rows="8"
+    [value]="item.text"
+    (input)="patch({ text: text($event) })"
+  >
+  </textarea>
+  <p class="field-label mt-2">Mit {{ '{' }}Name{{ '}' }} wird der Vorname eingesetzt.</p>
+  <ng-container dialogActions>
+    @if (item.id) {
+      <button type="button" class="btn is-danger" (click)="deleted.emit()">Löschen</button>
+    }
+    <button type="button" class="btn" (click)="closed.emit()">Abbrechen</button>
+    <button type="button" class="btn is-primary" (click)="saved.emit(item)">Speichern</button>
+  </ng-container>
+</app-modal-dialog>

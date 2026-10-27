@@ -1,0 +1,195 @@
+<header class="page-head">
+  <div>
+    <h2>Training</h2>
+    <p>Termine</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" routerLink="/training/termine/neu" [queryParams]="{ serie: 1 }">
+      <app-icon name="plus" /> Serie anlegen
+    </a>
+    <a class="btn is-primary" routerLink="/training/termine/neu">
+      <app-icon name="plus" /> Neuer Termin
+    </a>
+  </div>
+</header>
+
+@if (message()) {
+  <div class="notice">
+    <span>{{ message() }}</span>
+    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+  </div>
+}
+
+<section class="panel">
+  <div class="filters">
+    <div>
+      <label class="field-label" for="filter-group">Gruppe</label>
+      <div class="select">
+        <select id="filter-group" (change)="setGroup($event)">
+          <option value="">Alle Gruppen</option>
+          @for (item of store.groups; track item.id) {
+            <option [value]="item.id" [selected]="item.id === group()">{{ item.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="field-label" for="filter-trainer">Trainer</label>
+      <div class="select">
+        <select id="filter-trainer" (change)="trainer.set(value($event))">
+          <option value="">Alle Trainer</option>
+          @for (item of store.trainers(); track item.id) {
+            <option [value]="item.id" [selected]="item.id === trainer()">{{ item.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="field-label" for="filter-venue">Ort</label>
+      <div class="select">
+        <select id="filter-venue" (change)="venue.set(value($event))">
+          <option value="">Alle Orte</option>
+          @for (item of store.venues(); track item.id) {
+            <option [value]="item.id" [selected]="item.id === venue()">{{ item.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="chips range">
+      @for (item of ranges; track item.id) {
+        <button
+          type="button"
+          class="chip is-solid"
+          [class.is-on]="range() === item.id"
+          [attr.aria-pressed]="range() === item.id"
+          (click)="range.set(item.id)"
+        >
+          {{ item.label }}
+        </button>
+      }
+      @if (filtered()) {
+        <button type="button" class="chip" (click)="resetFilters()">Filter zurücksetzen</button>
+      }
+    </div>
+  </div>
+
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th rowspan="2" scope="col">Tag</th>
+          <th rowspan="2" scope="col">Zeit</th>
+          <th rowspan="2" scope="col">Gruppen</th>
+          <th rowspan="2" scope="col">Trainer</th>
+          <th colspan="2" scope="colgroup">Angemeldet</th>
+          <th rowspan="2" scope="col">Meldeschluss</th>
+          <th rowspan="2" scope="col"><span class="is-sr-only">Aktionen</span></th>
+        </tr>
+        <tr>
+          <th scope="col">Schwimmer</th>
+          <th scope="col">Trainer</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.session.id) {
+          <tr [class.is-past]="row.past">
+            <td class="is-center day">{{ row.day }}</td>
+            <td class="is-center">{{ row.time }}</td>
+            <td><app-group-chips [groupIds]="row.session.groupIds" /></td>
+            <td>{{ row.trainers }}</td>
+            <td class="is-center">
+              <strong>{{ row.swimmers }}</strong>
+              <span class="max">/ {{ row.session.maxSwimmers }}</span>
+            </td>
+            <td class="is-center">
+              <strong>{{ row.trainerCount }}</strong>
+              <span class="max">/ {{ row.session.maxTrainers }}</span>
+            </td>
+            <td class="is-center">{{ row.deadline }}</td>
+            <td class="is-center">
+              <span class="icon-row">
+                <button
+                  type="button"
+                  class="icon-btn is-violet"
+                  aria-label="Angemeldete anzeigen"
+                  title="Angemeldete"
+                  (click)="viewing.set(row.session)"
+                >
+                  <app-icon name="users" />
+                </button>
+                <a
+                  class="icon-btn is-teal"
+                  [class.is-off]="!row.started"
+                  [routerLink]="row.started ? ['/training/anwesenheit', row.session.id] : null"
+                  aria-label="Anwesenheit führen"
+                  title="Anwesenheit ab dem Tag des Trainings"
+                >
+                  <app-icon name="clipboard" />
+                </a>
+                <a
+                  class="icon-btn is-warn"
+                  [routerLink]="['/training/termine', row.session.id]"
+                  aria-label="Termin bearbeiten"
+                  title="Bearbeiten"
+                >
+                  <app-icon name="pencil" />
+                </a>
+                <a
+                  class="icon-btn"
+                  routerLink="/training/termine/neu"
+                  [queryParams]="{ kopie: row.session.id }"
+                  aria-label="Termin kopieren"
+                  title="Kopieren"
+                >
+                  <app-icon name="copy" />
+                </a>
+                <button
+                  type="button"
+                  class="icon-btn is-bad"
+                  aria-label="Termin löschen"
+                  title="Löschen"
+                  (click)="toDelete.set(row.session)"
+                >
+                  <app-icon name="trash" />
+                </button>
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="empty">Keine Termine für diese Auswahl.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+@if (toDelete(); as session) {
+  <app-modal-dialog heading="Termin löschen?" accent="red" (closed)="toDelete.set(null)">
+    <p>{{ deleteText(session) }}</p>
+    <p class="field-label mt-2">Alle Rückmeldungen zu diesem Termin werden ebenfalls gelöscht.</p>
+    <ng-container dialogActions>
+      <button type="button" class="btn" (click)="toDelete.set(null)">Abbrechen</button>
+      <button type="button" class="btn is-danger" (click)="confirmDelete()">Löschen</button>
+    </ng-container>
+  </app-modal-dialog>
+}
+
+@if (viewing(); as session) {
+  <app-registered-dialog
+    [session]="session"
+    (closed)="viewing.set(null)"
+    (mail)="mailing.set(session); viewing.set(null)"
+  />
+}
+
+@if (mailing(); as session) {
+  <app-mail-dialog
+    [recipients]="mailRecipients(session)"
+    (closed)="mailing.set(null)"
+    (sent)="
+      mailing.set(null); message.set('Demo: Die Mail wurde vorbereitet, aber nicht versendet.')
+    "
+  />
+}

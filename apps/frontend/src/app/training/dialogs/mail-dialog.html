@@ -1,0 +1,34 @@
+<app-modal-dialog heading="Mail senden" [wide]="true" (closed)="closed.emit()">
+  <p class="mb-3">
+    <strong>Empfänger ({{ recipients().length }}):</strong> {{ recipients().join(', ') }}
+  </p>
+  <label class="field-label" for="mail-template">Vorlage</label>
+  <div class="select is-fullwidth mb-3">
+    <select id="mail-template" (change)="applyTemplate($event)">
+      <option value="">Leer</option>
+      @for (template of store.templates(); track template.id) {
+        <option [value]="template.id" [selected]="template.id === templateId()">
+          {{ template.name }}
+        </option>
+      }
+    </select>
+  </div>
+  <label class="field-label" for="mail-subject">Betreff</label>
+  <input
+    id="mail-subject"
+    class="input mb-3"
+    type="text"
+    [value]="subject()"
+    (input)="setSubject($event)"
+  />
+  <label class="field-label" for="mail-text">Text</label>
+  <textarea id="mail-text" class="textarea" rows="8" [value]="text()" (input)="setText($event)">
+  </textarea>
+  <p class="field-label mt-2">Demo: Es wird keine Mail verschickt.</p>
+  <ng-container dialogActions>
+    <button type="button" class="btn" (click)="closed.emit()">Abbrechen</button>
+    <button type="button" class="btn is-primary" (click)="sent.emit(recipients().length)">
+      Senden
+    </button>
+  </ng-container>
+</app-modal-dialog>

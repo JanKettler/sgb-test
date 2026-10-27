@@ -1,0 +1,235 @@
+<header class="page-head">
+  <div>
+    <h2>Training</h2>
+    <p>Einstellungen</p>
+  </div>
+</header>
+
+@if (message()) {
+  <div class="notice">
+    <span>{{ message() }}</span>
+    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+  </div>
+}
+
+<section class="panel">
+  <h3>Standardwerte für neue Termine</h3>
+  <div class="chips mb-4">
+    @for (group of store.groups; track group.id) {
+      <button
+        type="button"
+        class="chip is-solid"
+        [class.is-on]="groupId() === group.id"
+        [attr.aria-pressed]="groupId() === group.id"
+        (click)="groupId.set(group.id)"
+      >
+        {{ group.name }}
+      </button>
+    }
+  </div>
+  @let values = defaults();
+  <div class="defaults">
+    <div class="form-grid">
+      <div>
+        <label class="field-label" for="def-venue">Ort</label>
+        <div class="select is-fullwidth">
+          <select id="def-venue" (change)="setDefault({ venueId: value($event) })">
+            @for (venue of store.venues(); track venue.id) {
+              <option [value]="venue.id" [selected]="venue.id === values.venueId">
+                {{ venue.name }}
+              </option>
+            }
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="field-label" for="def-duration">Dauer in Minuten</label>
+        <input
+          id="def-duration"
+          class="input"
+          type="number"
+          min="15"
+          step="15"
+          [value]="values.durationMinutes"
+          (change)="setDefault({ durationMinutes: +value($event) })"
+        />
+      </div>
+      <div>
+        <label class="field-label" for="def-days">Meldeschluss (Tage vorher)</label>
+        <input
+          id="def-days"
+          class="input"
+          type="number"
+          min="0"
+          [value]="values.deadlineDaysBefore"
+          (change)="setDefault({ deadlineDaysBefore: +value($event) })"
+        />
+      </div>
+      <div>
+        <label class="field-label" for="def-time">Meldeschluss Uhrzeit</label>
+        <input
+          id="def-time"
+          class="input"
+          type="time"
+          [value]="values.deadlineTime"
+          (change)="setDefault({ deadlineTime: value($event) })"
+        />
+      </div>
+      <div>
+        <label class="field-label" for="def-swimmers">Max. Schwimmer</label>
+        <input
+          id="def-swimmers"
+          class="input"
+          type="number"
+          min="0"
+          [value]="values.maxSwimmers"
+          (change)="setDefault({ maxSwimmers: +value($event) })"
+        />
+      </div>
+      <div>
+        <label class="field-label" for="def-trainers">Max. Trainer</label>
+        <input
+          id="def-trainers"
+          class="input"
+          type="number"
+          min="0"
+          [value]="values.maxTrainers"
+          (change)="setDefault({ maxTrainers: +value($event) })"
+        />
+      </div>
+    </div>
+    <div>
+      <span class="field-label">Standard-Trainer</span>
+      <div class="chips">
+        @for (trainer of store.trainers(); track trainer.id) {
+          <button
+            type="button"
+            class="chip"
+            [class.is-on]="values.trainerIds.includes(trainer.id)"
+            [attr.aria-pressed]="values.trainerIds.includes(trainer.id)"
+            (click)="toggleTrainer(trainer.id)"
+          >
+            {{ trainer.name }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="two">
+  <div>
+    <section class="panel">
+      <h3>Orte</h3>
+      <div class="chips">
+        @for (venue of store.venues(); track venue.id) {
+          <button type="button" class="chip is-solid" (click)="venueEdit.set(venue)">
+            {{ venue.name }}
+          </button>
+        }
+        <button type="button" class="chip" (click)="venueEdit.set('new')">+ Ort</button>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>Daten aufbewahren</h3>
+      <p class="mb-3">
+        Die Daten einer Saison bleiben bis zum Ende der Folgesaison erhalten. Danach werden sie
+        gelöscht.
+      </p>
+      <div class="form-grid">
+        <div class="box-info">
+          <span class="field-label">Saison 2027</span>
+          <strong>bleibt bis Ende 2028</strong>
+        </div>
+        <div class="box-info">
+          <span class="field-label">Löschung</span>
+          <strong>Anfang 2029</strong>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div>
+    <section class="panel">
+      <h3>Automatik bei Fehlzeiten</h3>
+      @let auto = store.automation();
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="auto-info">Info-Mail nach … Fehlzeiten</label>
+          <input
+            id="auto-info"
+            class="input"
+            type="number"
+            min="1"
+            [value]="auto.infoMailAfter"
+            (change)="store.updateAutomation({ infoMailAfter: +value($event) })"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="auto-inactive">Inaktiv-Vorschlag nach … in Folge</label>
+          <input
+            id="auto-inactive"
+            class="input"
+            type="number"
+            min="1"
+            [value]="auto.inactiveAfter"
+            (change)="store.updateAutomation({ inactiveAfter: +value($event) })"
+          />
+        </div>
+      </div>
+      <div class="chips">
+        @for (template of store.templates(); track template.id) {
+          <button type="button" class="chip is-solid" (click)="templateEdit.set(template)">
+            Vorlage: {{ template.name }}
+          </button>
+        }
+        <button type="button" class="chip" (click)="newTemplate()">+ Vorlage</button>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>Abmeldegründe</h3>
+      <div class="chips mb-3">
+        @for (reason of store.reasons(); track reason) {
+          <button type="button" class="chip is-solid" (click)="reasonEdit.set(reason)">
+            {{ reason === other ? 'Sonstiges · mit Bemerkung' : reason }}
+          </button>
+        }
+        <button type="button" class="chip" (click)="reasonEdit.set('new')">+ Grund</button>
+      </div>
+      <p class="hint">Bei Sonstiges ist die Bemerkung freiwillig.</p>
+    </section>
+  </div>
+</div>
+
+@if (venueEdit(); as edit) {
+  <app-name-dialog
+    [heading]="edit === 'new' ? 'Neuer Ort' : 'Ort bearbeiten'"
+    label="Name des Ortes"
+    [initial]="edit === 'new' ? '' : edit.name"
+    [deletable]="edit !== 'new'"
+    (saved)="saveVenue($event)"
+    (deleted)="deleteVenue()"
+    (closed)="venueEdit.set(null)"
+  />
+}
+
+@if (reasonEdit(); as edit) {
+  <app-name-dialog
+    [heading]="edit === 'new' ? 'Neuer Abmeldegrund' : 'Abmeldegrund'"
+    label="Bezeichnung"
+    [initial]="edit === 'new' ? '' : edit"
+    [deletable]="edit !== 'new' && edit !== other"
+    (saved)="saveReason($event)"
+    (deleted)="deleteReason()"
+    (closed)="reasonEdit.set(null)"
+  />
+}
+
+@if (templateEdit(); as template) {
+  <app-template-dialog
+    [template]="template"
+    (saved)="saveTemplate($event)"
+    (deleted)="deleteTemplate()"
+    (closed)="templateEdit.set(null)"
+  />
+}

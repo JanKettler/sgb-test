@@ -1,119 +1,92 @@
-<div class="app-shell">
-  <aside class="app-sidebar" [class.is-open]="menuOpen()" aria-label="Hauptnavigation">
-    <a class="app-brand" routerLink="/" (click)="closeMenu()">SG Barnstorf</a>
+<div class="shell">
+  <aside class="sidebar" [class.is-open]="menuOpen()" aria-label="Hauptnavigation">
+    <a class="brand" routerLink="/" (click)="closeMenu()">SG Barnstorf</a>
 
-    <div class="field px-3">
-      <label class="label is-small has-text-grey-light" for="demo-role">Ansicht (Demo)</label>
+    <div class="demo">
+      <label class="demo-label" for="demo-role">Ansicht (Demo)</label>
       <div class="select is-small is-fullwidth">
-        <select id="demo-role" [value]="store.role()" (change)="setRole($event)">
+        <select id="demo-role" (change)="setRole($event)">
           @for (role of demoRoles; track role.id) {
-            <option [value]="role.id">{{ role.label }}</option>
+            <option [value]="role.id" [selected]="role.id === store.role()">
+              {{ role.label }}
+            </option>
           }
         </select>
       </div>
     </div>
 
-    <nav class="menu px-3">
-      <ul class="menu-list">
-        <li>
-          <a
-            routerLink="/"
-            routerLinkActive="is-active"
-            [routerLinkActiveOptions]="{ exact: true }"
-            (click)="closeMenu()"
-          >
-            <app-icon name="home" /> Startseite
-          </a>
-        </li>
-      </ul>
+    <nav class="nav">
+      <a
+        (click)="closeMenu()"
+        routerLink="/"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <app-icon name="home" /> Startseite
+      </a>
 
-      <p class="menu-label">Training</p>
-      <ul class="menu-list">
-        <li>
-          <a routerLink="/training/anmeldung" routerLinkActive="is-active" (click)="closeMenu()">
-            <app-icon name="check" /> Anmeldung
-          </a>
-        </li>
-        @if (store.canManage()) {
-          <li>
-            <a routerLink="/training/termine" routerLinkActive="is-active" (click)="closeMenu()">
-              <app-icon name="calendar" /> Termine
-            </a>
-          </li>
-          <li>
-            <a
-              routerLink="/training/anwesenheit"
-              routerLinkActive="is-active"
-              (click)="closeMenu()"
-            >
-              <app-icon name="clipboard" /> Anwesenheit
-            </a>
-          </li>
-        }
-        @if (store.isAdmin()) {
-          <li>
-            <a
-              routerLink="/training/einstellungen"
-              routerLinkActive="is-active"
-              (click)="closeMenu()"
-            >
-              <app-icon name="gear" /> Einstellungen
-            </a>
-          </li>
-        }
-      </ul>
+      <p class="group">Training</p>
+      <a (click)="closeMenu()" routerLink="/training/anmeldung" routerLinkActive="is-active">
+        <app-icon name="check" /> Anmeldung
+      </a>
+      @if (store.canManage()) {
+        <a (click)="closeMenu()" routerLink="/training/termine" routerLinkActive="is-active">
+          <app-icon name="calendar" /> Termine
+        </a>
+        <a (click)="closeMenu()" routerLink="/training/anwesenheit" routerLinkActive="is-active">
+          <app-icon name="clipboard" /> Anwesenheit
+        </a>
+      }
+      @if (store.isAdmin()) {
+        <a (click)="closeMenu()" routerLink="/training/einstellungen" routerLinkActive="is-active">
+          <app-icon name="gear" /> Einstellungen
+        </a>
+      }
 
-      <p class="menu-label">Warteliste</p>
-      <ul class="menu-list">
-        <li>
-          <a routerLink="/warteliste/anmelden" routerLinkActive="is-active" (click)="closeMenu()">
-            <app-icon name="list" /> Anmelden
-          </a>
-        </li>
-        @if (store.isAdmin()) {
-          <li>
-            <a routerLink="/intern/warteliste" routerLinkActive="is-active" (click)="closeMenu()">
-              <app-icon name="users" /> Intern
-            </a>
-          </li>
-        }
-      </ul>
+      <p class="group">Warteliste</p>
+      <a (click)="closeMenu()" routerLink="/warteliste/anmelden" routerLinkActive="is-active">
+        <app-icon name="list" /> Anmelden
+      </a>
+      @if (store.isAdmin()) {
+        <a (click)="closeMenu()" routerLink="/intern/warteliste" routerLinkActive="is-active">
+          <app-icon name="users" /> Intern
+        </a>
+      }
     </nav>
 
-    <p class="app-status is-size-7" role="status">
-      @switch (connectionStatus()) {
-        @case ('loading') {
-          Verbindung wird geprüft …
+    <div class="side-foot">
+      <button type="button" class="theme" (click)="theme.cycle()">{{ theme.label() }}</button>
+      <p class="status" role="status">
+        @switch (connectionStatus()) {
+          @case ('loading') {
+            Verbindung wird geprüft …
+          }
+          @case ('connected') {
+            Verbindung hergestellt.
+          }
+          @case ('unavailable') {
+            Verbindung derzeit nicht verfügbar. Bitte lade die Seite später erneut.
+          }
         }
-        @case ('connected') {
-          Verbindung hergestellt.
-        }
-        @case ('unavailable') {
-          Verbindung derzeit nicht verfügbar. Bitte lade die Seite später erneut.
-        }
-      }
-    </p>
+      </p>
+    </div>
   </aside>
 
-  <div class="app-main">
-    <header class="app-topbar">
+  <div class="main">
+    <header class="topbar">
       <button
         type="button"
-        class="navbar-burger app-burger"
-        [class.is-active]="menuOpen()"
+        class="burger"
         aria-label="Menü"
         [attr.aria-expanded]="menuOpen()"
         (click)="toggleMenu()"
       >
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
+        <span></span><span></span><span></span>
       </button>
-      <h1 class="title is-5 mb-0">SGB Portal</h1>
-      <span class="app-subtitle is-hidden-mobile">Schwimmgemeinschaft Barnstorf e.V.</span>
+      <h1>SGB Portal</h1>
+      <span class="club">Schwimmgemeinschaft Barnstorf e.V.</span>
     </header>
-    <main class="app-content">
+    <main class="content">
       <router-outlet />
     </main>
   </div>
