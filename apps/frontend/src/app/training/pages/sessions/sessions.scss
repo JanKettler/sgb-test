@@ -42,9 +42,8 @@
     top: 0;
     z-index: 1;
   }
+}
 
-  /* The second heading row sits below the first one. */
-  thead tr + tr th {
-    top: 2.4rem;
-  }
+.nowrap {
+  white-space: nowrap;
 }
