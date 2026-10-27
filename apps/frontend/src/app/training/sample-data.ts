@@ -310,8 +310,8 @@ export function createSampleData(today: string): SampleData {
   const defaults = {} as Record<GroupId, GroupDefaults>;
   for (const groupId of GROUP_IDS) {
     const trainerIds: string[] = [];
-    for (const [id, , groups] of TRAINERS) {
-      if (groups.includes(groupId)) trainerIds.push(id);
+    for (const trainer of TRAINERS) {
+      if (trainer[2].includes(groupId)) trainerIds.push(trainer[0]);
     }
     defaults[groupId] = {
       venueId: groupId === 'MA' ? 'v-delfin' : 'v-roshop',
