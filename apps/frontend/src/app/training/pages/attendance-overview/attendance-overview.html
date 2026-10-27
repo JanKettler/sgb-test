@@ -15,7 +15,7 @@
 <section class="panel">
   @if (hasAction()) {
     <div class="action-card">
-      <h3>Handlungsbedarf</h3>
+      <h3><app-icon name="warning" /> Handlungsbedarf</h3>
       @for (entry of action().inactive; track entry.person.id) {
         <div class="action-row">
           <div>

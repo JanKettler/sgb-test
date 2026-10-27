@@ -56,7 +56,7 @@
     @for (group of store.groups; track group.id) {
       <button
         type="button"
-        class="chip is-solid"
+        [class]="'group-chip group-pick grp-' + group.id"
         [class.is-on]="groupId() === group.id"
         [attr.aria-pressed]="groupId() === group.id"
         (click)="groupId.set(group.id)"

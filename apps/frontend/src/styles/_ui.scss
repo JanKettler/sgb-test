@@ -10,7 +10,7 @@ app-icon {
 }
 
 .app-icon {
-  height: 1.1em;
+  text-align: center;
   width: 1.1em;
 }
 
@@ -383,9 +383,10 @@ app-icon {
   align-items: center;
   border-radius: 50%;
   display: inline-flex;
-  height: 2rem;
+  font-size: 0.75rem;
+  height: 1.5rem;
   justify-content: center;
-  width: 2rem;
+  width: 1.5rem;
 
   &.is-present {
     background: var(--ok-bg);
