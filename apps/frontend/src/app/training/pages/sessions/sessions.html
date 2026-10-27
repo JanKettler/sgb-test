@@ -58,25 +58,22 @@
     <table class="table is-fullwidth is-hoverable is-narrow">
       <thead>
         <tr>
-          <th rowspan="2" scope="col">Tag</th>
-          <th rowspan="2" scope="col">Zeit</th>
-          <th rowspan="2" scope="col">Gruppen</th>
-          <th rowspan="2" scope="col">Trainer</th>
-          <th colspan="2" scope="colgroup">Angemeldet</th>
-          <th rowspan="2" scope="col">Meldeschluss</th>
-          <th rowspan="2" scope="col"><span class="is-sr-only">Aktionen</span></th>
-        </tr>
-        <tr>
-          <th scope="col">Schwimmer</th>
+          <th scope="col">Tag</th>
+          <th scope="col">Zeit</th>
+          <th scope="col">Gruppen</th>
           <th scope="col">Trainer</th>
+          <th scope="col">Angem. Schwimmer</th>
+          <th scope="col">Angem. Trainer</th>
+          <th scope="col">Meldeschluss</th>
+          <th scope="col"><span class="is-sr-only">Aktionen</span></th>
         </tr>
       </thead>
       <tbody>
         @for (row of rows(); track row.session.id) {
           <tr [class.is-past]="row.past" [class.is-next]="row.session.id === nextId()">
-            <td class="day">{{ row.day }}</td>
-            <td>{{ row.time }}</td>
-            <td><app-group-chips [groupIds]="row.session.groupIds" /></td>
+            <td class="day nowrap">{{ row.day }}</td>
+            <td class="nowrap">{{ row.time }}</td>
+            <td><app-group-chips [groupIds]="row.session.groupIds" [short]="true" /></td>
             <td>{{ row.trainers }}</td>
             <td>
               <strong>{{ row.swimmers }}</strong>

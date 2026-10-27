@@ -21,6 +21,8 @@
 }
 
 :root {
+  color-scheme: light;
+
   /* Surface and state colours come from Bulma, which switches light and dark by itself. */
   --sgb-bg: var(--bulma-scheme-main-bis);
   --sgb-card: var(--bulma-scheme-main);
