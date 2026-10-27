@@ -83,6 +83,15 @@ function responseKey(sessionId: string, personId: string, role: PersonRole): str
  * In-memory store with invented sample data. It stands in for the backend until the
  * training API and its Prisma models exist; the public methods mark the future API surface.
  */
+export interface SettingsSnapshot {
+  venues: Venue[];
+  defaults: Record<GroupId, GroupDefaults>;
+  automation: AutomationSettings;
+  templates: MailTemplate[];
+  reasons: DeclineReason[];
+  season: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TrainingStore {
   readonly today = toIsoDate(new Date());
@@ -104,6 +113,8 @@ export class TrainingStore {
   readonly automation = signal<AutomationSettings>(this.sample.automation);
   readonly templates = signal<MailTemplate[]>(this.sample.templates);
   readonly reasons = signal<DeclineReason[]>([...DEFAULT_REASONS]);
+  /** First year of the season whose data is kept; changeable in the settings. */
+  readonly season = signal(Number(this.today.slice(0, 4)));
   /** Swimmers that were set to inactive or informed by mail from the action list. */
   readonly handledIds = signal<string[]>([]);
   readonly inactiveIds = signal<string[]>([]);
@@ -466,6 +477,27 @@ export class TrainingStore {
 
   updateDefaults(groupId: GroupId, change: Partial<GroupDefaults>): void {
     this.defaults.update((all) => ({ ...all, [groupId]: { ...all[groupId], ...change } }));
+  }
+
+  /** Copy of everything the settings page edits, so that "Abbrechen" can restore it. */
+  settingsSnapshot(): SettingsSnapshot {
+    return {
+      venues: this.venues(),
+      defaults: this.defaults(),
+      automation: this.automation(),
+      templates: this.templates(),
+      reasons: this.reasons(),
+      season: this.season(),
+    };
+  }
+
+  restoreSettings(snapshot: SettingsSnapshot): void {
+    this.venues.set(snapshot.venues);
+    this.defaults.set(snapshot.defaults);
+    this.automation.set(snapshot.automation);
+    this.templates.set(snapshot.templates);
+    this.reasons.set(snapshot.reasons);
+    this.season.set(snapshot.season);
   }
 
   updateAutomation(change: Partial<AutomationSettings>): void {

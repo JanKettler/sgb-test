@@ -55,7 +55,6 @@
     </nav>
 
     <div class="side-foot">
-      <button type="button" class="theme" (click)="theme.cycle()">{{ theme.label() }}</button>
       <p class="status" role="status">
         @switch (connectionStatus()) {
           @case ('loading') {
@@ -85,6 +84,14 @@
       </button>
       <h1>SGB Portal</h1>
       <span class="club">Schwimmgemeinschaft Barnstorf e.V.</span>
+      <button
+        type="button"
+        class="theme"
+        title="Darstellung wechseln: Auto, Hell, Dunkel"
+        (click)="theme.cycle()"
+      >
+        {{ theme.label() }}
+      </button>
     </header>
     <main class="content">
       <router-outlet />

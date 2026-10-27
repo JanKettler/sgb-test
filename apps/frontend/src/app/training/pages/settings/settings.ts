@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Icon } from '../../../ui/icon';
 import { NameDialog } from '../../dialogs/name-dialog';
 import { TemplateDialog } from '../../dialogs/template-dialog';
 import { GroupDefaults, GroupId, MailTemplate, OTHER_REASON, Venue } from '../../training.models';
-import { TrainingStore } from '../../training.store';
+import { SettingsSnapshot, TrainingStore } from '../../training.store';
 
 const NEW_TEMPLATE: MailTemplate = { id: '', name: '', subject: '', text: '' };
 
@@ -12,7 +13,7 @@ type ReasonEdit = string | 'new' | null;
 
 @Component({
   selector: 'app-training-settings',
-  imports: [NameDialog, TemplateDialog],
+  imports: [Icon, NameDialog, TemplateDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './settings.html',
   styleUrl: './settings.scss',
@@ -21,6 +22,9 @@ export class TrainingSettings {
   protected readonly store = inject(TrainingStore);
   protected readonly other = OTHER_REASON;
 
+  protected readonly editing = signal(false);
+  private snapshot: SettingsSnapshot | null = null;
+
   protected readonly groupId = signal<GroupId>('G1');
   protected readonly message = signal('');
   protected readonly venueEdit = signal<VenueEdit>(null);
@@ -28,6 +32,28 @@ export class TrainingSettings {
   protected readonly templateEdit = signal<MailTemplate | null>(null);
 
   protected readonly defaults = computed(() => this.store.defaults()[this.groupId()]);
+
+  protected startEdit(): void {
+    this.snapshot = this.store.settingsSnapshot();
+    this.editing.set(true);
+  }
+
+  protected cancelEdit(): void {
+    if (this.snapshot) this.store.restoreSettings(this.snapshot);
+    this.snapshot = null;
+    this.editing.set(false);
+    this.message.set('Änderungen verworfen.');
+  }
+
+  protected saveEdit(): void {
+    this.snapshot = null;
+    this.editing.set(false);
+    this.message.set('Einstellungen gespeichert.');
+  }
+
+  protected changeSeason(step: number): void {
+    this.store.season.update((year) => year + step);
+  }
 
   protected value(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).value;

@@ -3,7 +3,45 @@
     <h2>Training</h2>
     <p>Einstellungen</p>
   </div>
+  <div class="icon-row">
+    @if (editing()) {
+      <button
+        type="button"
+        class="icon-btn is-bad"
+        aria-label="Abbrechen"
+        title="Abbrechen"
+        (click)="cancelEdit()"
+      >
+        <app-icon name="x" />
+      </button>
+      <button
+        type="button"
+        class="icon-btn is-ok"
+        aria-label="Speichern"
+        title="Speichern"
+        (click)="saveEdit()"
+      >
+        <app-icon name="save" />
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="icon-btn is-warn"
+        aria-label="Bearbeiten"
+        title="Bearbeiten"
+        (click)="startEdit()"
+      >
+        <app-icon name="pencil" />
+      </button>
+    }
+  </div>
 </header>
+
+@if (editing()) {
+  <p class="notice">
+    Du bearbeitest die Einstellungen. Mit dem Haken speicherst du, mit dem X verwirfst du alles.
+  </p>
+}
 
 @if (message()) {
   <div class="notice">
@@ -33,7 +71,11 @@
       <div>
         <label class="field-label" for="def-venue">Ort</label>
         <div class="select is-fullwidth">
-          <select id="def-venue" (change)="setDefault({ venueId: value($event) })">
+          <select
+            id="def-venue"
+            [disabled]="!editing()"
+            (change)="setDefault({ venueId: value($event) })"
+          >
             @for (venue of store.venues(); track venue.id) {
               <option [value]="venue.id" [selected]="venue.id === values.venueId">
                 {{ venue.name }}
@@ -46,6 +88,7 @@
         <label class="field-label" for="def-duration">Dauer in Minuten</label>
         <input
           id="def-duration"
+          [disabled]="!editing()"
           class="input"
           type="number"
           min="15"
@@ -58,6 +101,7 @@
         <label class="field-label" for="def-days">Meldeschluss (Tage vorher)</label>
         <input
           id="def-days"
+          [disabled]="!editing()"
           class="input"
           type="number"
           min="0"
@@ -69,6 +113,7 @@
         <label class="field-label" for="def-time">Meldeschluss Uhrzeit</label>
         <input
           id="def-time"
+          [disabled]="!editing()"
           class="input"
           type="time"
           [value]="values.deadlineTime"
@@ -79,6 +124,7 @@
         <label class="field-label" for="def-swimmers">Max. Schwimmer</label>
         <input
           id="def-swimmers"
+          [disabled]="!editing()"
           class="input"
           type="number"
           min="0"
@@ -90,6 +136,7 @@
         <label class="field-label" for="def-trainers">Max. Trainer</label>
         <input
           id="def-trainers"
+          [disabled]="!editing()"
           class="input"
           type="number"
           min="0"
@@ -105,6 +152,7 @@
           <button
             type="button"
             class="chip"
+            [disabled]="!editing()"
             [class.is-on]="values.trainerIds.includes(trainer.id)"
             [attr.aria-pressed]="values.trainerIds.includes(trainer.id)"
             (click)="toggleTrainer(trainer.id)"
@@ -123,11 +171,18 @@
       <h3>Orte</h3>
       <div class="chips">
         @for (venue of store.venues(); track venue.id) {
-          <button type="button" class="chip is-solid" (click)="venueEdit.set(venue)">
+          <button
+            type="button"
+            class="chip is-solid"
+            [disabled]="!editing()"
+            (click)="venueEdit.set(venue)"
+          >
             {{ venue.name }}
           </button>
         }
-        <button type="button" class="chip" (click)="venueEdit.set('new')">+ Ort</button>
+        @if (editing()) {
+          <button type="button" class="chip" (click)="venueEdit.set('new')">+ Ort</button>
+        }
       </div>
     </section>
     <section class="panel">
@@ -138,12 +193,35 @@
       </p>
       <div class="form-grid">
         <div class="box-info">
-          <span class="field-label">Saison 2027</span>
-          <strong>bleibt bis Ende 2028</strong>
+          <span class="field-label">Saison</span>
+          <span class="season">
+            @if (editing()) {
+              <button
+                type="button"
+                class="icon-btn"
+                aria-label="Vorherige Saison"
+                (click)="changeSeason(-1)"
+              >
+                <app-icon name="chevron-left" />
+              </button>
+            }
+            <strong>{{ store.season() }}</strong>
+            @if (editing()) {
+              <button
+                type="button"
+                class="icon-btn"
+                aria-label="Nächste Saison"
+                (click)="changeSeason(1)"
+              >
+                <app-icon name="chevron-right" />
+              </button>
+            }
+          </span>
+          <small>bleibt bis Ende {{ store.season() + 1 }}</small>
         </div>
         <div class="box-info">
           <span class="field-label">Löschung</span>
-          <strong>Anfang 2029</strong>
+          <strong>Anfang {{ store.season() + 2 }}</strong>
         </div>
       </div>
     </section>
@@ -158,6 +236,7 @@
           <label class="field-label" for="auto-info">Info-Mail nach … Fehlzeiten</label>
           <input
             id="auto-info"
+            [disabled]="!editing()"
             class="input"
             type="number"
             min="1"
@@ -169,6 +248,7 @@
           <label class="field-label" for="auto-inactive">Inaktiv-Vorschlag nach … in Folge</label>
           <input
             id="auto-inactive"
+            [disabled]="!editing()"
             class="input"
             type="number"
             min="1"
@@ -179,22 +259,36 @@
       </div>
       <div class="chips">
         @for (template of store.templates(); track template.id) {
-          <button type="button" class="chip is-solid" (click)="templateEdit.set(template)">
+          <button
+            type="button"
+            class="chip is-solid"
+            [disabled]="!editing()"
+            (click)="templateEdit.set(template)"
+          >
             Vorlage: {{ template.name }}
           </button>
         }
-        <button type="button" class="chip" (click)="newTemplate()">+ Vorlage</button>
+        @if (editing()) {
+          <button type="button" class="chip" (click)="newTemplate()">+ Vorlage</button>
+        }
       </div>
     </section>
     <section class="panel">
       <h3>Abmeldegründe</h3>
       <div class="chips mb-3">
         @for (reason of store.reasons(); track reason) {
-          <button type="button" class="chip is-solid" (click)="reasonEdit.set(reason)">
+          <button
+            type="button"
+            class="chip is-solid"
+            [disabled]="!editing()"
+            (click)="reasonEdit.set(reason)"
+          >
             {{ reason === other ? 'Sonstiges · mit Bemerkung' : reason }}
           </button>
         }
-        <button type="button" class="chip" (click)="reasonEdit.set('new')">+ Grund</button>
+        @if (editing()) {
+          <button type="button" class="chip" (click)="reasonEdit.set('new')">+ Grund</button>
+        }
       </div>
       <p class="hint">Bei Sonstiges ist die Bemerkung freiwillig.</p>
     </section>
