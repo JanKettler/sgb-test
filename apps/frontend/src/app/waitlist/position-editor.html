@@ -1,0 +1,67 @@
+<button
+  class="button is-small is-light ml-2"
+  type="button"
+  [disabled]="disabled() || queueLength() < 2"
+  (click)="open()"
+  aria-haspopup="dialog"
+  aria-label="Warteplatz ändern"
+>
+  Ändern
+</button>
+<dialog #dialog [attr.aria-labelledby]="'move-dialog-title-' + entryId()" (cancel)="close($event)">
+  <h4 [id]="'move-dialog-title-' + entryId()" class="title is-4">Warteplatz ändern</h4>
+  <p class="mb-4">Aktuell Platz {{ position() }} in Gruppe {{ group().slice(-1) }}.</p>
+  @if (error()) {
+    <p class="notification is-danger is-light" role="alert">{{ error() }}</p>
+  }
+  <form #moveForm (submit)="$event.preventDefault(); move(target.value, reason.value)" novalidate>
+    <div class="field">
+      <label class="label" [for]="'target-position-' + entryId()">Neuer Warteplatz</label>
+      <input
+        #target
+        [id]="'target-position-' + entryId()"
+        class="input"
+        type="number"
+        min="1"
+        [max]="queueLength()"
+        [value]="position()"
+        [disabled]="saving()"
+        required
+        autofocus
+        [attr.aria-describedby]="'position-help-' + entryId()"
+      />
+      <p [id]="'position-help-' + entryId()" class="help">
+        Möglich sind Plätze von 1 bis {{ queueLength() }}.
+      </p>
+    </div>
+    <div class="field">
+      <label class="label" [for]="'move-reason-' + entryId()">Begründung (Pflichtfeld)</label>
+      <textarea
+        #reason
+        [id]="'move-reason-' + entryId()"
+        class="textarea"
+        rows="3"
+        maxlength="2000"
+        [disabled]="saving()"
+        required
+        [attr.aria-describedby]="'reason-help-' + entryId()"
+      ></textarea>
+      <p [id]="'reason-help-' + entryId()" class="help">
+        Die Begründung wird im Änderungsverlauf gespeichert. Höchstens 2.000 Zeichen.
+      </p>
+    </div>
+    <div class="buttons mt-5">
+      <button class="button" type="button" [disabled]="saving()" (click)="close()">
+        Abbrechen
+      </button>
+      <button
+        class="button is-link"
+        type="submit"
+        [disabled]="saving()"
+        [class.is-loading]="saving()"
+      >
+        Änderung speichern
+      </button>
+    </div>
+  </form>
+</dialog>

@@ -1,0 +1,175 @@
+<section class="section">
+  <div class="container registration">
+    <h2 class="title is-3">Für die Warteliste anmelden</h2>
+    @if (state() === 'success') {
+      <div class="notification is-success is-light" role="status">
+        Deine Anmeldung wurde gespeichert. Die Zuordnung zu einer Schwimmgruppe steht noch aus.
+      </div>
+      <button class="button is-link is-light" type="button" (click)="startAgain()">
+        Weitere Person anmelden
+      </button>
+    } @else {
+      <p class="mb-5">
+        Bitte trage die Daten der schwimmenden Person ein. Alle Felder außer der Mitteilung sind
+        Pflichtfelder.
+      </p>
+      @if (state() === 'error') {
+        <div class="notification is-danger is-light" role="alert">
+          Die Anmeldung konnte nicht gespeichert werden. Bitte prüfe deine Angaben und versuche es
+          erneut.
+        </div>
+      }
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label class="label" for="firstName">Vorname</label>
+          <input
+            id="firstName"
+            class="input"
+            formControlName="firstName"
+            autocomplete="given-name"
+            maxlength="100"
+            required
+            [attr.aria-invalid]="invalid('firstName')"
+            aria-describedby="firstName-error"
+          />
+          <p id="firstName-error" class="help is-danger">
+            @if (invalid('firstName')) {
+              Bitte gib einen Vornamen mit höchstens 100 Zeichen ein.
+            }
+          </p>
+        </div>
+        <div class="field">
+          <label class="label" for="lastName">Nachname</label>
+          <input
+            id="lastName"
+            class="input"
+            formControlName="lastName"
+            autocomplete="family-name"
+            maxlength="100"
+            required
+            [attr.aria-invalid]="invalid('lastName')"
+            aria-describedby="lastName-error"
+          />
+          <p id="lastName-error" class="help is-danger">
+            @if (invalid('lastName')) {
+              Bitte gib einen Nachnamen mit höchstens 100 Zeichen ein.
+            }
+          </p>
+        </div>
+        <div class="field">
+          <label class="label" for="birthDate">Geburtsdatum</label>
+          <input
+            id="birthDate"
+            class="input"
+            type="date"
+            formControlName="birthDate"
+            autocomplete="bday"
+            min="0001-01-01"
+            [max]="today"
+            required
+            [attr.aria-invalid]="invalid('birthDate')"
+            aria-describedby="birthDate-error"
+          />
+          <p id="birthDate-error" class="help is-danger">
+            @if (invalid('birthDate')) {
+              Bitte gib ein gültiges Geburtsdatum ein, das nicht in der Zukunft liegt.
+            }
+          </p>
+        </div>
+        <div class="field">
+          <label class="label" for="email">E-Mail-Adresse für die Kontaktaufnahme</label>
+          <input
+            id="email"
+            class="input"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            maxlength="254"
+            required
+            [attr.aria-invalid]="invalid('email')"
+            aria-describedby="email-error"
+          />
+          <p id="email-error" class="help is-danger">
+            @if (invalid('email')) {
+              Bitte gib eine gültige E-Mail-Adresse ein.
+            }
+          </p>
+        </div>
+        <fieldset class="field" aria-describedby="badges-help badges-error">
+          <legend class="label">Schwimmabzeichen</legend>
+          <p id="badges-help" class="help mb-2">
+            Mindestens Seepferdchen ist erforderlich. Ein höheres Abzeichen genügt ebenfalls.
+            Mehrfachauswahl möglich.
+          </p>
+          <div class="choices">
+            @for (option of badgeOptions; track option.value) {
+              <label class="checkbox"
+                ><input
+                  #badge
+                  type="checkbox"
+                  [checked]="form.controls.badges.value.includes(option.value)"
+                  [disabled]="state() === 'submitting'"
+                  (change)="toggleBadge(option.value, badge.checked)"
+                />
+                {{ option.label }}</label
+              >
+            }
+          </div>
+          <p id="badges-error" class="help is-danger">
+            @if (invalid('badges')) {
+              Bitte wähle mindestens ein Schwimmabzeichen aus.
+            }
+          </p>
+        </fieldset>
+        <fieldset class="field" aria-describedby="styles-help styles-error">
+          <legend class="label">Schwimmstile</legend>
+          <p id="styles-help" class="help mb-2">
+            Welche Schwimmstile beherrscht die Person? Mehrfachauswahl möglich.
+          </p>
+          <div class="choices">
+            @for (option of styleOptions; track option.value) {
+              <label class="checkbox"
+                ><input
+                  #style
+                  type="checkbox"
+                  [checked]="form.controls.swimmingStyles.value.includes(option.value)"
+                  [disabled]="state() === 'submitting'"
+                  (change)="toggleStyle(option.value, style.checked)"
+                />
+                {{ option.label }}</label
+              >
+            }
+          </div>
+          <p id="styles-error" class="help is-danger">
+            @if (invalid('swimmingStyles')) {
+              Bitte wähle mindestens einen Schwimmstil aus.
+            }
+          </p>
+        </fieldset>
+        <div class="field">
+          <label class="label" for="message">Mitteilung (optional)</label>
+          <textarea
+            id="message"
+            class="textarea"
+            formControlName="message"
+            maxlength="2000"
+            rows="4"
+            [attr.aria-invalid]="invalid('message')"
+            aria-describedby="message-help"
+          ></textarea>
+          <p id="message-help" class="help" [class.is-danger]="invalid('message')">
+            Höchstens 2.000 Zeichen.
+          </p>
+        </div>
+        <button
+          class="button is-link mt-4"
+          type="submit"
+          [class.is-loading]="state() === 'submitting'"
+          [disabled]="state() === 'submitting'"
+        >
+          Anmeldung absenden
+        </button>
+      </form>
+    }
+  </div>
+</section>

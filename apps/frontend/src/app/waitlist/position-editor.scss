@@ -1,0 +1,19 @@
+:host {
+  display: inline;
+}
+
+dialog {
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 1.5rem;
+  border: 0;
+  border-radius: var(--bulma-radius-large);
+  color: var(--bulma-text);
+  background: var(--bulma-scheme-main);
+  overflow-y: auto;
+
+  &::backdrop {
+    background: rgb(0 0 0 / 55%);
+  }
+}
