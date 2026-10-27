@@ -1,17 +1,21 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Icon } from '../../ui/icon';
+import { ModalDialog } from '../../ui/modal-dialog';
+import { Parent, fullName } from '../people.models';
 import { PeopleStore } from '../people.store';
-import { fullName } from '../people.models';
 
 /** Parents and guardians with the children they register. */
 @Component({
   selector: 'app-parents-table',
-  imports: [RouterLink],
+  imports: [RouterLink, Icon, ModalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './parents-table.html',
 })
 export class ParentsTable {
   private readonly store = inject(PeopleStore);
+
+  protected readonly toDelete = signal<Parent | null>(null);
 
   protected readonly rows = computed(() =>
     [...this.store.parents()]
@@ -24,4 +28,9 @@ export class ParentsTable {
         })),
       })),
   );
+
+  protected remove(parent: Parent): void {
+    this.store.deleteParent(parent.id);
+    this.toDelete.set(null);
+  }
 }

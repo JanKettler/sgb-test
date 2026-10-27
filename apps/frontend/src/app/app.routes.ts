@@ -71,6 +71,18 @@ export const routes: Routes = [
       import('./people/pages/person-editor').then((module) => module.PersonEditor),
   },
   {
+    path: 'personen/eltern/neu',
+    title: 'Neue Eltern – SGB Portal',
+    loadComponent: () =>
+      import('./people/pages/parent-editor').then((module) => module.ParentEditor),
+  },
+  {
+    path: 'personen/eltern/:id',
+    title: 'Eltern bearbeiten – SGB Portal',
+    loadComponent: () =>
+      import('./people/pages/parent-editor').then((module) => module.ParentEditor),
+  },
+  {
     path: 'personen/:id',
     title: 'Person bearbeiten – SGB Portal',
     loadComponent: () =>

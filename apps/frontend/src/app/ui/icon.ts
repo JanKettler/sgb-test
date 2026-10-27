@@ -15,6 +15,8 @@ export type IconName =
   | 'calendar'
   | 'chevron-left'
   | 'chevron-right'
+  | 'chevron-up'
+  | 'chevron-down'
   | 'home'
   | 'gear'
   | 'warning'
@@ -37,6 +39,8 @@ const FONT_AWESOME: Record<IconName, string> = {
   calendar: 'fa-calendar-days',
   'chevron-left': 'fa-chevron-left',
   'chevron-right': 'fa-chevron-right',
+  'chevron-up': 'fa-chevron-up',
+  'chevron-down': 'fa-chevron-down',
   home: 'fa-house',
   gear: 'fa-gear',
   warning: 'fa-triangle-exclamation',

@@ -473,3 +473,93 @@ app-icon {
     opacity: 1;
   }
 }
+
+/* Table in the style of the member list: header row, thin lines, actions on the right. */
+.rdp-table {
+  border-collapse: collapse;
+  width: 100%;
+
+  th {
+    background: var(--sgb-hover);
+    border-bottom: 1px solid var(--sgb-line);
+    color: var(--sgb-soft);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  td {
+    border-bottom: 1px solid var(--sgb-line);
+    padding: 0.6rem 0.75rem;
+    vertical-align: middle;
+  }
+
+  tbody tr:hover > td {
+    background: var(--sgb-hover);
+  }
+
+  .actions {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .detail > td {
+    background: var(--sgb-hover);
+    padding: 0.75rem 1rem;
+  }
+}
+
+.sort-btn {
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.status-dot {
+  background: var(--ok-fg);
+  border-radius: 50%;
+  display: inline-block;
+  height: 0.6rem;
+  width: 0.6rem;
+
+  &.is-off {
+    background: var(--sgb-soft);
+    opacity: 0.5;
+  }
+}
+
+.detail-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.detail-block {
+  background: var(--sgb-card);
+  border: 1px solid var(--sgb-line);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+
+  h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  p {
+    font-size: 0.88rem;
+  }
+}
+
+.pager {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+}

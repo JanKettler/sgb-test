@@ -1,5 +1,5 @@
 <div class="table-scroll">
-  <table class="table is-fullwidth is-hoverable">
+  <table class="rdp-table">
     <thead>
       <tr>
         <th scope="col">Name</th>
@@ -7,6 +7,7 @@
         <th scope="col">E-Mail</th>
         <th scope="col">Kinder im Verein</th>
         <th scope="col">Zugang</th>
+        <th scope="col"><span class="is-sr-only">Aktionen</span></th>
       </tr>
     </thead>
     <tbody>
@@ -30,12 +31,41 @@
               {{ row.parent.access === 'active' ? 'Zugang aktiv' : 'Einladung offen' }}
             </span>
           </td>
+          <td class="actions">
+            <a
+              class="icon-btn is-warn"
+              [routerLink]="['/personen/eltern', row.parent.id]"
+              [attr.aria-label]="row.parent.name + ' bearbeiten'"
+              title="Bearbeiten"
+            >
+              <app-icon name="pencil" />
+            </a>
+            <button
+              type="button"
+              class="icon-btn is-bad"
+              [attr.aria-label]="row.parent.name + ' löschen'"
+              title="Löschen"
+              (click)="toDelete.set(row.parent)"
+            >
+              <app-icon name="trash" />
+            </button>
+          </td>
         </tr>
       } @empty {
         <tr>
-          <td colspan="5" class="empty">Noch keine Eltern erfasst.</td>
+          <td colspan="6" class="empty">Noch keine Eltern erfasst.</td>
         </tr>
       }
     </tbody>
   </table>
 </div>
+
+@if (toDelete(); as parent) {
+  <app-modal-dialog heading="Eltern löschen?" accent="red" (closed)="toDelete.set(null)">
+    <p>{{ parent.name }} wird entfernt. Die Kinder bleiben als Mitglieder erhalten.</p>
+    <ng-container dialogActions>
+      <button type="button" class="btn" (click)="toDelete.set(null)">Abbrechen</button>
+      <button type="button" class="btn is-danger" (click)="remove(parent)">Löschen</button>
+    </ng-container>
+  </app-modal-dialog>
+}

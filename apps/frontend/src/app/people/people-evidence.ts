@@ -2,7 +2,12 @@ import { parseIsoDate } from '../training/training-dates';
 import { Member } from './people.models';
 
 export type EvidenceKind =
-  'attest' | 'firstAid' | 'lifeSaving' | 'criminalRecord' | 'license' | 'refereeLicense';
+  | 'attest'
+  | 'firstAid'
+  | 'lifeSaving'
+  | 'criminalRecord'
+  | 'license'
+  | 'refereeLicense';
 
 export const EVIDENCE_LABELS: Record<EvidenceKind, string> = {
   attest: 'Attest',
