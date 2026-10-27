@@ -22,6 +22,6 @@ jobs:
           npm run lint --workspace=apps/frontend > /tmp/lint.txt 2>&1 || report lint /tmp/lint.txt
           npm run build --workspace=apps/frontend > /tmp/build.txt 2>&1 || report build /tmp/build.txt
           npm run test --workspace=apps/frontend -- --watch=false > /tmp/test.txt 2>&1 || report test /tmp/test.txt
-          git status --porcelain > /tmp/fmt.txt
+          git diff > /tmp/fmt.txt
           if [ -s /tmp/fmt.txt ]; then report format /tmp/fmt.txt; fi
           exit 0

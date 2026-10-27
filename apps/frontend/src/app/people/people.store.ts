@@ -5,6 +5,9 @@ import { EvidenceRow, MemberStatus, evidenceOf, statusOf } from './people-eviden
 import { createPeopleSample } from './people-sample';
 import { Member, Parent, ROLES, emptyMember, fullName } from './people.models';
 
+/** Byte order mark, so that Excel opens the file as UTF-8. */
+const BOM = String.fromCharCode(0xfeff);
+
 /**
  * In-memory stand-in for the future members API. The training module has its own small list of
  * people; the real database will join both.
@@ -110,7 +113,7 @@ export class PeopleStore {
         this.statusOf(member).text,
       ]),
     ];
-    return `﻿${lines.map((line) => line.join(';')).join('\r\n')}`;
+    return BOM + lines.map((line) => line.join(';')).join('\r\n');
   }
 
   groupName(id: GroupId): string {
