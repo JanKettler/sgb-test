@@ -1,0 +1,133 @@
+<div class="tiles mb-3">
+  <div class="tile">
+    <span class="field-label">Offen insgesamt</span>
+    <strong class="big">{{ euro(store.openTotal()) }}</strong>
+  </div>
+  <div class="tile">
+    <span class="field-label">Offene Zahlungen</span>
+    <strong class="big">{{ store.open().length }}</strong>
+  </div>
+  <div class="tile">
+    <span class="field-label">Davon gemahnt</span>
+    <strong class="big">{{ store.remindedCount() }}</strong>
+  </div>
+</div>
+
+<div class="filters">
+  <div>
+    <label class="field-label" for="pay-method">Zahlart</label>
+    <div class="select">
+      <select id="pay-method" (change)="method.set(value($event))">
+        <option value="">Alle Zahlarten</option>
+        <option value="Lastschrift">Lastschrift</option>
+        <option value="Überweisung">Überweisung</option>
+      </select>
+    </div>
+  </div>
+  <div>
+    <label class="field-label" for="pay-status">Status</label>
+    <div class="select">
+      <select id="pay-status" (change)="status.set($any(value($event)))">
+        <option value="open" [selected]="status() === 'open'">Nur offene Zahlungen</option>
+        <option value="paid" [selected]="status() === 'paid'">Nur bezahlte</option>
+        <option value="all" [selected]="status() === 'all'">Alle</option>
+      </select>
+    </div>
+  </div>
+  <div class="page-actions">
+    <button type="button" class="btn" (click)="exportCsv()"><app-icon name="sheet" /> Excel</button>
+    <button type="button" class="btn" (click)="exportSepa()">
+      <app-icon name="download" /> SEPA-Lastschriftdatei
+    </button>
+    <button type="button" class="btn is-primary" (click)="generate()">
+      <app-icon name="plus" /> Zahlungen erzeugen
+    </button>
+  </div>
+</div>
+
+<div class="chips mb-3">
+  <span class="field-label m-0">{{ selected().size }} von {{ rows().length }} markiert</span>
+  <button type="button" class="btn is-small" [disabled]="selected().size === 0" (click)="book()">
+    <app-icon name="check" /> Zahlungseingang buchen
+  </button>
+  <button type="button" class="btn is-small" [disabled]="selected().size === 0" (click)="dun()">
+    <app-icon name="mail" /> Mahnung senden
+  </button>
+  <button
+    type="button"
+    class="btn is-small is-danger"
+    [disabled]="selected().size === 0"
+    (click)="toDelete.set(true)"
+  >
+    <app-icon name="trash" /> Zahlung löschen
+  </button>
+</div>
+
+<div class="table-scroll">
+  <table class="rdp-table">
+    <thead>
+      <tr>
+        <th scope="col" class="narrow">
+          <input
+            type="checkbox"
+            aria-label="Alle markieren"
+            [checked]="rows().length > 0 && selected().size === rows().length"
+            (change)="toggleAll($any($event.target).checked)"
+          />
+        </th>
+        <th scope="col">Person</th>
+        <th scope="col">Zahler</th>
+        <th scope="col">Beitragsart</th>
+        <th scope="col">Offen</th>
+        <th scope="col">Zahlart</th>
+        <th scope="col">Mahn.</th>
+        <th scope="col">Verwendungszweck</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (payment of rows(); track payment.id) {
+        <tr>
+          <td class="narrow">
+            <input
+              type="checkbox"
+              [attr.aria-label]="payment.label + ' markieren'"
+              [checked]="selected().has(payment.id)"
+              (change)="toggle(payment)"
+            />
+          </td>
+          <td>
+            <strong>{{ payment.label }}</strong>
+          </td>
+          <td>{{ payment.payerName }}</td>
+          <td>{{ store.feeName(payment.feeTypeId) }}</td>
+          <td>
+            @if (payment.paid) {
+              <span class="pill is-ok">bezahlt</span>
+            } @else {
+              {{ euro(payment.amount) }}
+            }
+          </td>
+          <td>{{ payment.method }}</td>
+          <td>{{ payment.dunning }}</td>
+          <td>
+            <small>{{ store.purposeOf(payment) }}</small>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="8" class="empty">Keine Zahlungen für diese Auswahl.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (toDelete()) {
+  <app-modal-dialog heading="Zahlungen löschen?" accent="red" (closed)="toDelete.set(false)">
+    <p>{{ selected().size }} markierte Zahlungen werden endgültig gelöscht.</p>
+    <ng-container dialogActions>
+      <button type="button" class="btn" (click)="toDelete.set(false)">Abbrechen</button>
+      <button type="button" class="btn is-danger" (click)="remove()">Löschen</button>
+    </ng-container>
+  </app-modal-dialog>
+}

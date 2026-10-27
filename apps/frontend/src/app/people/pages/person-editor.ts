@@ -6,12 +6,36 @@ import { Icon } from '../../ui/icon';
 import { fullDate } from '../../training/training-dates';
 import { GROUPS, GroupId } from '../../training/training.models';
 import { EvidenceRow } from '../people-evidence';
-import { LICENSE_KINDS, Member, ROLES, RoleKey, fullName, initials } from '../people.models';
+import {
+  APP_ROLES,
+  AppRoleKey,
+  LICENSE_KINDS,
+  PayAccount,
+  SPECIAL_RIGHTS,
+  SpecialRightKey,
+  Member,
+  ROLES,
+  RoleKey,
+  birthYear,
+  fullName,
+  initials,
+  isActive,
+} from '../people.models';
+import { FeesStore } from '../../fees/fees.store';
 import { PeopleStore } from '../people.store';
+import { PayAccountForm } from './pay-account';
 
-type Tab = 'master' | 'roles' | 'family';
+type Tab = 'master' | 'roles' | 'family' | 'material' | 'payment' | 'access' | 'extra';
 type TextKey =
   | 'firstName'
+  | 'startRight'
+  | 'codeOfConductOn'
+  | 'refereeAwUntil'
+  | 'refereeSchUntil'
+  | 'username'
+  | 'loginEmail'
+  | 'birthDate'
+  | 'exitDate'
   | 'lastName'
   | 'entry'
   | 'criminalRecordOn'
@@ -32,7 +56,7 @@ type GroupKey = 'swimmerGroupIds' | 'trainerGroupIds';
 
 @Component({
   selector: 'app-person-editor',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, PayAccountForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './person-editor.html',
   styleUrl: './person-editor.scss',
@@ -40,6 +64,7 @@ type GroupKey = 'swimmerGroupIds' | 'trainerGroupIds';
 export class PersonEditor {
   private readonly store = inject(PeopleStore);
   private readonly router = inject(Router);
+  protected readonly fees = inject(FeesStore);
   private readonly parentsBefore = this.store.parents();
   private readonly id = toSignal(
     inject(ActivatedRoute).paramMap.pipe(map((params) => params.get('id') ?? '')),
@@ -50,14 +75,22 @@ export class PersonEditor {
   protected readonly groups = GROUPS;
   protected readonly licenseKinds = LICENSE_KINDS;
   protected readonly fullDate = fullDate;
+  protected readonly year = birthYear;
+  protected readonly appRoles = APP_ROLES;
+  protected readonly specialRights = SPECIAL_RIGHTS;
+  protected readonly notice = signal('');
+  protected readonly payments = computed(() => this.fees.paymentsOf(this.draft().id));
+  protected readonly feeName = (id: string): string => this.fees.feeName(id);
+  private nextRow = 1;
   protected readonly tab = signal<Tab>('master');
 
   /** Working copy; it only reaches the store on "Speichern". */
   protected readonly draft = signal<Member>(this.load());
+  protected readonly active = computed(() => isActive(this.draft(), this.store.today));
   protected readonly isNew = computed(() => !this.store.member(this.draft().id));
   protected readonly parents = computed(() => this.store.parentsOf(this.draft()));
   protected readonly siblings = computed(() => this.store.siblingsOf(this.draft()));
-  protected readonly evidence = computed(() => this.store.evidenceOf(this.draft()));
+  protected readonly evidence = computed(() => this.store.allEvidenceOf(this.draft()));
   protected readonly chips = computed(() => this.store.roleChips(this.draft()));
   protected readonly name = computed(() => fullName(this.draft()) || 'Neue Person');
   protected readonly initials = computed(() => initials(this.draft()) || '+');
@@ -77,12 +110,8 @@ export class PersonEditor {
     this.draft.update((member) => ({ ...member, [key]: this.value(event) }));
   }
 
-  protected setNumber(key: 'birthYear' | 'memberNo', event: Event): void {
+  protected setNumber(key: 'memberNo', event: Event): void {
     this.draft.update((member) => ({ ...member, [key]: Number(this.value(event)) || 0 }));
-  }
-
-  protected setActive(event: Event): void {
-    this.draft.update((member) => ({ ...member, active: this.value(event) === 'active' }));
   }
 
   protected setRole(key: RoleKey, on: boolean): void {
@@ -107,6 +136,88 @@ export class PersonEditor {
     on: boolean,
   ): void {
     this.store.updateParent(id, { [key]: on });
+  }
+
+  protected readonly accessPill = computed(() => {
+    const access = this.draft().access;
+    return access === 'active'
+      ? { css: 'pill is-ok', text: 'Zugang aktiv' }
+      : access === 'blocked'
+        ? { css: 'pill is-bad', text: 'Zugang gesperrt' }
+        : { css: 'pill is-warn', text: 'Kein Zugang' };
+  });
+
+  protected setAccount(account: PayAccount): void {
+    this.draft.update((member) => ({ ...member, account }));
+  }
+
+  protected setAccess(access: Member['access']): void {
+    this.draft.update((member) => ({ ...member, access }));
+  }
+
+  protected toggleAppRole(key: AppRoleKey): void {
+    this.draft.update((member) => ({
+      ...member,
+      appRoles: member.appRoles.includes(key)
+        ? member.appRoles.filter((item) => item !== key)
+        : [...member.appRoles, key],
+    }));
+  }
+
+  protected toggleRight(key: SpecialRightKey): void {
+    this.draft.update((member) => ({
+      ...member,
+      specialRights: member.specialRights.includes(key)
+        ? member.specialRights.filter((item) => item !== key)
+        : [...member.specialRights, key],
+    }));
+  }
+
+  protected addMaterial(): void {
+    this.draft.update((member) => ({
+      ...member,
+      material: [
+        ...member.material,
+        { id: `mat-${this.nextRow++}`, name: '', since: this.store.today },
+      ],
+    }));
+  }
+
+  protected setMaterial(id: string, key: 'name' | 'since', event: Event): void {
+    const value = this.value(event);
+    this.draft.update((member) => ({
+      ...member,
+      material: member.material.map((item) => (item.id === id ? { ...item, [key]: value } : item)),
+    }));
+  }
+
+  protected removeMaterial(id: string): void {
+    this.draft.update((member) => ({
+      ...member,
+      material: member.material.filter((item) => item.id !== id),
+    }));
+  }
+
+  protected addExtra(): void {
+    this.draft.update((member) => ({
+      ...member,
+      extra: [...member.extra, { id: `x-${this.nextRow++}`, label: '', value: '' }],
+    }));
+  }
+
+  protected setExtra(id: string, key: 'label' | 'value', event: Event): void {
+    const value = this.value(event);
+    this.draft.update((member) => ({
+      ...member,
+      extra: member.extra.map((item) => (item.id === id ? { ...item, [key]: value } : item)),
+    }));
+  }
+
+  protected removeExtra(id: string): void {
+    this.draft.update((member) => ({
+      ...member,
+      extra: member.extra.filter((item) => item.id !== id),
+    }));
   }
 
   protected cancel(): void {

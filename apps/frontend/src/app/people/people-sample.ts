@@ -1,6 +1,14 @@
 import { addDays } from '../training/training-dates';
 import { GroupId, Person } from '../training/training.models';
-import { Member, Parent, Relation, emptyMember } from './people.models';
+import {
+  Member,
+  PayAccount,
+  Parent,
+  Relation,
+  birthYear,
+  emptyAccount,
+  emptyMember,
+} from './people.models';
 
 /**
  * Invented demo members, derived from the training demo people so that both modules show the
@@ -47,7 +55,7 @@ function buildMember(person: Person, index: number, today: string): Member {
   Object.assign(member, {
     firstName,
     lastName: rest.join(' '),
-    birthYear: birth,
+    birthDate: `${birth}-${String(1 + (index % 12)).padStart(2, '0')}-${String(1 + ((index * 5) % 28)).padStart(2, '0')}`,
     entry: `${2014 + (index % 10)}-09-01`,
     swimmer: person.groupId !== null,
     swimmerGroupIds: person.groupId ? [person.groupId] : [],
@@ -84,15 +92,56 @@ function buildMember(person: Person, index: number, today: string): Member {
       criminalRecordOn: member.criminalRecordOn || addDays(today, -200),
     } satisfies Partial<Member>);
   }
+  if (member.swimmer) member.startRight = 'DSV, Landesverband Niedersachsen';
+  if (member.trainer) {
+    member.codeOfConductOn = trainerNo % 3 === 1 ? '' : addDays(today, -600);
+    member.appRoles = ['trainer'];
+  }
+  if (member.referee) {
+    member.refereeAwUntil = addDays(today, 400 + index);
+    member.refereeSchUntil = addDays(today, 300 + index);
+  }
+  if (member.official) member.appRoles = [...member.appRoles, 'board'];
+  if (member.trainer || member.official) {
+    member.username = `${slug(firstName)}.${slug(rest.join(''))}`;
+    member.loginEmail = `${member.username}@example.org`;
+    member.access = 'active';
+  }
+  if (member.trainer) {
+    member.material = [
+      { id: `${person.id}-mat-1`, name: 'Vereinsjacke', since: `${2018 + (index % 6)}-10-01` },
+    ];
+  }
   return member;
 }
 
 /** Children with the same family name share their parents; everybody else gets one parent. */
-function buildParents(members: Member[]): Parent[] {
+function sampleAccount(
+  firstName: string,
+  lastName: string,
+  counter: number,
+  position: number,
+  today: string,
+): PayAccount {
+  const direct = (counter + position) % 3 !== 2;
+  if (!direct) return { ...emptyAccount(), holder: `${firstName} ${lastName}` };
+  return {
+    method: 'Lastschrift',
+    holder: `${firstName} ${lastName}`,
+    iban: `DE00 0000 0000 ${String(1000 + counter * 7).padStart(4, '0')} 0000 ${String(10 + position).padStart(2, '0')}`,
+    bic: 'TESTDE00XXX',
+    bank: 'Testbank',
+    mandate: true,
+    mandateRef: `M-${2000 + counter * 3 + position}`,
+    mandateOn: addDays(today, -400 - counter),
+  };
+}
+
+function buildParents(members: Member[], today: string): Parent[] {
   const parents: Parent[] = [];
   const families = new Map<string, Member[]>();
   for (const member of members) {
-    if (!member.swimmer || member.birthYear < 2008) continue;
+    if (!member.swimmer || birthYear(member) < 2008) continue;
     families.set(member.lastName, [...(families.get(member.lastName) ?? []), member]);
   }
   let counter = 0;
@@ -109,6 +158,7 @@ function buildParents(members: Member[]): Parent[] {
         access: position === 0 ? 'active' : 'invited',
         trainingRegistration: true,
         competitionRegistration: position === 0,
+        account: sampleAccount(firstName, lastName, counter, position, today),
       });
       for (const child of children) child.parentIds.push(id);
     });
@@ -119,5 +169,5 @@ function buildParents(members: Member[]): Parent[] {
 
 export function createPeopleSample(today: string, people: Person[]): PeopleSample {
   const members = people.map((person, index) => buildMember(person, index, today));
-  return { members, parents: buildParents(members) };
+  return { members, parents: buildParents(members, today) };
 }

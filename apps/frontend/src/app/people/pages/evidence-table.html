@@ -6,6 +6,21 @@
 }
 
 <div class="chips mb-3">
+  <label class="checkbox">
+    <input
+      type="checkbox"
+      [checked]="store.hideMissing()"
+      (change)="store.hideMissing.set($any($event.target).checked)"
+    />
+    Fehlende Nachweise überall ausblenden
+  </label>
+  @if (store.dismissed().size > 0) {
+    <button type="button" class="chip" (click)="store.showDismissed()">
+      {{ store.dismissed().size }} einzeln ausgeblendet – wieder einblenden
+    </button>
+  }
+</div>
+<div class="chips mb-3">
   <span class="field-label m-0">Zeitraum</span>
   @for (item of periods(); track item.id) {
     <button
@@ -44,7 +59,7 @@
 </div>
 
 <div class="table-scroll">
-  <table class="table is-fullwidth is-hoverable">
+  <table class="rdp-table">
     <thead>
       <tr>
         <th scope="col"><span class="is-sr-only">Auswahl</span></th>
@@ -53,6 +68,7 @@
         <th scope="col">Rolle</th>
         <th scope="col">Gültig bis</th>
         <th scope="col">Rest</th>
+        <th scope="col"><span class="is-sr-only">Ausblenden</span></th>
       </tr>
     </thead>
     <tbody>
@@ -84,10 +100,21 @@
               {{ rest(row) }}
             </span>
           </td>
+          <td class="actions">
+            <button
+              type="button"
+              class="icon-btn"
+              [attr.aria-label]="row.label + ' von ' + row.member.firstName + ' ausblenden'"
+              title="Diesen Eintrag ausblenden"
+              (click)="store.dismiss(row)"
+            >
+              <app-icon name="eye-slash" />
+            </button>
+          </td>
         </tr>
       } @empty {
         <tr>
-          <td colspan="6" class="empty">Keine Nachweise für diese Auswahl.</td>
+          <td colspan="7" class="empty">Keine Nachweise für diese Auswahl.</td>
         </tr>
       }
     </tbody>

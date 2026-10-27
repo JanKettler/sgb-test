@@ -3,11 +3,9 @@ import { RouterLink } from '@angular/router';
 import { GroupChips } from '../../ui/group-chips';
 import { Icon } from '../../ui/icon';
 import { ModalDialog } from '../../ui/modal-dialog';
-import { fullDate } from '../../training/training-dates';
-import { EvidenceRow, statusOf } from '../people-evidence';
 import { downloadText } from '../../training/training-download';
 import { GROUPS, GroupId } from '../../training/training.models';
-import { fullName, Member, ROLES, RoleKey } from '../people.models';
+import { birthYear, fullName, Member, ROLES, RoleKey } from '../people.models';
 import { PeopleStore } from '../people.store';
 import { EvidenceTable } from './evidence-table';
 import { ParentsTable } from './parents-table';
@@ -17,12 +15,6 @@ type StatusFilter = 'active' | 'all' | 'inactive';
 type SortKey = 'name' | 'memberNo';
 
 const PAGE_SIZE = 25;
-
-/** Evidence of one role, reduced to the most urgent hint for the list. */
-export interface RoleHint {
-  tone: string;
-  text: string;
-}
 
 @Component({
   selector: 'app-people-list',
@@ -45,9 +37,8 @@ export class PeopleList {
   protected readonly sortKey = signal<SortKey>('name');
   protected readonly sortDesc = signal(false);
   protected readonly page = signal(0);
-  protected readonly openId = signal('');
   protected readonly toDelete = signal<Member | null>(null);
-  protected readonly fullDate = fullDate;
+  protected readonly year = birthYear;
 
   protected readonly rows = computed(() => {
     const term = this.search().trim().toLowerCase();
@@ -78,18 +69,12 @@ export class PeopleList {
               a.firstName.localeCompare(b.firstName, 'de');
         return this.sortDesc() ? -order : order;
       })
-      .map((member) => {
-        const evidence = this.store.evidenceOf(member);
-        return {
-          member,
-          name: fullName(member),
-          status: this.store.statusOf(member),
-          swimmer: this.hint(evidence, 'Schwimmer'),
-          trainer: this.hint(evidence, 'Trainer'),
-          referee: this.hint(evidence, 'Kampfrichter'),
-          evidence,
-        };
-      });
+      .map((member) => ({
+        member,
+        name: fullName(member),
+        chips: this.store.roleChips(member),
+        status: this.store.statusOf(member),
+      }));
   });
 
   protected readonly pageCount = computed(() =>
@@ -128,17 +113,12 @@ export class PeopleList {
     return this.sortKey() !== key ? '' : this.sortDesc() ? '▼' : '▲';
   }
 
-  protected toggle(id: string): void {
-    this.openId.update((open) => (open === id ? '' : id));
-  }
-
   protected goto(page: number): void {
     this.page.set(Math.max(0, Math.min(page, this.pageCount() - 1)));
   }
 
   protected resetPage(): void {
     this.page.set(0);
-    this.openId.set('');
   }
 
   protected tone(value: string): string {
@@ -153,17 +133,16 @@ export class PeopleList {
     this.toDelete.set(null);
   }
 
-  private hint(rows: EvidenceRow[], role: string): RoleHint | null {
-    const status = statusOf(rows.filter((item) => item.role === role));
-    return status.tone === 'ok' ? null : status;
-  }
-
   protected value(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
   protected groupsText(ids: GroupId[]): string {
     return ids.map((id) => this.store.groupName(id)).join(', ');
+  }
+
+  protected importDemo(): void {
+    this.message.set('Demo: Der Import aus WebClub ist im Testportal nicht aktiv.');
   }
 
   protected exportCsv(): void {

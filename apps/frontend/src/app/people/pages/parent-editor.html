@@ -128,3 +128,11 @@
     </button>
   }
 </section>
+
+<h3 class="mt-4">Zahlung</h3>
+<app-pay-account
+  [account]="draft().account"
+  [payments]="payments()"
+  [feeName]="feeName"
+  (changed)="setAccount($event)"
+/>

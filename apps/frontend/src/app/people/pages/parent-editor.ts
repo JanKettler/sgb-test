@@ -3,21 +3,24 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { Icon } from '../../ui/icon';
-import { Parent, Relation, fullName } from '../people.models';
+import { PayAccount, Parent, Relation, birthYear, fullName } from '../people.models';
+import { FeesStore } from '../../fees/fees.store';
 import { PeopleStore } from '../people.store';
+import { PayAccountForm } from './pay-account';
 
 const RELATIONS: readonly Relation[] = ['Mutter', 'Vater', 'Erziehungsberechtigte'];
 
 /** Edit page for one parent or guardian, including the children they are linked to. */
 @Component({
   selector: 'app-parent-editor',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, PayAccountForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './parent-editor.html',
 })
 export class ParentEditor {
   private readonly store = inject(PeopleStore);
   private readonly router = inject(Router);
+  private readonly fees = inject(FeesStore);
   private readonly id = toSignal(
     inject(ActivatedRoute).paramMap.pipe(map((params) => params.get('id') ?? '')),
     { initialValue: '' },
@@ -28,6 +31,8 @@ export class ParentEditor {
   protected readonly childIds = signal<string[]>(this.loadChildren());
   protected readonly search = signal('');
   protected readonly invalid = signal(false);
+  protected readonly payments = computed(() => this.fees.paymentsOf(this.draft().id));
+  protected readonly feeName = (id: string): string => this.fees.feeName(id);
 
   protected readonly children = computed(() =>
     this.store
@@ -47,7 +52,7 @@ export class ParentEditor {
           !this.childIds().includes(member.id) && fullName(member).toLowerCase().includes(term),
       )
       .slice(0, 6)
-      .map((member) => ({ id: member.id, name: fullName(member), year: member.birthYear }));
+      .map((member) => ({ id: member.id, name: fullName(member), year: birthYear(member) }));
   });
 
   private load(): Parent {
@@ -74,6 +79,10 @@ export class ParentEditor {
 
   protected setFlag(key: 'trainingRegistration' | 'competitionRegistration', on: boolean): void {
     this.draft.update((parent) => ({ ...parent, [key]: on }));
+  }
+
+  protected setAccount(account: PayAccount): void {
+    this.draft.update((parent) => ({ ...parent, account }));
   }
 
   protected addChild(id: string): void {

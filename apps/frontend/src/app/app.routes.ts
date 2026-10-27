@@ -89,6 +89,11 @@ export const routes: Routes = [
       import('./people/pages/person-editor').then((module) => module.PersonEditor),
   },
   {
+    path: 'beitraege',
+    title: 'Beiträge – SGB Portal',
+    loadComponent: () => import('./fees/pages/fees').then((module) => module.Fees),
+  },
+  {
     path: 'warteliste/status',
     title: 'Status der Anmeldung – SGB Portal',
     loadComponent: () => import('./waitlist/status').then((module) => module.Status),

@@ -61,3 +61,18 @@ describe('PeopleStore', () => {
     expect(store.member(member.id)).toBeUndefined();
   });
 });
+
+describe('PeopleStore hiding evidence', () => {
+  it('hides missing and dismissed evidence', () => {
+    const store = TestBed.inject(PeopleStore);
+    const before = store.dueEvidence().length;
+    store.hideMissing.set(true);
+    expect(store.dueEvidence().every((item) => !item.missing)).toBe(true);
+    store.hideMissing.set(false);
+    const first = store.dueEvidence()[0];
+    store.dismiss(first);
+    expect(store.dueEvidence().length).toBe(before - 1);
+    store.showDismissed();
+    expect(store.dueEvidence().length).toBe(before);
+  });
+});
