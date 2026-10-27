@@ -76,13 +76,14 @@ $sidebar-width: 15rem;
 }
 
 .theme {
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: var(--sgb-hover);
+  border: 1px solid var(--sgb-line);
   border-radius: 10px;
-  color: #fff;
+  color: var(--sgb-ink);
   cursor: pointer;
-  padding: 0.4rem 0.8rem;
-  width: 100%;
+  margin-left: auto;
+  padding: 0.35rem 0.8rem;
+  white-space: nowrap;
 }
 
 .status {
