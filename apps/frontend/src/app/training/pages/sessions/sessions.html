@@ -61,9 +61,9 @@
           <th scope="col">Tag</th>
           <th scope="col">Zeit</th>
           <th scope="col">Gruppen</th>
+          <th scope="col">Trainerteam</th>
+          <th scope="col">Schwimmer</th>
           <th scope="col">Trainer</th>
-          <th scope="col">Angem. Schwimmer</th>
-          <th scope="col">Angem. Trainer</th>
           <th scope="col">Meldeschluss</th>
           <th scope="col"><span class="is-sr-only">Aktionen</span></th>
         </tr>
@@ -73,13 +73,15 @@
           <tr [class.is-past]="row.past" [class.is-next]="row.session.id === nextId()">
             <td class="day nowrap">{{ row.day }}</td>
             <td class="nowrap">{{ row.time }}</td>
-            <td><app-group-chips [groupIds]="row.session.groupIds" [short]="true" /></td>
+            <td class="center">
+              <app-group-chips [groupIds]="row.session.groupIds" [short]="true" />
+            </td>
             <td>{{ row.trainers }}</td>
-            <td>
+            <td class="center">
               <strong>{{ row.swimmers }}</strong>
               <span class="max">/ {{ row.session.maxSwimmers }}</span>
             </td>
-            <td>
+            <td class="center">
               <strong>{{ row.trainerCount }}</strong>
               <span class="max">/ {{ row.session.maxTrainers }}</span>
             </td>
