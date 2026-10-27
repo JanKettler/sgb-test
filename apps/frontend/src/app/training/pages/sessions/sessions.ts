@@ -30,6 +30,14 @@ interface SessionRow {
   started: boolean;
 }
 
+type TimeFilter = 'all' | 'upcoming' | 'past';
+
+const TIME_OPTIONS: readonly { id: TimeFilter; label: string }[] = [
+  { id: 'all', label: 'Alle' },
+  { id: 'upcoming', label: 'Kommende' },
+  { id: 'past', label: 'Vergangene' },
+];
+
 @Component({
   selector: 'app-sessions',
   imports: [RouterLink, Icon, GroupChips, ModalDialog, RegisteredDialog, MailDialog],
@@ -40,7 +48,9 @@ interface SessionRow {
 export class Sessions {
   protected readonly store = inject(TrainingStore);
   protected readonly shortDay = shortDay;
+  protected readonly timeOptions = TIME_OPTIONS;
 
+  protected readonly time = signal<TimeFilter>('all');
   protected readonly group = signal<GroupId | ''>('');
   protected readonly trainer = signal('');
   private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
@@ -87,6 +97,9 @@ export class Sessions {
   }
 
   private matches(session: TrainingSession): boolean {
+    const time = this.time();
+    if (time === 'upcoming' && session.date < this.store.today) return false;
+    if (time === 'past' && session.date >= this.store.today) return false;
     const group = this.group();
     if (group && !session.groupIds.includes(group)) return false;
     const trainer = this.trainer();
@@ -101,9 +114,14 @@ export class Sessions {
     this.group.set(this.value(event) as GroupId | '');
   }
 
+  protected setTime(event: Event): void {
+    this.time.set(this.value(event) as TimeFilter);
+  }
+
   protected resetFilters(): void {
     this.group.set('');
     this.trainer.set('');
+    this.time.set('all');
   }
 
   /** Puts the next session directly below the sticky table heading. */
