@@ -537,14 +537,12 @@ export class TrainingStore {
     );
   }
 
-  matrix(groupId: GroupId, fromMonth: string, toMonth: string): Matrix {
-    const from = `${fromMonth}-01`;
-    const to = `${toMonth}-31`;
+  matrix(groupId: GroupId, from: string, to: string): Matrix {
     const sessions = this.sessions().filter(
       (session) =>
         session.date < this.today &&
-        session.date >= from &&
-        session.date <= to &&
+        (!from || session.date >= from) &&
+        (!to || session.date <= to) &&
         session.groupIds.includes(groupId),
     );
     const members = this.people()

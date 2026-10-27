@@ -46,23 +46,11 @@
     </div>
     <div>
       <label class="field-label" for="filter-from">Von</label>
-      <input
-        id="filter-from"
-        class="input"
-        type="date"
-        [value]="from()"
-        (change)="from.set(value($event))"
-      />
+      <app-date-field inputId="filter-from" [(value)]="from" />
     </div>
     <div>
       <label class="field-label" for="filter-to">Bis</label>
-      <input
-        id="filter-to"
-        class="input"
-        type="date"
-        [value]="to()"
-        (change)="to.set(value($event))"
-      />
+      <app-date-field inputId="filter-to" [(value)]="to" />
     </div>
     <div class="chips range">
       @if (filtered()) {

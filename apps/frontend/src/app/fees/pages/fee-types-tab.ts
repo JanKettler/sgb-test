@@ -40,7 +40,7 @@ export class FeeTypesTab {
     this.draft.set({ ...type });
   }
 
-  protected add(): void {
+  add(): void {
     this.invalid.set(false);
     this.draft.set(this.store.newType());
   }
@@ -66,7 +66,7 @@ export class FeeTypesTab {
     this.notice.emit(`${type.name} wurde gespeichert.`);
   }
 
-  protected exportCsv(): void {
+  exportCsv(): void {
     const lines = [
       ['Beitragsart', 'Regel', 'Betrag', 'Zahler'],
       ...this.store

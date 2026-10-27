@@ -1,9 +1,14 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { PeopleStore } from '../people/people.store';
-import { fullName } from '../people/people.models';
+import { Member, fullName } from '../people/people.models';
 import { fullDate } from '../training/training-dates';
 import { FeeSettings, FeeType, Payment, euro } from './fees.models';
-import { SAMPLE_FEE_TYPES, SAMPLE_SETTINGS, createPaymentSample } from './fees.sample';
+import {
+  SAMPLE_FEE_TYPES,
+  SAMPLE_SETTINGS,
+  createPaymentSample,
+  describeGroup,
+} from './fees.sample';
 
 const BOM = String.fromCharCode(0xfeff);
 const MONTHS = [
@@ -75,7 +80,9 @@ export class FeesStore {
   }
 
   paymentsOf(payerId: string): Payment[] {
-    return this.payments().filter((payment) => payment.payerId === payerId);
+    return this.payments().filter(
+      (payment) => payment.payerId === payerId || payment.memberIds.includes(payerId),
+    );
   }
 
   purposeOf(payment: Payment): string {
@@ -125,30 +132,64 @@ export class FeesStore {
     return sent;
   }
 
-  /** Creates payments for members that do not have one this year. */
-  generate(): number {
+  /**
+   * Creates payments for members that do not have one this year. A new child of a family that
+   * already pays joins that payment, which can change the fee type (for example to "Familie").
+   */
+  generate(): { created: number; adjusted: number } {
     const covered = new Set(this.payments().flatMap((payment) => payment.memberIds));
     const missing = this.people.activeMembers().filter((member) => !covered.has(member.id));
-    const created = missing.map((member): Payment => {
-      const typeId = member.birthDate.slice(0, 4) <= String(this.year - 19) ? 'adult' : 'youth';
-      return {
-        id: `z-new-${this.nextId++}`,
-        memberIds: [member.id],
-        label: fullName(member),
-        payerId: member.id,
-        payerName: fullName(member),
-        feeTypeId: typeId,
-        amount: this.feeType(typeId)?.amount ?? 0,
-        method: member.account.method,
-        dueDate: this.today,
-        paid: false,
-        paidOn: '',
-        dunning: 0,
-        purpose: '',
-      };
-    });
-    this.payments.update((all) => [...all, ...created]);
-    return created.length;
+    let created = 0;
+    let adjusted = 0;
+    for (const member of missing) {
+      const existing = this.payments().find(
+        (payment) => member.parentIds.includes(payment.payerId) && payment.memberIds.length > 0,
+      );
+      if (existing) {
+        const group = [...existing.memberIds, member.id]
+          .map((id) => this.people.member(id))
+          .filter((item): item is Member => !!item);
+        const { typeId, label } = describeGroup(group, this.year);
+        const amount = this.feeType(typeId)?.amount ?? existing.amount;
+        this.payments.update((all) =>
+          all.map((payment) =>
+            payment.id === existing.id
+              ? {
+                  ...payment,
+                  memberIds: group.map((item) => item.id),
+                  label,
+                  feeTypeId: typeId,
+                  amount,
+                }
+              : payment,
+          ),
+        );
+        adjusted++;
+        continue;
+      }
+      const parent = this.people.parents().find((item) => member.parentIds.includes(item.id));
+      const { typeId, label } = describeGroup([member], this.year);
+      this.payments.update((all) => [
+        ...all,
+        {
+          id: `z-new-${this.nextId++}`,
+          memberIds: [member.id],
+          label,
+          payerId: parent?.id ?? member.id,
+          payerName: parent?.name ?? fullName(member),
+          feeTypeId: typeId,
+          amount: this.feeType(typeId)?.amount ?? 0,
+          method: (parent?.account ?? member.account).method,
+          dueDate: this.today,
+          paid: false,
+          paidOn: '',
+          dunning: 0,
+          purpose: '',
+        },
+      ]);
+      created++;
+    }
+    return { created, adjusted };
   }
 
   saveType(type: FeeType): void {

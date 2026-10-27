@@ -35,7 +35,17 @@ export interface Member {
   refereeUntil: string;
   official: boolean;
   officialFunction: string;
+  officialSince: string;
+  officialUntil: string;
   parentIds: string[];
+  street: string;
+  houseNo: string;
+  zip: string;
+  city: string;
+  email1: string;
+  email2: string;
+  phone1: string;
+  phone2: string;
   /** Start right (Startrecht) with the DSV, free text. */
   startRight: string;
   /** Date the code of conduct (Ehrenkodex) was signed. */
@@ -219,7 +229,17 @@ export function emptyMember(id: string, memberNo: number, today: string): Member
     refereeUntil: '',
     official: false,
     officialFunction: '',
+    officialSince: '',
+    officialUntil: '',
     parentIds: [],
+    street: '',
+    houseNo: '',
+    zip: '',
+    city: '',
+    email1: '',
+    email2: '',
+    phone1: '',
+    phone2: '',
     startRight: '',
     codeOfConductOn: '',
     refereeAwUntil: '',

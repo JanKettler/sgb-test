@@ -154,7 +154,6 @@
           <span [class]="active() ? 'pill is-ok' : 'pill is-bad'">
             {{ active() ? 'Aktiv' : 'Inaktiv' }}
           </span>
-          <small class="sub">Automatisch: aktiv mit mindestens einer Rolle.</small>
         </div>
         <div>
           <label class="field-label" for="p-exit">Austritt am</label>
@@ -164,6 +163,88 @@
             type="date"
             [value]="draft().exitDate"
             (change)="setText('exitDate', $event)"
+          />
+        </div>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>Adresse und Kontakt</h3>
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="p-street">Straße</label>
+          <input
+            id="p-street"
+            class="input"
+            [value]="draft().street"
+            (change)="setText('street', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-house">Hausnummer</label>
+          <input
+            id="p-house"
+            class="input"
+            [value]="draft().houseNo"
+            (change)="setText('houseNo', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-zip">Postleitzahl</label>
+          <input
+            id="p-zip"
+            class="input"
+            inputmode="numeric"
+            [value]="draft().zip"
+            (change)="setText('zip', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-city">Ort</label>
+          <input
+            id="p-city"
+            class="input"
+            [value]="draft().city"
+            (change)="setText('city', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-mail1">E-Mail 1</label>
+          <input
+            id="p-mail1"
+            class="input"
+            type="email"
+            [value]="draft().email1"
+            (change)="setText('email1', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-mail2">E-Mail 2</label>
+          <input
+            id="p-mail2"
+            class="input"
+            type="email"
+            [value]="draft().email2"
+            (change)="setText('email2', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-phone1">Telefon 1</label>
+          <input
+            id="p-phone1"
+            class="input"
+            type="tel"
+            [value]="draft().phone1"
+            (change)="setText('phone1', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-phone2">Telefon 2</label>
+          <input
+            id="p-phone2"
+            class="input"
+            type="tel"
+            [value]="draft().phone2"
+            (change)="setText('phone2', $event)"
           />
         </div>
       </div>
@@ -206,7 +287,7 @@
       <div class="chips mb-3">
         <span class="field-label m-0">Rolle hinzufügen</span>
         @for (item of missingRoles(); track item.key) {
-          <button type="button" class="chip" (click)="setRole(item.key, true)">
+          <button type="button" class="chip is-solid" (click)="setRole(item.key, true)">
             + {{ item.label }}
           </button>
         }
@@ -239,7 +320,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="s-attest">Attest gültig bis</label>
+              <label class="field-label" for="s-attest">Sportgesundheit gültig bis</label>
               <input
                 id="s-attest"
                 class="input"
@@ -478,6 +559,28 @@
             [value]="draft().officialFunction"
             (change)="setText('officialFunction', $event)"
           />
+          <div class="form-grid mt-3">
+            <div>
+              <label class="field-label" for="o-since">Im Amt seit</label>
+              <input
+                id="o-since"
+                class="input"
+                type="date"
+                [value]="draft().officialSince"
+                (change)="setText('officialSince', $event)"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="o-until">Im Amt bis</label>
+              <input
+                id="o-until"
+                class="input"
+                type="date"
+                [value]="draft().officialUntil"
+                (change)="setText('officialUntil', $event)"
+              />
+            </div>
+          </div>
         </section>
       }
     </div>
