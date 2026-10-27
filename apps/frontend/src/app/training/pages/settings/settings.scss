@@ -20,3 +20,14 @@
 .hint {
   color: var(--sgb-soft);
 }
+
+.season {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+small {
+  color: var(--sgb-soft);
+  display: block;
+}

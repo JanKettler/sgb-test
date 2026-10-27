@@ -19,7 +19,8 @@ export type IconName =
   | 'gear'
   | 'warning'
   | 'list'
-  | 'sheet';
+  | 'sheet'
+  | 'save';
 
 /**
  * Small inline SVG icon set. Keeping all icons in one place makes it easy to switch to

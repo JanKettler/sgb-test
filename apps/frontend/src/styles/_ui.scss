@@ -289,12 +289,29 @@ app-icon {
     text-align: center;
   }
 
-  .is-ok-row {
+  /* Rows stay neutral; only a coloured edge and a light tint on the status cell show the state. */
+  .is-ok-row > :first-child {
+    box-shadow: inset 4px 0 0 var(--ok-fg);
+  }
+
+  .is-bad-row > :first-child {
+    box-shadow: inset 4px 0 0 var(--bad-fg);
+  }
+
+  .is-ok-row .status {
     background: var(--ok-bg);
   }
 
-  .is-bad-row {
+  .is-bad-row .status {
     background: var(--bad-bg);
+  }
+
+  /* Faint column separators, so the columns are hinted without a heavy grid. */
+  &.has-cols {
+    td + td,
+    th + th {
+      border-left: 1px solid color-mix(in srgb, var(--sgb-line) 55%, transparent);
+    }
   }
 }
 
