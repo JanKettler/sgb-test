@@ -1,0 +1,73 @@
+<app-modal-dialog heading="Excel-Liste" (closed)="closed.emit()">
+  <div class="field">
+    <label class="label" for="export-group">Gruppe</label>
+    <div class="select is-fullwidth">
+      <select id="export-group" (change)="setGroup($event)">
+        @for (group of store.groups; track group.id) {
+          <option [value]="group.id" [selected]="group.id === currentGroup()">
+            {{ group.name }}
+          </option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <span class="label">Inhalt</span>
+    <div class="chip-row">
+      <button
+        type="button"
+        class="chip"
+        [class.is-selected]="content() === 'blank'"
+        [attr.aria-pressed]="content() === 'blank'"
+        (click)="content.set('blank')"
+      >
+        Leer zum Ausfüllen
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.is-selected]="content() === 'filled'"
+        [attr.aria-pressed]="content() === 'filled'"
+        (click)="content.set('filled')"
+      >
+        Mit Anwesenheit
+      </button>
+    </div>
+  </div>
+
+  <div class="columns">
+    <div class="column">
+      <label class="label" for="export-from">Von</label>
+      <div class="select is-fullwidth">
+        <select id="export-from" (change)="from.set(value($event))">
+          @for (month of store.monthOptions(); track month) {
+            <option [value]="month" [selected]="month === from()">{{ monthLabel(month) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="column">
+      <label class="label" for="export-to">Bis</label>
+      <div class="select is-fullwidth">
+        <select id="export-to" (change)="to.set(value($event))">
+          @for (month of store.monthOptions(); track month) {
+            <option [value]="month" [selected]="month === to()">{{ monthLabel(month) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="buttons are-small">
+    <button type="button" class="button" (click)="thisMonthRange()">Dieser Monat</button>
+    <button type="button" class="button" (click)="lastThreeMonths()">Letzte 3 Monate</button>
+    <button type="button" class="button" (click)="season()">Saison</button>
+  </div>
+
+  <ng-container dialogActions>
+    <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
+    <button type="button" class="button is-success" (click)="download()">
+      Excel herunterladen
+    </button>
+  </ng-container>
+</app-modal-dialog>

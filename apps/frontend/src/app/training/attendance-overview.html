@@ -1,0 +1,170 @@
+<section class="box">
+  <h2 class="title is-4">Anwesenheit gesamt</h2>
+
+  @if (message()) {
+    <div class="notification is-success is-light">
+      <button
+        type="button"
+        class="delete"
+        aria-label="Schließen"
+        (click)="message.set('')"
+      ></button>
+      {{ message() }}
+    </div>
+  }
+
+  @if (hasAction()) {
+    <div class="box action-box">
+      <h3 class="title is-6"><app-icon name="warning" /> <span>Handlungsbedarf</span></h3>
+      <ul>
+        @for (entry of action().inactive; track entry.person.id) {
+          <li class="action-row">
+            <span>
+              <strong>{{ entry.person.name }}</strong> · {{ entry.streak }}× in Folge gefehlt
+            </span>
+            <button
+              type="button"
+              class="button is-small is-danger"
+              (click)="openMail('inactive', entry)"
+            >
+              Auf inaktiv setzen und informieren
+            </button>
+          </li>
+        }
+        @for (entry of action().info; track entry.person.id) {
+          <li class="action-row">
+            <span>
+              <strong>{{ entry.person.name }}</strong> · {{ entry.streak }}× in Folge gefehlt
+            </span>
+            <button
+              type="button"
+              class="button is-small is-warning"
+              (click)="openMail('info', entry)"
+            >
+              <app-icon name="mail" /> <span>Info-Mail senden</span>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  <div class="toolbar">
+    <div class="chip-row">
+      @for (group of store.groups; track group.id) {
+        <button
+          type="button"
+          class="chip"
+          [class]="'grp-' + group.id"
+          [class.is-selected]="groupId() === group.id"
+          [attr.aria-pressed]="groupId() === group.id"
+          (click)="groupId.set(group.id)"
+        >
+          {{ group.name }}
+        </button>
+      }
+      <button
+        type="button"
+        class="button is-small is-success is-light"
+        title="Excel-Liste"
+        aria-label="Excel-Liste"
+        (click)="exporting.set(true)"
+      >
+        <app-icon name="download" /> <span>Excel</span>
+      </button>
+    </div>
+    <div class="range">
+      <button
+        type="button"
+        class="button is-small"
+        aria-label="Einen Monat zurück"
+        (click)="shift(-1)"
+      >
+        <app-icon name="chevron-left" />
+      </button>
+      <div class="select is-small">
+        <select aria-label="Von" (change)="from.set(value($event))">
+          @for (month of store.monthOptions(); track month) {
+            <option [value]="month" [selected]="month === from()">{{ monthLabel(month) }}</option>
+          }
+        </select>
+      </div>
+      <span>bis</span>
+      <div class="select is-small">
+        <select aria-label="Bis" (change)="to.set(value($event))">
+          @for (month of store.monthOptions(); track month) {
+            <option [value]="month" [selected]="month === to()">{{ monthLabel(month) }}</option>
+          }
+        </select>
+      </div>
+      <button type="button" class="button is-small" aria-label="Einen Monat vor" (click)="shift(1)">
+        <app-icon name="chevron-right" />
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container matrix">
+    <table class="table is-striped is-narrow">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          @for (session of matrix().sessions; track session.id) {
+            <th scope="col" class="has-text-centered">
+              {{ columnDay(session) }}<br />{{ session.time }}
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of matrix().rows; track row.person.id) {
+          <tr>
+            <th scope="row">{{ row.person.name }}</th>
+            @for (cell of row.cells; track $index) {
+              <td class="has-text-centered">
+                @switch (cell) {
+                  @case ('present') {
+                    <span class="state-present"
+                      ><app-icon name="check" /><span class="is-sr-only">anwesend</span></span
+                    >
+                  }
+                  @case ('excused') {
+                    <span class="state-excused"
+                      ><app-icon name="minus" /><span class="is-sr-only">abgemeldet</span></span
+                    >
+                  }
+                  @default {
+                    <span class="state-missing"
+                      ><app-icon name="x" /><span class="is-sr-only">fehlt</span></span
+                    >
+                  }
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="legend">
+    <span class="state-present"><app-icon name="check" /> anwesend</span>
+    <span class="state-excused"><app-icon name="minus" /> abgemeldet</span>
+    <span class="state-missing"><app-icon name="x" /> fehlt</span>
+  </p>
+</section>
+
+@if (exporting()) {
+  <app-attendance-export-dialog [initialGroup]="groupId()" (closed)="exporting.set(false)" />
+}
+
+@if (mailRequest(); as request) {
+  <app-mail-dialog
+    [recipients]="[request.entry.person.name]"
+    [initialSubject]="
+      request.kind === 'info' ? 'Wir vermissen dich beim Training' : 'Status inaktiv'
+    "
+    [initialText]="mailText(request)"
+    (closed)="mailRequest.set(null)"
+    (sent)="mailSent(request)"
+  />
+}
