@@ -58,7 +58,7 @@ export class Sessions {
         return {
           session,
           day: shortDay(session.date),
-          time: `${session.time} · ${session.durationMinutes} Min`,
+          time: `${session.time} – ${endTime(session.time, session.durationMinutes)}`,
           trainers: session.trainerIds.map((id) => this.store.personName(id)).join(', '),
           swimmers: registered.swimmers.length,
           trainerCount: registered.trainers.length,

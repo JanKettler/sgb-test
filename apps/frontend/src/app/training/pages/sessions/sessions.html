@@ -76,7 +76,7 @@
           <tr [class.is-past]="row.past" [class.is-next]="row.session.id === nextId()">
             <td class="day">{{ row.day }}</td>
             <td>{{ row.time }}</td>
-            <td><app-group-chips [groupIds]="row.session.groupIds" /></td>
+            <td><app-group-chips [groupIds]="row.session.groupIds" [short]="true" /></td>
             <td>{{ row.trainers }}</td>
             <td>
               <strong>{{ row.swimmers }}</strong>

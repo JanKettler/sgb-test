@@ -8,11 +8,15 @@ import { TrainingStore } from '../training/training.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @for (id of groupIds(); track id) {
-      <span class="group-chip" [class]="'group-chip grp-' + id">{{ store.groupName(id) }}</span>
+      <span class="group-chip" [class]="'group-chip grp-' + id">{{
+        short() ? id : store.groupName(id)
+      }}</span>
     }
   `,
 })
 export class GroupChips {
   protected readonly store = inject(TrainingStore);
   readonly groupIds = input.required<GroupId[]>();
+  /** Shows the short code (G1, WK, ...) to save space in tables. */
+  readonly short = input(false);
 }

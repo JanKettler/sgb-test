@@ -38,6 +38,7 @@
         <thead>
           <tr>
             <th scope="col"><span class="is-sr-only">Aktionen</span></th>
+            <th scope="col">Status</th>
             <th scope="col">Datum</th>
             <th scope="col">Uhrzeit</th>
             <th scope="col">Gruppe</th>
@@ -93,6 +94,17 @@
                 </span>
               </td>
               <td>
+                <span
+                  class="tag"
+                  [class]="registered ? 'tag is-success is-light' : 'tag is-danger is-light'"
+                >
+                  {{ registered ? 'Angemeldet' : 'Abgemeldet' }}
+                </span>
+                @if (!registered && row.response?.reason) {
+                  <small>{{ row.response?.reason }}</small>
+                }
+              </td>
+              <td>
                 {{ row.date }}<small>{{ row.weekday }}</small>
               </td>
               <td>{{ row.time }}</td>
@@ -110,7 +122,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="5" class="empty">Noch keine Rückmeldungen abgegeben.</td>
+              <td colspan="6" class="empty">Noch keine Rückmeldungen abgegeben.</td>
             </tr>
           }
         </tbody>

@@ -400,3 +400,22 @@ app-icon {
     color: var(--bad-fg);
   }
 }
+
+/* Form controls use the theme surface, so they are not white in dark mode. */
+.input,
+.textarea,
+.select select {
+  background-color: var(--sgb-card);
+  border-color: var(--sgb-line);
+  color: var(--sgb-ink);
+
+  &:disabled {
+    background-color: var(--sgb-hover);
+    opacity: 0.8;
+  }
+}
+
+.select select option {
+  background-color: var(--sgb-card);
+  color: var(--sgb-ink);
+}
