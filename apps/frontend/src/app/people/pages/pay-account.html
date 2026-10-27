@@ -1,0 +1,127 @@
+<section class="panel">
+  <h3>Zahlart</h3>
+  <div class="chips">
+    @for (item of methods; track item) {
+      <button
+        type="button"
+        class="chip is-solid"
+        [class.is-on]="account().method === item"
+        [attr.aria-pressed]="account().method === item"
+        (click)="setMethod(item)"
+      >
+        {{ item }}
+      </button>
+    }
+  </div>
+</section>
+
+<section class="panel">
+  <h3>Bankverbindung</h3>
+  <div class="form-grid">
+    <div>
+      <label class="field-label" for="b-holder">Kontoinhaber</label>
+      <input
+        id="b-holder"
+        class="input"
+        [value]="account().holder"
+        (change)="setText('holder', $event)"
+      />
+    </div>
+    <div>
+      <label class="field-label" for="b-bank">Name Bank</label>
+      <input
+        id="b-bank"
+        class="input"
+        [value]="account().bank"
+        (change)="setText('bank', $event)"
+      />
+    </div>
+    <div>
+      <label class="field-label" for="b-iban">IBAN</label>
+      <input
+        id="b-iban"
+        class="input"
+        [value]="account().iban"
+        (change)="setText('iban', $event)"
+      />
+    </div>
+    <div>
+      <label class="field-label" for="b-bic">BIC</label>
+      <input id="b-bic" class="input" [value]="account().bic" (change)="setText('bic', $event)" />
+    </div>
+  </div>
+  <p class="sub">Im Testportal bitte keine echten Bankdaten eintragen.</p>
+</section>
+
+@if (account().method === 'Lastschrift') {
+  <section class="panel">
+    <h3>SEPA-Mandat</h3>
+    <label class="checkbox block">
+      <input
+        type="checkbox"
+        [checked]="account().mandate"
+        (change)="setMandate($any($event.target).checked)"
+      />
+      Mandat liegt vor
+    </label>
+    <div class="form-grid">
+      <div>
+        <label class="field-label" for="b-ref">Mandatsreferenz</label>
+        <input
+          id="b-ref"
+          class="input"
+          [value]="account().mandateRef"
+          (change)="setText('mandateRef', $event)"
+        />
+      </div>
+      <div>
+        <label class="field-label" for="b-on">Mandat erteilt am</label>
+        <input
+          id="b-on"
+          class="input"
+          type="date"
+          [value]="account().mandateOn"
+          (change)="setText('mandateOn', $event)"
+        />
+      </div>
+    </div>
+  </section>
+}
+
+<section class="panel">
+  <div class="card-head">
+    <h3>Beiträge, die gezahlt werden</h3>
+    <a class="btn is-small" routerLink="/beitraege">Zu den Zahlungen</a>
+  </div>
+  <table class="rdp-table">
+    <thead>
+      <tr>
+        <th scope="col">Für</th>
+        <th scope="col">Beitragsart</th>
+        <th scope="col">Betrag</th>
+        <th scope="col">Stand</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (payment of payments(); track payment.id) {
+        <tr>
+          <td>{{ payment.label }}</td>
+          <td>{{ feeName()(payment.feeTypeId) }}</td>
+          <td>{{ euro(payment.amount) }}</td>
+          <td>
+            @if (payment.paid) {
+              <span class="pill is-ok">bezahlt</span>
+              <small class="sub">Letzte Zahlung {{ fullDate(payment.paidOn) }}</small>
+            } @else {
+              <span class="pill is-bad">offen</span>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4" class="empty">Keine Beiträge als Zahler.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

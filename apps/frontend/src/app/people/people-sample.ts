@@ -1,6 +1,14 @@
 import { addDays } from '../training/training-dates';
 import { GroupId, Person } from '../training/training.models';
-import { Member, Parent, Relation, birthYear, emptyMember } from './people.models';
+import {
+  Member,
+  PayAccount,
+  Parent,
+  Relation,
+  birthYear,
+  emptyAccount,
+  emptyMember,
+} from './people.models';
 
 /**
  * Invented demo members, derived from the training demo people so that both modules show the
@@ -108,7 +116,28 @@ function buildMember(person: Person, index: number, today: string): Member {
 }
 
 /** Children with the same family name share their parents; everybody else gets one parent. */
-function buildParents(members: Member[]): Parent[] {
+function sampleAccount(
+  firstName: string,
+  lastName: string,
+  counter: number,
+  position: number,
+  today: string,
+): PayAccount {
+  const direct = (counter + position) % 3 !== 2;
+  if (!direct) return { ...emptyAccount(), holder: `${firstName} ${lastName}` };
+  return {
+    method: 'Lastschrift',
+    holder: `${firstName} ${lastName}`,
+    iban: `DE00 0000 0000 ${String(1000 + counter * 7).padStart(4, '0')} 0000 ${String(10 + position).padStart(2, '0')}`,
+    bic: 'TESTDE00XXX',
+    bank: 'Testbank',
+    mandate: true,
+    mandateRef: `M-${2000 + counter * 3 + position}`,
+    mandateOn: addDays(today, -400 - counter),
+  };
+}
+
+function buildParents(members: Member[], today: string): Parent[] {
   const parents: Parent[] = [];
   const families = new Map<string, Member[]>();
   for (const member of members) {
@@ -129,6 +158,7 @@ function buildParents(members: Member[]): Parent[] {
         access: position === 0 ? 'active' : 'invited',
         trainingRegistration: true,
         competitionRegistration: position === 0,
+        account: sampleAccount(firstName, lastName, counter, position, today),
       });
       for (const child of children) child.parentIds.push(id);
     });
@@ -139,5 +169,5 @@ function buildParents(members: Member[]): Parent[] {
 
 export function createPeopleSample(today: string, people: Person[]): PeopleSample {
   const members = people.map((person, index) => buildMember(person, index, today));
-  return { members, parents: buildParents(members) };
+  return { members, parents: buildParents(members, today) };
 }

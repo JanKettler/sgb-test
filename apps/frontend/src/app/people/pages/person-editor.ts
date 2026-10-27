@@ -10,6 +10,7 @@ import {
   APP_ROLES,
   AppRoleKey,
   LICENSE_KINDS,
+  PayAccount,
   SPECIAL_RIGHTS,
   SpecialRightKey,
   Member,
@@ -20,9 +21,11 @@ import {
   initials,
   isActive,
 } from '../people.models';
+import { FeesStore } from '../../fees/fees.store';
 import { PeopleStore } from '../people.store';
+import { PayAccountForm } from './pay-account';
 
-type Tab = 'master' | 'roles' | 'family' | 'material' | 'access' | 'extra';
+type Tab = 'master' | 'roles' | 'family' | 'material' | 'payment' | 'access' | 'extra';
 type TextKey =
   | 'firstName'
   | 'startRight'
@@ -53,7 +56,7 @@ type GroupKey = 'swimmerGroupIds' | 'trainerGroupIds';
 
 @Component({
   selector: 'app-person-editor',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, PayAccountForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './person-editor.html',
   styleUrl: './person-editor.scss',
@@ -61,6 +64,7 @@ type GroupKey = 'swimmerGroupIds' | 'trainerGroupIds';
 export class PersonEditor {
   private readonly store = inject(PeopleStore);
   private readonly router = inject(Router);
+  protected readonly fees = inject(FeesStore);
   private readonly parentsBefore = this.store.parents();
   private readonly id = toSignal(
     inject(ActivatedRoute).paramMap.pipe(map((params) => params.get('id') ?? '')),
@@ -75,6 +79,8 @@ export class PersonEditor {
   protected readonly appRoles = APP_ROLES;
   protected readonly specialRights = SPECIAL_RIGHTS;
   protected readonly notice = signal('');
+  protected readonly payments = computed(() => this.fees.paymentsOf(this.draft().id));
+  protected readonly feeName = (id: string): string => this.fees.feeName(id);
   private nextRow = 1;
   protected readonly tab = signal<Tab>('master');
 
@@ -140,6 +146,10 @@ export class PersonEditor {
         ? { css: 'pill is-bad', text: 'Zugang gesperrt' }
         : { css: 'pill is-warn', text: 'Kein Zugang' };
   });
+
+  protected setAccount(account: PayAccount): void {
+    this.draft.update((member) => ({ ...member, account }));
+  }
 
   protected setAccess(access: Member['access']): void {
     this.draft.update((member) => ({ ...member, access }));

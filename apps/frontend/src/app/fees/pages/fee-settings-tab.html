@@ -1,0 +1,148 @@
+<div class="cols">
+  <div class="stack">
+    <section class="panel">
+      <h3>Mahnwesen</h3>
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="fs-fee1">Mahngebühr Stufe 1 in Euro</label>
+          <input
+            id="fs-fee1"
+            class="input"
+            inputmode="decimal"
+            [value]="draft().feeLevel1.toFixed(2).replace('.', ',')"
+            (change)="money('feeLevel1', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="fs-fee2">Mahngebühr ab Stufe 2 in Euro</label>
+          <input
+            id="fs-fee2"
+            class="input"
+            inputmode="decimal"
+            [value]="draft().feeFromLevel2.toFixed(2).replace('.', ',')"
+            (change)="money('feeFromLevel2', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="fs-days1">Zahlung in Tagen, Stufe 1</label>
+          <input
+            id="fs-days1"
+            class="input"
+            type="number"
+            [value]="draft().daysLevel1"
+            (change)="days('daysLevel1', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="fs-days2">Zahlung in Tagen, ab Stufe 2</label>
+          <input
+            id="fs-days2"
+            class="input"
+            type="number"
+            [value]="draft().daysFromLevel2"
+            (change)="days('daysFromLevel2', $event)"
+          />
+        </div>
+      </div>
+      <label class="field-label" for="fs-copy">Kopie der Mahnungen an</label>
+      <input
+        id="fs-copy"
+        class="input"
+        type="email"
+        placeholder="E-Mail-Adresse"
+        [value]="draft().copyTo"
+        (change)="text('copyTo', $event)"
+      />
+    </section>
+
+    <section class="panel">
+      <h3>Zahlungserinnerung per E-Mail</h3>
+      <label class="checkbox block">
+        <input type="checkbox" [checked]="draft().remindDebit" (change)="flag('remindDebit')" />
+        Lastschrift: Hinweis vor der Abbuchung
+      </label>
+      <label class="checkbox block">
+        <input
+          type="checkbox"
+          [checked]="draft().remindTransfer"
+          (change)="flag('remindTransfer')"
+        />
+        Überweisung: Erinnerung zur Zahlung
+      </label>
+    </section>
+  </div>
+
+  <div class="stack">
+    <section class="panel">
+      <h3>Verwendungszweck</h3>
+      <label class="field-label" for="fs-purpose">Aufbau</label>
+      <input
+        id="fs-purpose"
+        class="input"
+        [value]="draft().purposeTemplate"
+        (change)="text('purposeTemplate', $event)"
+      />
+      <span class="field-label mt-3">Platzhalter zum Einfügen</span>
+      <div class="chips">
+        @for (item of placeholders; track item) {
+          <button type="button" class="chip" (click)="insert(item)">{{ item }}</button>
+        }
+      </div>
+      <p class="sub mt-3">Vorschau: {{ preview() }}</p>
+    </section>
+
+    <section class="panel">
+      <div class="card-head">
+        <h3>Vereinskonto</h3>
+        <span class="pill is-info">Zahlungsempfänger</span>
+      </div>
+      <label class="field-label" for="fs-holder">Name Kontoinhaber</label>
+      <input
+        id="fs-holder"
+        class="input"
+        [value]="draft().accountHolder"
+        (change)="text('accountHolder', $event)"
+      />
+      <label class="field-label" for="fs-bank">Name Bank</label>
+      <input id="fs-bank" class="input" [value]="draft().bank" (change)="text('bank', $event)" />
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="fs-iban">IBAN</label>
+          <input
+            id="fs-iban"
+            class="input"
+            placeholder="IBAN des Vereins"
+            [value]="draft().iban"
+            (change)="text('iban', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="fs-bic">BIC</label>
+          <input
+            id="fs-bic"
+            class="input"
+            placeholder="BIC"
+            [value]="draft().bic"
+            (change)="text('bic', $event)"
+          />
+        </div>
+      </div>
+      <label class="field-label" for="fs-creditor">Gläubiger-ID</label>
+      <input
+        id="fs-creditor"
+        class="input"
+        placeholder="Gläubiger-ID des Vereins"
+        [value]="draft().creditorId"
+        (change)="text('creditorId', $event)"
+      />
+      <p class="sub">Im Testportal bitte keine echten Bankdaten eintragen.</p>
+    </section>
+  </div>
+</div>
+
+<div class="icon-row mt-4">
+  <button type="button" class="btn is-primary" (click)="save()">
+    <app-icon name="save" /> Speichern
+  </button>
+  <button type="button" class="btn" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
+</div>

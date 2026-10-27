@@ -1,0 +1,113 @@
+<div class="filters">
+  <div class="grow"></div>
+  <div class="page-actions">
+    <button type="button" class="btn" (click)="exportCsv()"><app-icon name="sheet" /> Excel</button>
+    <button type="button" class="btn is-primary" (click)="add()">
+      <app-icon name="plus" /> Neue Beitragsart
+    </button>
+  </div>
+</div>
+
+<div class="table-scroll">
+  <table class="rdp-table">
+    <thead>
+      <tr>
+        <th scope="col">Beitragsart</th>
+        <th scope="col">Zahler</th>
+        <th scope="col">Betrag</th>
+        <th scope="col"><span class="is-sr-only">Aktionen</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (type of store.types(); track type.id) {
+        <tr [class.is-picked]="draft()?.id === type.id">
+          <td>
+            <strong>{{ type.name }}</strong>
+            <small class="sub">{{ type.rule }}</small>
+          </td>
+          <td>{{ store.payerCount(type.id) }} Zahler</td>
+          <td>
+            <strong>{{ euro(type.amount) }}</strong>
+          </td>
+          <td class="actions">
+            <button
+              type="button"
+              class="icon-btn is-warn"
+              [attr.aria-label]="type.name + ' bearbeiten'"
+              title="Bearbeiten"
+              (click)="edit(type)"
+            >
+              <app-icon name="pencil" />
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (draft(); as type) {
+  <section class="panel mt-4">
+    <div class="card-head">
+      <h3>{{ type.name || 'Neue Beitragsart' }}</h3>
+      <div class="icon-row">
+        <button type="button" class="btn" (click)="draft.set(null)">
+          <app-icon name="x" /> Abbrechen
+        </button>
+        <button type="button" class="btn is-primary" (click)="save()">
+          <app-icon name="save" /> Speichern
+        </button>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div>
+        <label class="field-label" for="ft-name">Name</label>
+        <input
+          id="ft-name"
+          class="input"
+          [class.is-danger]="invalid() && !type.name.trim()"
+          [value]="type.name"
+          (change)="setName($event)"
+        />
+      </div>
+      <div>
+        <label class="field-label" for="ft-amount">Höhe in Euro</label>
+        <input
+          id="ft-amount"
+          class="input"
+          inputmode="decimal"
+          [value]="type.amount.toFixed(2).replace('.', ',')"
+          (change)="setAmount($event)"
+        />
+      </div>
+      <div>
+        <span class="field-label">Zahlung</span>
+        <span class="pill is-info">jährlich</span>
+      </div>
+    </div>
+    <h4 class="mt-3">Wird automatisch zugeordnet</h4>
+    <p class="sub">{{ type.note || 'Diese Beitragsart wird von Hand vergeben.' }}</p>
+
+    <h4 class="mt-3">Zahler mit diesem Beitrag ({{ payers().length }})</h4>
+    <table class="rdp-table">
+      <thead>
+        <tr>
+          <th scope="col">Zahler</th>
+          <th scope="col">Mitglieder</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (payment of payers(); track payment.id) {
+          <tr>
+            <td>{{ payment.payerName }}</td>
+            <td>{{ payment.label }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="2" class="empty">Noch niemand zugeordnet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+}

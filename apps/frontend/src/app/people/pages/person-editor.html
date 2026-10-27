@@ -68,6 +68,16 @@
     type="button"
     role="tab"
     class="tab-btn"
+    [class.is-on]="tab() === 'payment'"
+    [attr.aria-selected]="tab() === 'payment'"
+    (click)="tab.set('payment')"
+  >
+    Zahlung
+  </button>
+  <button
+    type="button"
+    role="tab"
+    class="tab-btn"
     [class.is-on]="tab() === 'access'"
     [attr.aria-selected]="tab() === 'access'"
     (click)="tab.set('access')"
@@ -528,6 +538,14 @@
         </tbody>
       </table>
     </section>
+  }
+  @case ('payment') {
+    <app-pay-account
+      [account]="draft().account"
+      [payments]="payments()"
+      [feeName]="feeName"
+      (changed)="setAccount($event)"
+    />
   }
   @case ('access') {
     <section class="panel">

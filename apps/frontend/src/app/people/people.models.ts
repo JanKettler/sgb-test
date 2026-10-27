@@ -50,6 +50,7 @@ export interface Member {
   specialRights: SpecialRightKey[];
   material: MaterialItem[];
   extra: ExtraField[];
+  account: PayAccount;
 }
 
 export interface MaterialItem {
@@ -105,6 +106,34 @@ export const SPECIAL_RIGHTS: readonly { key: SpecialRightKey; label: string; hin
   },
 ];
 
+export type PayMethod = 'Lastschrift' | 'Überweisung';
+
+/** How a payer pays the fees; stored with the person who pays. */
+export interface PayAccount {
+  method: PayMethod;
+  holder: string;
+  iban: string;
+  bic: string;
+  bank: string;
+  mandate: boolean;
+  mandateRef: string;
+  /** ISO date the SEPA mandate was given */
+  mandateOn: string;
+}
+
+export function emptyAccount(): PayAccount {
+  return {
+    method: 'Überweisung',
+    holder: '',
+    iban: '',
+    bic: '',
+    bank: '',
+    mandate: false,
+    mandateRef: '',
+    mandateOn: '',
+  };
+}
+
 export type Relation = 'Mutter' | 'Vater' | 'Erziehungsberechtigte';
 
 /** Parents get their own login and register their children. */
@@ -116,6 +145,7 @@ export interface Parent {
   access: 'active' | 'invited';
   trainingRegistration: boolean;
   competitionRegistration: boolean;
+  account: PayAccount;
 }
 
 export type RoleKey = 'swimmer' | 'trainer' | 'referee' | 'official';
@@ -201,5 +231,6 @@ export function emptyMember(id: string, memberNo: number, today: string): Member
     specialRights: [],
     material: [],
     extra: [],
+    account: emptyAccount(),
   };
 }

@@ -1,0 +1,109 @@
+<div class="tiles mb-3">
+  <div class="tile">
+    <span class="field-label">Zu mahnen</span>
+    <strong class="big">{{ chosen().length }}</strong>
+  </div>
+  <div class="tile">
+    <span class="field-label">Offene Beiträge</span>
+    <strong class="big">{{ euro(sums().open) }}</strong>
+  </div>
+  <div class="tile">
+    <span class="field-label">Mahngebühren</span>
+    <strong class="big">{{ euro(sums().fees) }}</strong>
+  </div>
+  <div class="tile">
+    <span class="field-label">Gesamt</span>
+    <strong class="big">{{ euro(sums().total) }}</strong>
+  </div>
+</div>
+
+<h3>Wer wird gemahnt</h3>
+<p class="sub">{{ chosen().length }} von {{ rows().length }} markiert</p>
+
+<div class="table-scroll">
+  <table class="rdp-table">
+    <thead>
+      <tr>
+        <th scope="col" class="narrow"><span class="is-sr-only">Auswahl</span></th>
+        <th scope="col">Zahler</th>
+        <th scope="col">Offen</th>
+        <th scope="col">Gebühr</th>
+        <th scope="col">Gesamt</th>
+        <th scope="col">Stufe</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.payment.id) {
+        <tr (click)="preview.set(row.payment.id)">
+          <td class="narrow">
+            <input
+              type="checkbox"
+              [attr.aria-label]="row.payment.payerName + ' markieren'"
+              [checked]="isOn(row)"
+              (click)="$event.stopPropagation()"
+              (change)="toggle(row)"
+            />
+          </td>
+          <td>
+            <strong>{{ row.payment.payerName }}</strong>
+            <small class="sub">
+              für {{ row.payment.label }} · seit {{ fullDate(row.payment.dueDate) }}
+            </small>
+          </td>
+          <td>{{ euro(row.payment.amount) }}</td>
+          <td>{{ euro(row.fee) }}</td>
+          <td>{{ euro(row.total) }}</td>
+          <td>
+            <span [class]="row.level >= 2 ? 'pill is-bad' : 'pill is-warn'">{{ row.level }}</span>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="empty">Zurzeit muss niemand gemahnt werden.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<div class="chips mt-3">
+  <button type="button" class="btn is-primary" [disabled]="chosen().length === 0" (click)="send()">
+    <app-icon name="mail" /> Mahnungen versenden ({{ chosen().length }})
+  </button>
+  <button type="button" class="btn" (click)="exportCsv()"><app-icon name="sheet" /> Excel</button>
+</div>
+
+@if (shown(); as row) {
+  @if (mail(); as text) {
+    <div class="mail-preview mt-4">
+      <h3>E-Mail an {{ row.payment.payerName }}</h3>
+      <p class="sub">Vorschau</p>
+      <p>
+        <strong>Betreff</strong><br />
+        {{ text.subject }}
+      </p>
+      @for (line of text.lines; track line) {
+        <p>{{ line }}</p>
+      }
+      <table class="rdp-table small">
+        <tbody>
+          <tr>
+            <td>Offener Beitrag</td>
+            <td class="actions">{{ euro(row.payment.amount) }}</td>
+          </tr>
+          <tr>
+            <td>Mahngebühr</td>
+            <td class="actions">{{ euro(row.fee) }}</td>
+          </tr>
+          <tr>
+            <td><strong>Gesamt</strong></td>
+            <td class="actions">
+              <strong>{{ euro(row.total) }}</strong>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Mit sportlichen Grüßen<br />SG Barnstorf</p>
+    </div>
+  }
+}

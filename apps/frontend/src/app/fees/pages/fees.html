@@ -1,0 +1,48 @@
+<header class="page-head">
+  <div>
+    <h2>Beiträge</h2>
+    <p>Zahlungen, Mahnungen und Beitragsarten für {{ store.year }}</p>
+  </div>
+</header>
+
+@if (message()) {
+  <div class="notice">
+    <span>{{ message() }}</span>
+    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+  </div>
+}
+
+<section class="panel">
+  <div class="tabbar" role="tablist">
+    @for (item of tabs(); track item.id) {
+      <button
+        type="button"
+        role="tab"
+        class="tab-btn"
+        [class.is-on]="tab() === item.id"
+        [attr.aria-selected]="tab() === item.id"
+        (click)="tab.set(item.id)"
+      >
+        {{ item.label }}
+        @if (item.count > 0) {
+          <span class="count is-bad">{{ item.count }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  @switch (tab()) {
+    @case ('payments') {
+      <app-payments-tab (notice)="message.set($event)" />
+    }
+    @case ('dunning') {
+      <app-dunning-tab (notice)="message.set($event)" />
+    }
+    @case ('types') {
+      <app-fee-types-tab (notice)="message.set($event)" />
+    }
+    @case ('settings') {
+      <app-fee-settings-tab (notice)="message.set($event)" />
+    }
+  }
+</section>

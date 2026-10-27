@@ -4,7 +4,15 @@ import { TrainingStore } from '../training/training.store';
 import { EvidenceRow, MemberStatus, evidenceOf, statusOf } from './people-evidence';
 import { createPeopleSample } from './people-sample';
 import { fullDate } from '../training/training-dates';
-import { Member, Parent, ROLES, emptyMember, fullName, isActive } from './people.models';
+import {
+  Member,
+  Parent,
+  ROLES,
+  emptyAccount,
+  emptyMember,
+  fullName,
+  isActive,
+} from './people.models';
 
 /** Byte order mark, so that Excel opens the file as UTF-8. */
 const BOM = String.fromCharCode(0xfeff);
@@ -128,6 +136,7 @@ export class PeopleStore {
       access: 'invited',
       trainingRegistration: true,
       competitionRegistration: true,
+      account: emptyAccount(),
     };
   }
 
