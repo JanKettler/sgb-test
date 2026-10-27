@@ -1,0 +1,22 @@
+name: fmt-debug
+on:
+  push:
+    branches: [feature/training-module]
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+      - run: npm ci --ignore-scripts
+      - name: Show prettier diff
+        run: |
+          set +e
+          for f in $(npx prettier --list-different . ); do
+            npx prettier "$f" | diff "$f" - > /tmp/d.txt
+            body=$(head -c 3000 /tmp/d.txt | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')
+            echo "::error title=$f::$body"
+          done
+          exit 0
