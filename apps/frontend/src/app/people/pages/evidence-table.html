@@ -1,0 +1,110 @@
+@if (message()) {
+  <div class="notice">
+    <span>{{ message() }}</span>
+    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+  </div>
+}
+
+<div class="chips mb-3">
+  <span class="field-label m-0">Zeitraum</span>
+  @for (item of periods(); track item.id) {
+    <button
+      type="button"
+      class="chip is-solid"
+      [class.is-on]="period() === item.id"
+      [attr.aria-pressed]="period() === item.id"
+      (click)="period.set(item.id)"
+    >
+      {{ item.label }} · {{ item.count }}
+    </button>
+  }
+</div>
+<div class="chips mb-3">
+  <span class="field-label m-0">Nachweis</span>
+  <button
+    type="button"
+    class="chip is-solid"
+    [class.is-on]="kind() === ''"
+    [attr.aria-pressed]="kind() === ''"
+    (click)="kind.set('')"
+  >
+    Alle Arten
+  </button>
+  @for (item of kinds; track item) {
+    <button
+      type="button"
+      class="chip is-solid"
+      [class.is-on]="kind() === item"
+      [attr.aria-pressed]="kind() === item"
+      (click)="kind.set(item)"
+    >
+      {{ labels[item] }}
+    </button>
+  }
+</div>
+
+<div class="table-scroll">
+  <table class="table is-fullwidth is-hoverable">
+    <thead>
+      <tr>
+        <th scope="col"><span class="is-sr-only">Auswahl</span></th>
+        <th scope="col">Person</th>
+        <th scope="col">Nachweis</th>
+        <th scope="col">Rolle</th>
+        <th scope="col">Gültig bis</th>
+        <th scope="col">Rest</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track key(row)) {
+        <tr>
+          <td>
+            <input
+              type="checkbox"
+              [checked]="selected().has(key(row))"
+              [attr.aria-label]="row.member.firstName + ' ' + row.member.lastName + ' auswählen'"
+              (change)="toggle(row)"
+            />
+          </td>
+          <td>
+            <a [routerLink]="['/personen', row.member.id]">
+              {{ row.member.firstName }} {{ row.member.lastName }}
+            </a>
+          </td>
+          <td>{{ row.label }}</td>
+          <td>{{ row.role }}</td>
+          <td>{{ row.date ? fullDate(row.date) : 'nicht hinterlegt' }}</td>
+          <td>
+            <span
+              class="pill"
+              [class]="
+                'pill is-' + (row.tone === 'info' ? 'violet' : row.tone === 'bad' ? 'bad' : 'warn')
+              "
+            >
+              {{ rest(row) }}
+            </span>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="empty">Keine Nachweise für diese Auswahl.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<div class="mt-4">
+  <button
+    type="button"
+    class="btn is-primary"
+    [disabled]="recipients().length === 0"
+    (click)="mailing.set(true)"
+  >
+    <app-icon name="mail" /> Erinnerung an Auswahl senden ({{ recipients().length }})
+  </button>
+</div>
+
+@if (mailing()) {
+  <app-mail-dialog [recipients]="recipients()" (closed)="mailing.set(false)" (sent)="sent()" />
+}

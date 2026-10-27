@@ -1,0 +1,166 @@
+<header class="page-head">
+  <div>
+    <h2>Personen</h2>
+    <p>Mitglieder, Eltern und Nachweise</p>
+  </div>
+  <div class="page-actions">
+    <button type="button" class="btn" (click)="exportCsv()"><app-icon name="sheet" /> Excel</button>
+    <a class="btn is-primary" routerLink="/personen/neu"> <app-icon name="plus" /> Neue Person </a>
+  </div>
+</header>
+
+@if (message()) {
+  <div class="notice">
+    <span>{{ message() }}</span>
+    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+  </div>
+}
+
+<section class="panel">
+  <div class="tabbar" role="tablist">
+    @for (item of tabs(); track item.id) {
+      <button
+        type="button"
+        role="tab"
+        class="tab-btn"
+        [class.is-on]="tab() === item.id"
+        [attr.aria-selected]="tab() === item.id"
+        (click)="tab.set(item.id)"
+      >
+        {{ item.label }}
+        <span class="count" [class.is-bad]="item.bad">{{ item.count }}</span>
+      </button>
+    }
+  </div>
+
+  @switch (tab()) {
+    @case ('members') {
+      <div class="filters">
+        <div class="grow">
+          <label class="field-label" for="people-search">Suche</label>
+          <input
+            id="people-search"
+            class="input"
+            type="search"
+            placeholder="Name oder Mitgliedsnummer"
+            [value]="search()"
+            (input)="search.set(value($event))"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="people-role">Rolle</label>
+          <div class="select">
+            <select id="people-role" (change)="role.set($any(value($event)))">
+              <option value="">Alle Rollen</option>
+              @for (item of roles; track item.key) {
+                <option [value]="item.key" [selected]="item.key === role()">
+                  {{ item.label }}
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="people-group">Gruppe</label>
+          <div class="select">
+            <select id="people-group" (change)="group.set($any(value($event)))">
+              <option value="">Alle Gruppen</option>
+              @for (item of groups; track item.id) {
+                <option [value]="item.id" [selected]="item.id === group()">{{ item.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="people-status">Status</label>
+          <div class="select">
+            <select id="people-status" (change)="status.set($any(value($event)))">
+              <option value="active" [selected]="status() === 'active'">Nur aktive</option>
+              <option value="all" [selected]="status() === 'all'">Alle</option>
+              <option value="inactive" [selected]="status() === 'inactive'">Nur inaktive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="table is-fullwidth is-hoverable">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Rollen</th>
+              <th scope="col">Schwimmer in</th>
+              <th scope="col">Trainer in</th>
+              <th scope="col">Nachweise</th>
+              <th scope="col"><span class="is-sr-only">Aktionen</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.member.id) {
+              <tr>
+                <td>
+                  <strong>{{ row.name }}</strong>
+                  <small class="sub"
+                    >Jg. {{ row.member.birthYear }} · Nr. {{ row.member.memberNo }}</small
+                  >
+                </td>
+                <td>
+                  @for (chip of row.chips; track chip.label) {
+                    <span [class]="chip.css + ' mr-1'">{{ chip.label }}</span>
+                  }
+                </td>
+                <td>
+                  {{
+                    row.member.swimmerGroupIds.length ? groupsText(row.member.swimmerGroupIds) : '–'
+                  }}
+                </td>
+                <td>
+                  {{
+                    row.member.trainerGroupIds.length ? groupsText(row.member.trainerGroupIds) : '–'
+                  }}
+                </td>
+                <td>
+                  <span
+                    class="pill"
+                    [class]="
+                      'pill is-' +
+                      (row.status.tone === 'ok'
+                        ? 'ok'
+                        : row.status.tone === 'bad'
+                          ? 'bad'
+                          : row.status.tone === 'warn'
+                            ? 'warn'
+                            : 'violet')
+                    "
+                  >
+                    {{ row.status.text }}
+                  </span>
+                </td>
+                <td>
+                  <a
+                    class="icon-btn is-warn"
+                    [routerLink]="['/personen', row.member.id]"
+                    [attr.aria-label]="row.name + ' bearbeiten'"
+                    title="Bearbeiten"
+                  >
+                    <app-icon name="pencil" />
+                  </a>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty">Keine Personen für diese Auswahl.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    @case ('parents') {
+      <app-parents-table />
+    }
+    @case ('evidence') {
+      <app-evidence-table />
+    }
+  }
+</section>

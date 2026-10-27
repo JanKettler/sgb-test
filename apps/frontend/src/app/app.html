@@ -63,9 +63,21 @@
         </a>
       }
 
+      @if (store.canManage()) {
+        <p class="group">Verein</p>
+        <a
+          class="tone-rose"
+          (click)="closeMenu()"
+          routerLink="/personen"
+          routerLinkActive="is-active"
+        >
+          <app-icon name="users" /> Personen
+        </a>
+      }
+
       <p class="group">Warteliste</p>
       <a
-        class="tone-rose"
+        class="tone-amber"
         (click)="closeMenu()"
         routerLink="/warteliste/anmelden"
         routerLinkActive="is-active"

@@ -1,0 +1,83 @@
+.head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.who {
+  flex: 1 1 18rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+}
+
+.avatar {
+  align-items: center;
+  background: var(--sgb-strong);
+  border-radius: 50%;
+  color: var(--sgb-on-strong);
+  display: flex;
+  font-size: 1.3rem;
+  font-weight: 700;
+  height: 4rem;
+  justify-content: center;
+  width: 4rem;
+}
+
+.sub {
+  color: var(--sgb-soft);
+  display: block;
+  font-size: 0.85rem;
+}
+
+.cols {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+}
+
+.tiles {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.tile {
+  border: 1px solid var(--sgb-line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+}
+
+.card-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.parent {
+  border: 1px solid var(--sgb-line);
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+
+  .checkbox {
+    display: block;
+  }
+}
+
+.parent-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}

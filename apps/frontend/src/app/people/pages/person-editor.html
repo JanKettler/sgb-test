@@ -1,0 +1,453 @@
+<section class="panel head">
+  <div class="avatar" aria-hidden="true">{{ initials() }}</div>
+  <div class="who">
+    <h2>{{ name() }}</h2>
+    <p class="sub">
+      Jg. {{ draft().birthYear }} · Mitgliedsnummer {{ draft().memberNo }} · Eintritt
+      {{ fullDate(draft().entry) }}
+      @if (!draft().active) {
+        · inaktiv
+      }
+    </p>
+    <div>
+      @for (chip of chips(); track chip.label) {
+        <span [class]="chip.css + ' mr-1'">{{ chip.label }}</span>
+      }
+    </div>
+  </div>
+  <div class="icon-row">
+    <button type="button" class="btn" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
+    <button type="button" class="btn is-primary" (click)="save()">
+      <app-icon name="save" /> Speichern
+    </button>
+  </div>
+</section>
+
+<div class="tabbar" role="tablist">
+  <button
+    type="button"
+    role="tab"
+    class="tab-btn"
+    [class.is-on]="tab() === 'master'"
+    [attr.aria-selected]="tab() === 'master'"
+    (click)="tab.set('master')"
+  >
+    Stammdaten
+  </button>
+  <button
+    type="button"
+    role="tab"
+    class="tab-btn"
+    [class.is-on]="tab() === 'roles'"
+    [attr.aria-selected]="tab() === 'roles'"
+    (click)="tab.set('roles')"
+  >
+    Rollen
+  </button>
+  <button
+    type="button"
+    role="tab"
+    class="tab-btn"
+    [class.is-on]="tab() === 'family'"
+    [attr.aria-selected]="tab() === 'family'"
+    (click)="tab.set('family')"
+  >
+    Familie
+  </button>
+</div>
+
+@switch (tab()) {
+  @case ('master') {
+    <section class="panel">
+      <h3>Stammdaten</h3>
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="p-first">Vorname</label>
+          <input
+            id="p-first"
+            class="input"
+            [value]="draft().firstName"
+            (change)="setText('firstName', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-last">Nachname</label>
+          <input
+            id="p-last"
+            class="input"
+            [value]="draft().lastName"
+            (change)="setText('lastName', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-birth">Geburtsjahr</label>
+          <input
+            id="p-birth"
+            class="input"
+            type="number"
+            [value]="draft().birthYear"
+            (change)="setNumber('birthYear', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-no">Mitgliedsnummer</label>
+          <input
+            id="p-no"
+            class="input"
+            type="number"
+            [value]="draft().memberNo"
+            (change)="setNumber('memberNo', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-entry">Eintritt</label>
+          <input
+            id="p-entry"
+            class="input"
+            type="date"
+            [value]="draft().entry"
+            (change)="setText('entry', $event)"
+          />
+        </div>
+        <div>
+          <label class="field-label" for="p-active">Status</label>
+          <div class="select is-fullwidth">
+            <select id="p-active" (change)="setActive($event)">
+              <option value="active" [selected]="draft().active">Aktiv</option>
+              <option value="inactive" [selected]="!draft().active">Inaktiv</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="p-clearance">Führungszeugnis vom</label>
+          <input
+            id="p-clearance"
+            class="input"
+            type="date"
+            [value]="draft().criminalRecordOn"
+            (change)="setText('criminalRecordOn', $event)"
+          />
+        </div>
+      </div>
+      <p class="sub">Das Führungszeugnis wird nur einmal pro Person erfasst, nicht je Rolle.</p>
+    </section>
+  }
+  @case ('roles') {
+    <section class="panel">
+      <h3>Nachweise</h3>
+      <div class="tiles">
+        @for (row of evidence(); track row.kind) {
+          <div class="tile">
+            <span class="field-label">{{ row.label }}</span>
+            <strong>{{ row.date ? fullDate(row.date) : 'nicht eingetragen' }}</strong>
+            <span class="pill" [class]="'pill is-' + tone(row)">
+              {{ row.tone === 'ok' ? 'gültig' : row.text }}
+            </span>
+          </div>
+        } @empty {
+          <p class="sub">Ohne Rolle gibt es keine Nachweise.</p>
+        }
+      </div>
+    </section>
+
+    @if (missingRoles().length > 0) {
+      <div class="chips mb-3">
+        <span class="field-label m-0">Rolle hinzufügen</span>
+        @for (item of missingRoles(); track item.key) {
+          <button type="button" class="chip" (click)="setRole(item.key, true)">
+            + {{ item.label }}
+          </button>
+        }
+      </div>
+    }
+
+    <div class="cols">
+      @if (draft().swimmer) {
+        <section class="panel">
+          <div class="card-head">
+            <span class="pill is-info">Schwimmer</span>
+            <button
+              type="button"
+              class="icon-btn is-bad"
+              aria-label="Rolle Schwimmer entfernen"
+              title="Rolle entfernen"
+              (click)="setRole('swimmer', false)"
+            >
+              <app-icon name="x" />
+            </button>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label class="field-label" for="s-dsv">DSV-ID</label>
+              <input
+                id="s-dsv"
+                class="input"
+                [value]="draft().dsvId"
+                (change)="setText('dsvId', $event)"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="s-attest">Attest gültig bis</label>
+              <input
+                id="s-attest"
+                class="input"
+                type="date"
+                [value]="draft().attestUntil"
+                (change)="setText('attestUntil', $event)"
+              />
+            </div>
+          </div>
+          <span class="field-label">Gruppen als Schwimmer</span>
+          <div class="chips">
+            @for (group of groups; track group.id) {
+              <button
+                type="button"
+                [class]="'group-chip group-pick grp-' + group.id"
+                [class.is-on]="draft().swimmerGroupIds.includes(group.id)"
+                [attr.aria-pressed]="draft().swimmerGroupIds.includes(group.id)"
+                (click)="toggleGroup('swimmerGroupIds', group.id)"
+              >
+                {{ group.name }}
+              </button>
+            }
+          </div>
+        </section>
+      }
+
+      @if (draft().trainer) {
+        <section class="panel">
+          <div class="card-head">
+            <span class="pill is-ok">Trainer</span>
+            <button
+              type="button"
+              class="icon-btn is-bad"
+              aria-label="Rolle Trainer entfernen"
+              title="Rolle entfernen"
+              (click)="setRole('trainer', false)"
+            >
+              <app-icon name="x" />
+            </button>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label class="field-label" for="t-kind">Lizenzart</label>
+              <div class="select is-fullwidth">
+                <select id="t-kind" (change)="setText('licenseKind', $event)">
+                  <option value="">Keine Angabe</option>
+                  @for (kind of licenseKinds; track kind) {
+                    <option [value]="kind" [selected]="kind === draft().licenseKind">
+                      {{ kind }}
+                    </option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="field-label" for="t-no">Lizenznummer</label>
+              <input
+                id="t-no"
+                class="input"
+                [value]="draft().licenseNo"
+                (change)="setText('licenseNo', $event)"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="t-until">Lizenz gültig bis</label>
+              <input
+                id="t-until"
+                class="input"
+                type="date"
+                [value]="draft().licenseUntil"
+                (change)="setText('licenseUntil', $event)"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="t-aid">Erste Hilfe bis</label>
+              <input
+                id="t-aid"
+                class="input"
+                type="date"
+                [value]="draft().firstAidUntil"
+                (change)="setText('firstAidUntil', $event)"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="t-rescue">Rettungsnachweis bis</label>
+              <input
+                id="t-rescue"
+                class="input"
+                type="date"
+                [value]="draft().lifeSavingUntil"
+                (change)="setText('lifeSavingUntil', $event)"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="t-fee">Honorar in Euro pro Stunde</label>
+              <input
+                id="t-fee"
+                class="input"
+                [value]="draft().fee"
+                (change)="setText('fee', $event)"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="t-iban">IBAN für das Honorar</label>
+              <input
+                id="t-iban"
+                class="input"
+                placeholder="IBAN"
+                [value]="draft().iban"
+                (change)="setText('iban', $event)"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="t-bic">BIC</label>
+              <input
+                id="t-bic"
+                class="input"
+                placeholder="BIC"
+                [value]="draft().bic"
+                (change)="setText('bic', $event)"
+              />
+            </div>
+          </div>
+          <span class="field-label">Gruppen als Trainer</span>
+          <div class="chips">
+            @for (group of groups; track group.id) {
+              <button
+                type="button"
+                [class]="'group-chip group-pick grp-' + group.id"
+                [class.is-on]="draft().trainerGroupIds.includes(group.id)"
+                [attr.aria-pressed]="draft().trainerGroupIds.includes(group.id)"
+                (click)="toggleGroup('trainerGroupIds', group.id)"
+              >
+                {{ group.name }}
+              </button>
+            }
+          </div>
+        </section>
+      }
+
+      @if (draft().referee) {
+        <section class="panel">
+          <div class="card-head">
+            <span class="pill is-warn">Kampfrichter</span>
+            <button
+              type="button"
+              class="icon-btn is-bad"
+              aria-label="Rolle Kampfrichter entfernen"
+              title="Rolle entfernen"
+              (click)="setRole('referee', false)"
+            >
+              <app-icon name="x" />
+            </button>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label class="field-label" for="r-no">Lizenznummer</label>
+              <input
+                id="r-no"
+                class="input"
+                [value]="draft().refereeNo"
+                (change)="setText('refereeNo', $event)"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="r-until">WKR gültig bis</label>
+              <input
+                id="r-until"
+                class="input"
+                type="date"
+                [value]="draft().refereeUntil"
+                (change)="setText('refereeUntil', $event)"
+              />
+            </div>
+          </div>
+        </section>
+      }
+
+      @if (draft().official) {
+        <section class="panel">
+          <div class="card-head">
+            <span class="pill is-violet">Funktionär</span>
+            <button
+              type="button"
+              class="icon-btn is-bad"
+              aria-label="Rolle Funktionär entfernen"
+              title="Rolle entfernen"
+              (click)="setRole('official', false)"
+            >
+              <app-icon name="x" />
+            </button>
+          </div>
+          <label class="field-label" for="o-function">Funktion</label>
+          <input
+            id="o-function"
+            class="input"
+            [value]="draft().officialFunction"
+            (change)="setText('officialFunction', $event)"
+          />
+        </section>
+      }
+    </div>
+  }
+  @case ('family') {
+    <div class="cols">
+      <section class="panel">
+        <h3>Eltern und Erziehungsberechtigte</h3>
+        @for (parent of parents(); track parent.id) {
+          <div class="parent">
+            <div class="parent-head">
+              <div>
+                <strong>{{ parent.name }}</strong>
+                <span class="sub">{{ parent.relation }} · {{ parent.email }}</span>
+              </div>
+              <span
+                class="pill"
+                [class]="parent.access === 'active' ? 'pill is-ok' : 'pill is-warn'"
+              >
+                {{ parent.access === 'active' ? 'Zugang aktiv' : 'Einladung offen' }}
+              </span>
+            </div>
+            <label class="checkbox">
+              <input
+                type="checkbox"
+                [checked]="parent.trainingRegistration"
+                (change)="
+                  setParentFlag(parent.id, 'trainingRegistration', $any($event.target).checked)
+                "
+              />
+              Trainingsanmeldung
+            </label>
+            <label class="checkbox">
+              <input
+                type="checkbox"
+                [checked]="parent.competitionRegistration"
+                (change)="
+                  setParentFlag(parent.id, 'competitionRegistration', $any($event.target).checked)
+                "
+              />
+              Wettkampfanmeldung
+            </label>
+          </div>
+        } @empty {
+          <p class="sub">Keine Eltern hinterlegt.</p>
+        }
+      </section>
+      <section class="panel">
+        <h3>Geschwister im Verein</h3>
+        @for (sibling of siblings(); track sibling.id) {
+          <p>
+            <a [routerLink]="['/personen', sibling.id]"
+              >{{ sibling.firstName }} {{ sibling.lastName }}</a
+            >
+            <span class="sub">Jg. {{ sibling.birthYear }}</span>
+          </p>
+        } @empty {
+          <p class="sub">Keine Geschwister im Verein.</p>
+        }
+        <p class="sub">Geschwister ergeben sich automatisch aus gemeinsamen Eltern.</p>
+      </section>
+    </div>
+  }
+}

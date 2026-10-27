@@ -60,6 +60,23 @@ export const routes: Routes = [
       import('./training/pages/settings/settings').then((module) => module.TrainingSettings),
   },
   {
+    path: 'personen',
+    title: 'Personen – SGB Portal',
+    loadComponent: () => import('./people/pages/people-list').then((module) => module.PeopleList),
+  },
+  {
+    path: 'personen/neu',
+    title: 'Neue Person – SGB Portal',
+    loadComponent: () =>
+      import('./people/pages/person-editor').then((module) => module.PersonEditor),
+  },
+  {
+    path: 'personen/:id',
+    title: 'Person bearbeiten – SGB Portal',
+    loadComponent: () =>
+      import('./people/pages/person-editor').then((module) => module.PersonEditor),
+  },
+  {
     path: 'warteliste/status',
     title: 'Status der Anmeldung – SGB Portal',
     loadComponent: () => import('./waitlist/status').then((module) => module.Status),
