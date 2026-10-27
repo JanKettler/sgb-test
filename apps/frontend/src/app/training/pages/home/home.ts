@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Icon } from '../../../ui/icon';
 import { addDays, endTime, minutesOfDay, parseIsoDate, weekdayShort } from '../../training-dates';
 import { TrainingStore } from '../../training.store';
@@ -27,7 +28,7 @@ interface CalendarDay {
 /** Start page: the next seven days. The hour range follows the sessions that are shown. */
 @Component({
   selector: 'app-home',
-  imports: [Icon],
+  imports: [RouterLink, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.html',
   styleUrl: './home.scss',

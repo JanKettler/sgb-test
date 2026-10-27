@@ -145,23 +145,30 @@
         />
       </div>
     </div>
-    <div>
-      <span class="field-label">Standard-Trainer</span>
-      <div class="chips">
+    <table class="table is-narrow is-fullwidth trainer-table">
+      <thead>
+        <tr>
+          <th>Standard-Trainer</th>
+        </tr>
+      </thead>
+      <tbody>
         @for (trainer of store.trainers(); track trainer.id) {
-          <button
-            type="button"
-            class="chip"
-            [disabled]="!editing()"
-            [class.is-on]="values.trainerIds.includes(trainer.id)"
-            [attr.aria-pressed]="values.trainerIds.includes(trainer.id)"
-            (click)="toggleTrainer(trainer.id)"
-          >
-            {{ trainer.name }}
-          </button>
+          <tr>
+            <td>
+              <label class="checkbox">
+                <input
+                  type="checkbox"
+                  [disabled]="!editing()"
+                  [checked]="values.trainerIds.includes(trainer.id)"
+                  (change)="toggleTrainer(trainer.id)"
+                />
+                {{ trainer.name }}
+              </label>
+            </td>
+          </tr>
         }
-      </div>
-    </div>
+      </tbody>
+    </table>
   </div>
 </section>
 

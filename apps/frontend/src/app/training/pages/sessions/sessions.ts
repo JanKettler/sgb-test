@@ -1,15 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GroupChips } from '../../../ui/group-chips';
 import { Icon } from '../../../ui/icon';
 import { ModalDialog } from '../../../ui/modal-dialog';
 import { MailDialog } from '../../dialogs/mail-dialog';
 import { RegisteredDialog } from '../../dialogs/registered-dialog';
-import { addDays, endTime, shortDay } from '../../training-dates';
+import { endTime, shortDay } from '../../training-dates';
 import { GroupId, TrainingSession } from '../../training.models';
 import { TrainingStore } from '../../training.store';
-
-type Range = '7' | '30' | 'all' | 'past';
 
 interface SessionRow {
   session: TrainingSession;
@@ -23,13 +30,6 @@ interface SessionRow {
   started: boolean;
 }
 
-const RANGES: readonly { id: Range; label: string }[] = [
-  { id: '7', label: 'Nächste 7 Tage' },
-  { id: '30', label: 'Nächste 30 Tage' },
-  { id: 'all', label: 'Alle kommenden' },
-  { id: 'past', label: 'Vergangene' },
-];
-
 @Component({
   selector: 'app-sessions',
   imports: [RouterLink, Icon, GroupChips, ModalDialog, RegisteredDialog, MailDialog],
@@ -39,24 +39,20 @@ const RANGES: readonly { id: Range; label: string }[] = [
 })
 export class Sessions {
   protected readonly store = inject(TrainingStore);
-  protected readonly ranges = RANGES;
   protected readonly shortDay = shortDay;
 
-  protected readonly range = signal<Range>('7');
   protected readonly group = signal<GroupId | ''>('');
   protected readonly trainer = signal('');
-  protected readonly venue = signal('');
+  private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
   protected readonly toDelete = signal<TrainingSession | null>(null);
   protected readonly viewing = signal<TrainingSession | null>(null);
   protected readonly mailing = signal<TrainingSession | null>(null);
   protected readonly message = signal(this.takeFlash());
 
   protected readonly rows = computed<SessionRow[]>(() => {
-    const today = this.store.today;
-    const last = this.range() === '7' ? addDays(today, 6) : addDays(today, 29);
-    const rows = this.store
+    return this.store
       .sessions()
-      .filter((session) => this.matches(session, today, last))
+      .filter((session) => this.matches(session))
       .map((session): SessionRow => {
         const registered = this.store.registered(session);
         return {
@@ -71,12 +67,18 @@ export class Sessions {
           started: this.store.attendanceStarted(session),
         };
       });
-    return this.range() === 'past' ? rows.reverse() : rows;
   });
 
-  protected readonly filtered = computed(
-    () => this.group() !== '' || this.trainer() !== '' || this.venue() !== '',
+  /** Today's session, or the next one after it. */
+  protected readonly nextId = computed(
+    () => this.rows().find((row) => row.session.date >= this.store.today)?.session.id ?? '',
   );
+
+  constructor() {
+    afterNextRender(() => this.scrollToNext());
+  }
+
+  protected readonly filtered = computed(() => this.group() !== '' || this.trainer() !== '');
 
   private takeFlash(): string {
     const text = this.store.flash();
@@ -84,16 +86,11 @@ export class Sessions {
     return text;
   }
 
-  private matches(session: TrainingSession, today: string, last: string): boolean {
-    const range = this.range();
-    if (range === 'past' ? session.date >= today : session.date < today) return false;
-    if ((range === '7' || range === '30') && session.date > last) return false;
+  private matches(session: TrainingSession): boolean {
     const group = this.group();
     if (group && !session.groupIds.includes(group)) return false;
     const trainer = this.trainer();
-    if (trainer && !session.trainerIds.includes(trainer)) return false;
-    const venue = this.venue();
-    return !venue || session.venueId === venue;
+    return !trainer || session.trainerIds.includes(trainer);
   }
 
   protected value(event: Event): string {
@@ -107,7 +104,16 @@ export class Sessions {
   protected resetFilters(): void {
     this.group.set('');
     this.trainer.set('');
-    this.venue.set('');
+  }
+
+  /** Puts the next session directly below the sticky table heading. */
+  protected scrollToNext(): void {
+    const box = this.scroller()?.nativeElement;
+    const row = box?.querySelector<HTMLElement>('tr.is-next');
+    if (!box || !row) return;
+    const head = box.querySelector('thead')?.getBoundingClientRect().height ?? 0;
+    const offset = row.getBoundingClientRect().top - box.getBoundingClientRect().top;
+    box.scrollTop += offset - head;
   }
 
   protected mailRecipients(session: TrainingSession): string[] {

@@ -4,15 +4,10 @@ small {
   font-size: 0.78rem;
 }
 
-.status {
-  color: var(--bad-fg);
-  font-weight: 700;
-
-  &.is-registered {
-    color: var(--ok-fg);
-  }
-}
-
 .for-person {
   margin: 0;
+}
+
+th {
+  text-align: center;
 }

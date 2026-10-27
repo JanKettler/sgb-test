@@ -44,37 +44,18 @@
         </select>
       </div>
     </div>
-    <div>
-      <label class="field-label" for="filter-venue">Ort</label>
-      <div class="select">
-        <select id="filter-venue" (change)="venue.set(value($event))">
-          <option value="">Alle Orte</option>
-          @for (item of store.venues(); track item.id) {
-            <option [value]="item.id" [selected]="item.id === venue()">{{ item.name }}</option>
-          }
-        </select>
-      </div>
-    </div>
     <div class="chips range">
-      @for (item of ranges; track item.id) {
-        <button
-          type="button"
-          class="chip is-solid"
-          [class.is-on]="range() === item.id"
-          [attr.aria-pressed]="range() === item.id"
-          (click)="range.set(item.id)"
-        >
-          {{ item.label }}
-        </button>
-      }
       @if (filtered()) {
         <button type="button" class="chip" (click)="resetFilters()">Filter zurücksetzen</button>
       }
+      <button type="button" class="btn" (click)="scrollToNext()">
+        <app-icon name="calendar" /> Zum nächsten Termin
+      </button>
     </div>
   </div>
 
-  <div class="table-scroll">
-    <table class="data-table">
+  <div #scroller class="table-scroll is-tall">
+    <table class="table is-fullwidth is-hoverable is-narrow">
       <thead>
         <tr>
           <th rowspan="2" scope="col">Tag</th>
@@ -92,21 +73,21 @@
       </thead>
       <tbody>
         @for (row of rows(); track row.session.id) {
-          <tr [class.is-past]="row.past">
-            <td class="is-center day">{{ row.day }}</td>
-            <td class="is-center">{{ row.time }}</td>
+          <tr [class.is-past]="row.past" [class.is-next]="row.session.id === nextId()">
+            <td class="day">{{ row.day }}</td>
+            <td>{{ row.time }}</td>
             <td><app-group-chips [groupIds]="row.session.groupIds" /></td>
             <td>{{ row.trainers }}</td>
-            <td class="is-center">
+            <td>
               <strong>{{ row.swimmers }}</strong>
               <span class="max">/ {{ row.session.maxSwimmers }}</span>
             </td>
-            <td class="is-center">
+            <td>
               <strong>{{ row.trainerCount }}</strong>
               <span class="max">/ {{ row.session.maxTrainers }}</span>
             </td>
-            <td class="is-center">{{ row.deadline }}</td>
-            <td class="is-center">
+            <td>{{ row.deadline }}</td>
+            <td>
               <span class="icon-row">
                 <button
                   type="button"
