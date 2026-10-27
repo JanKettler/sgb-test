@@ -1,0 +1,36 @@
+@let current = session();
+@let registered = store.registered(current);
+<app-modal-dialog
+  [heading]="'Angemeldete · ' + shortDay(current.date) + ' ' + current.time"
+  (closed)="closed.emit()"
+>
+  <p class="has-text-weight-semibold">Trainer ({{ registered.trainers.length }})</p>
+  <ul class="mb-3 is-size-7">
+    @for (trainer of registered.trainers; track trainer.id) {
+      <li>{{ trainer.name }}</li>
+    } @empty {
+      <li class="has-text-grey">Noch keine Trainer angemeldet.</li>
+    }
+  </ul>
+  <p class="has-text-weight-semibold">
+    Schwimmer ({{ registered.swimmers.length }} von {{ current.maxSwimmers }})
+  </p>
+  <ul class="is-size-7">
+    @for (swimmer of registered.swimmers.slice(0, visibleSwimmers); track swimmer.id) {
+      <li>{{ swimmer.name }}</li>
+    } @empty {
+      <li class="has-text-grey">Noch keine Schwimmer angemeldet.</li>
+    }
+    @if (registered.swimmers.length > visibleSwimmers) {
+      <li class="has-text-grey">+ {{ registered.swimmers.length - visibleSwimmers }} weitere</li>
+    }
+  </ul>
+  <ng-container dialogActions>
+    @if (store.canManage()) {
+      <button type="button" class="button" (click)="mail.emit()">
+        <app-icon name="mail" /> <span>Mail an Angemeldete</span>
+      </button>
+    }
+    <button type="button" class="button is-link" (click)="closed.emit()">Schließen</button>
+  </ng-container>
+</app-modal-dialog>

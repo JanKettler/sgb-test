@@ -1,16 +1,41 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  ...[
-    { path: 'training/anmeldung', heading: 'Trainingsanmeldung' },
-    { path: 'training/termine', heading: 'Trainingstermine' },
-    { path: 'training/anwesenheit', heading: 'Anwesenheit' },
-  ].map(({ path, heading }) => ({
-    path,
-    title: `${heading} – SGB Portal`,
-    data: { heading },
-    loadComponent: () => import('./training/training-page').then((module) => module.TrainingPage),
-  })),
+  {
+    path: '',
+    pathMatch: 'full',
+    title: 'Startseite – SGB Portal',
+    loadComponent: () => import('./training/home').then((module) => module.Home),
+  },
+  {
+    path: 'training/anmeldung',
+    title: 'Trainingsanmeldung – SGB Portal',
+    loadComponent: () =>
+      import('./training/registration').then((module) => module.TrainingRegistration),
+  },
+  {
+    path: 'training/termine',
+    title: 'Trainingstermine – SGB Portal',
+    loadComponent: () => import('./training/sessions').then((module) => module.Sessions),
+  },
+  {
+    path: 'training/anwesenheit',
+    title: 'Anwesenheit – SGB Portal',
+    loadComponent: () =>
+      import('./training/attendance-overview').then((module) => module.AttendanceOverview),
+  },
+  {
+    path: 'training/anwesenheit/:id',
+    title: 'Anwesenheit – SGB Portal',
+    loadComponent: () =>
+      import('./training/attendance-session').then((module) => module.AttendanceSession),
+  },
+  {
+    path: 'training/einstellungen',
+    title: 'Trainingseinstellungen – SGB Portal',
+    loadComponent: () =>
+      import('./training/training-settings').then((module) => module.TrainingSettings),
+  },
   {
     path: 'warteliste/status',
     title: 'Status der Anmeldung – SGB Portal',

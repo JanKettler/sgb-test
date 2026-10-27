@@ -1,0 +1,46 @@
+<section class="box">
+  <h2 class="title is-5">Meine Trainingseinheiten · nächste 7 Tage</h2>
+  <p class="mb-4 has-text-grey">
+    @if (store.role() === 'parent') {
+      Zu sehen sind die Einheiten der Gruppen deiner Kinder.
+    } @else if (store.role() === 'trainer') {
+      Zu sehen sind die Einheiten, bei denen du als Trainer eingeteilt bist.
+    } @else {
+      Zu sehen sind alle Einheiten der nächsten 7 Tage.
+    }
+  </p>
+
+  <div class="week">
+    <div class="week-hours">
+      <div class="week-head"></div>
+      @for (hour of hours(); track hour) {
+        <div class="week-hour" [style.height.px]="hourHeight">{{ hour }}:00</div>
+      }
+    </div>
+    @for (day of days(); track day.iso) {
+      <div class="week-day">
+        <div class="week-head">
+          <span class="week-weekday">{{ day.weekday }}</span>
+          <span class="week-date" [class.is-today]="day.isToday">{{ day.dayOfMonth }}</span>
+        </div>
+        <div class="week-body" [style.height.px]="bodyHeight()">
+          @for (hour of hours(); track hour) {
+            <div class="week-line" [style.height.px]="hourHeight"></div>
+          }
+          @for (event of day.events; track event.id) {
+            <div
+              class="week-event"
+              [class]="event.groupClass"
+              [style.top.px]="event.top"
+              [style.height.px]="event.height"
+            >
+              <strong>{{ event.time }}</strong>
+              <span>{{ event.title }}</span>
+              <span class="week-event-detail">{{ event.detail }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</section>

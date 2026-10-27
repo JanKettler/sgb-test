@@ -1,0 +1,15 @@
+<div class="modal is-active" role="dialog" aria-modal="true" [attr.aria-label]="heading()">
+  <div class="modal-background"></div>
+  <div class="modal-card" [class.is-wide]="wide()">
+    <header class="modal-card-head">
+      <h2 class="modal-card-title is-size-5">{{ heading() }}</h2>
+      <button type="button" class="delete" aria-label="Schließen" (click)="closed.emit()"></button>
+    </header>
+    <section class="modal-card-body">
+      <ng-content />
+    </section>
+    <footer class="modal-card-foot is-justify-content-flex-end">
+      <ng-content select="[dialogActions]" />
+    </footer>
+  </div>
+</div>

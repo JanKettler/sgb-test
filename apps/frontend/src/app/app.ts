@@ -1,11 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { timeout } from 'rxjs';
+import { Icon } from './training/icon';
+import { DEMO_ROLES, DemoRole } from './training/training.models';
+import { TrainingStore } from './training/training.store';
 
 @Component({
-  imports: [RouterLink, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, Icon],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
@@ -13,6 +16,8 @@ import { timeout } from 'rxjs';
 export class App implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly store = inject(TrainingStore);
+  protected readonly demoRoles = DEMO_ROLES;
   protected readonly menuOpen = signal(false);
   protected readonly connectionStatus = signal<'loading' | 'connected' | 'unavailable'>('loading');
 
@@ -22,6 +27,10 @@ export class App implements OnInit {
 
   protected closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  protected setRole(event: Event): void {
+    this.store.role.set((event.target as HTMLSelectElement).value as DemoRole);
   }
 
   ngOnInit(): void {
