@@ -1,82 +1,173 @@
-<div class="level is-mobile mb-4">
-  <h2 class="title is-4 mb-0">Willkommen</h2>
-  <span class="has-text-grey">{{ longDate }}</span>
+<div class="greeting">
+  <h2 class="title is-3 mb-0">
+    {{ greeting.text }}, {{ data.userName() }}
+    <app-icon [name]="greeting.icon" [class]="greeting.tone" />
+  </h2>
+  <span class="has-text-grey has-text-weight-semibold">{{ longDate }}</span>
 </div>
 
 <app-board [limit]="6" />
 
-<div class="columns is-mobile is-multiline mb-1">
-  @for (item of stats(); track item.label) {
-    <div class="column is-4-tablet is-12-mobile">
-      <div class="box has-text-centered">
-        <p class="heading"><app-icon [name]="item.icon" /> {{ item.label }}</p>
-        <p class="title is-3">{{ item.value }}</p>
-      </div>
-    </div>
-  }
-</div>
-
 <div class="columns">
-  <div class="column is-6">
+  <div class="column is-7-desktop">
+    @if (canSeeClub()) {
+      <section class="box">
+        <h3 class="title is-5">
+          <app-icon name="calendar" class="has-text-info" /> Nächste Termine
+        </h3>
+        @for (item of upcoming(); track item.key) {
+          <a class="row-link" [routerLink]="item.route">
+            <span class="day-box">
+              <b>{{ dayNumber(item.date) }}</b>
+              <i>{{ monthShort(item.date) }}</i>
+            </span>
+            <span class="row-text">
+              <b><app-icon [name]="item.icon" /> {{ item.title }}</b>
+              <i>{{ item.text }}</i>
+            </span>
+            <span class="tag is-rounded" [class.is-warning]="item.days <= 7">
+              {{ countdown(item.days) }}
+            </span>
+          </a>
+        } @empty {
+          <p class="has-text-grey">Keine Termine in Sicht.</p>
+        }
+      </section>
+    }
+
     <section class="box">
-      <h3 class="title is-5"><app-icon name="calendar" /> Nächste Termine</h3>
-      @for (item of nextSessions(); track item.id) {
-        <a class="media" routerLink="/training/anmeldung">
-          <div class="media-left">
-            <span class="tag is-info is-medium">{{ item.day }}</span>
-          </div>
-          <div class="media-content">
-            <p class="has-text-weight-bold">{{ item.title }}</p>
-            <p class="is-size-7 has-text-grey">{{ item.time }} Uhr · {{ item.place }}</p>
-          </div>
+      <h3 class="title is-5">
+        <app-icon name="hourglass" class="has-text-warning" /> Fristen und Hinweise
+      </h3>
+      @for (notice of notices(); track notice.title) {
+        <a class="row-link" [routerLink]="notice.route">
+          <span class="notice-box" [class]="'is-' + notice.tone">
+            <app-icon [name]="noticeIcon[notice.tone]" />
+          </span>
+          <span class="row-text">
+            <b>{{ notice.title }}</b>
+            <i>{{ notice.text }}</i>
+          </span>
         </a>
       } @empty {
-        <p class="has-text-grey">Keine Termine in Sicht.</p>
+        <p class="has-text-grey">Keine Fristen in Sicht.</p>
       }
     </section>
 
-    @if (canManage()) {
+    @if (canSeeClub()) {
       <section class="box">
-        <h3 class="title is-5"><app-icon name="warning" /> Fristen und Hinweise</h3>
-        @for (item of deadlines(); track item.title) {
-          <a class="media" [routerLink]="item.route">
-            <div class="media-left">
-              <span [class]="'tag is-medium ' + item.tone"><app-icon name="warning" /></span>
+        <div class="level is-mobile mb-2">
+          <h3 class="title is-5 mb-0">
+            <app-icon name="flag" class="has-text-link" /> Wer startet beim nächsten WK?
+          </h3>
+        </div>
+        @if (nextStarters(); as meet) {
+          <p class="has-text-grey mb-3">
+            <strong>{{ meet.title }}</strong> · {{ fullDate(meet.date).slice(0, 6) }} ({{
+              countdown(data.daysTo(meet.date))
+            }}) · {{ meet.place }}
+          </p>
+          @if (meet.starters.length > 0) {
+            <p class="has-text-grey mb-2">
+              {{ meet.starters.length }} Schwimmer:innen · {{ startCount() }} Starts
+            </p>
+            <div class="chips">
+              @for (starter of meet.starters; track starter.name) {
+                <span class="chip is-solid">
+                  {{ starter.name }}
+                  @if (starter.starts > 1) {
+                    <i>{{ starter.starts }}</i>
+                  }
+                </span>
+              }
             </div>
-            <div class="media-content">
-              <p class="has-text-weight-bold">{{ item.title }}</p>
-              <p class="is-size-7 has-text-grey">{{ item.text }}</p>
-            </div>
-          </a>
-        } @empty {
-          <p class="has-text-grey">Keine Fristen in Sicht.</p>
+          } @else {
+            <p class="has-text-grey">Noch keine Meldung hochgeladen.</p>
+          }
         }
       </section>
     }
   </div>
 
-  <div class="column is-6">
-    <section class="box">
-      <h3 class="title is-5"><app-icon name="users" /> Gruppen</h3>
-      @for (group of groupCounts(); track group.name) {
-        <div class="level is-mobile mb-2">
-          <span>{{ group.name }}</span>
-          <strong>{{ group.count }}</strong>
+  <div class="column is-5-desktop">
+    @if (canSeeClub()) {
+      <section class="box">
+        <div class="level is-mobile mb-3">
+          <h3 class="title is-5 mb-0">
+            <app-icon name="tasks" class="has-text-success" />
+            {{ taskMode() === 'mine' || !canSeeAllTasks() ? 'Meine Aufgaben' : 'Offene Aufgaben' }}
+          </h3>
+          <span class="has-text-grey is-size-7">{{ tasks().length }} offen</span>
         </div>
-      }
-    </section>
-
-    <section class="box">
-      <h3 class="title is-5">Schnellzugriff</h3>
-      <div class="buttons">
-        @for (tile of tiles(); track tile.route) {
-          <a [class]="'button ' + tile.tone" [routerLink]="tile.route">
-            <app-icon [name]="tile.icon" /> {{ tile.label }}
-          </a>
+        @if (canSeeAllTasks()) {
+          <div class="buttons has-addons mb-3">
+            <button
+              type="button"
+              class="button is-small"
+              [class.is-link]="taskMode() === 'mine'"
+              (click)="taskMode.set('mine')"
+            >
+              Meine ({{ data.myTasks().length }})
+            </button>
+            <button
+              type="button"
+              class="button is-small"
+              [class.is-link]="taskMode() === 'all'"
+              (click)="taskMode.set('all')"
+            >
+              Alle ({{ data.tasks().length }})
+            </button>
+          </div>
         }
-      </div>
-    </section>
+        @for (task of tasks(); track task.id) {
+          <div class="task">
+            <span>
+              @if (task.high) {
+                <app-icon name="warning" class="has-text-danger" />
+              }
+              {{ task.title }}
+            </span>
+            @if (task.due) {
+              <span class="tag is-rounded" [class]="dueTone(task.due)">
+                {{ dueText(task.due) }}
+              </span>
+            }
+          </div>
+        } @empty {
+          <p class="has-text-grey">
+            {{
+              taskMode() === 'mine' || !canSeeAllTasks()
+                ? 'Dir ist nichts zugewiesen.'
+                : 'Alles erledigt.'
+            }}
+          </p>
+        }
+      </section>
+    }
   </div>
 </div>
 
 <app-home />
+
+<div class="systems">
+  @for (category of categories; track category.name) {
+    <section class="system" [style.--acc]="category.color">
+      <h3 class="system-title">
+        <span class="system-icon"><app-icon [name]="category.icon" /></span>
+        {{ category.name }}
+      </h3>
+      <div class="tiles">
+        @for (tile of tilesOf(category.name); track tile.route) {
+          <a class="tile" [routerLink]="tile.route">
+            <span class="tile-icon"><app-icon [name]="tile.icon" /></span>
+            <span class="tile-name">{{ tile.label }}</span>
+            <span class="tile-hint">{{ tile.hint }}</span>
+            @if (tile.status; as status) {
+              <span class="tile-status" [class]="'is-' + status.tone">{{ status.text }}</span>
+            }
+          </a>
+        }
+      </div>
+    </section>
+  }
+</div>

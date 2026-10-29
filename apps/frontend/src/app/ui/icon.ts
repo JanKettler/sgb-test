@@ -26,7 +26,29 @@ export type IconName =
   | 'warning'
   | 'list'
   | 'sheet'
-  | 'save';
+  | 'save'
+  | 'sun'
+  | 'moon'
+  | 'cloud-sun'
+  | 'flag'
+  | 'tasks'
+  | 'info'
+  | 'hourglass'
+  | 'tree'
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'align-left'
+  | 'align-center'
+  | 'align-right'
+  | 'highlighter'
+  | 'palette'
+  | 'link'
+  | 'eraser'
+  | 'bullhorn'
+  | 'bolt'
+  | 'arrow-right'
+  | 'swim';
 
 const FONT_AWESOME: Record<IconName, string> = {
   check: 'fa-check',
@@ -55,6 +77,28 @@ const FONT_AWESOME: Record<IconName, string> = {
   list: 'fa-list',
   sheet: 'fa-table',
   save: 'fa-floppy-disk',
+  sun: 'fa-sun',
+  moon: 'fa-moon',
+  'cloud-sun': 'fa-cloud-sun',
+  flag: 'fa-flag-checkered',
+  tasks: 'fa-list-check',
+  info: 'fa-circle-info',
+  hourglass: 'fa-hourglass-half',
+  tree: 'fa-tree',
+  bold: 'fa-bold',
+  italic: 'fa-italic',
+  underline: 'fa-underline',
+  'align-left': 'fa-align-left',
+  'align-center': 'fa-align-center',
+  'align-right': 'fa-align-right',
+  highlighter: 'fa-highlighter',
+  palette: 'fa-palette',
+  link: 'fa-link',
+  eraser: 'fa-eraser',
+  bullhorn: 'fa-bullhorn',
+  bolt: 'fa-bolt',
+  'arrow-right': 'fa-arrow-right',
+  swim: 'fa-person-swimming',
 };
 
 /**

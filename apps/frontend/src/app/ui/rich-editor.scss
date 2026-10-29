@@ -1,0 +1,51 @@
+.bar {
+  align-items: center;
+  background: var(--sgb-hover);
+  border: 1px solid var(--sgb-line);
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  padding: 0.4rem;
+}
+
+.size {
+  border-radius: 0 6px 6px 0;
+  width: 4.2rem;
+}
+
+.pop {
+  background: var(--sgb-card);
+  border: 1px solid var(--sgb-line);
+  border-top: 0;
+  padding: 0.7rem;
+}
+
+.area {
+  background: var(--sgb-card);
+  border: 1px solid var(--sgb-line);
+  border-radius: 0 0 10px 10px;
+  line-height: 1.4;
+  min-height: 7rem;
+  outline: none;
+  overflow-wrap: anywhere;
+  padding: 0.6rem 0.75rem;
+
+  &:focus {
+    border-color: var(--sgb-strong);
+  }
+
+  &:empty::before {
+    content: attr(data-placeholder);
+    opacity: 0.5;
+  }
+
+  :where(a) {
+    color: var(--bulma-link);
+    text-decoration: underline;
+  }
+
+  :where(div, p) {
+    margin: 0;
+  }
+}

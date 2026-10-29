@@ -1,0 +1,39 @@
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.swatch {
+  align-items: center;
+  border: 1px solid rgb(0 0 0 / 25%);
+  border-radius: 50%;
+  color: #555;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.7rem;
+  height: 1.7rem;
+  justify-content: center;
+  padding: 0;
+  width: 1.7rem;
+
+  &.is-on {
+    box-shadow: 0 0 0 2px var(--sgb-strong);
+  }
+
+  &.is-none {
+    background: #fff;
+  }
+}
+
+.hex {
+  width: 6.2rem;
+}
+
+.native {
+  block-size: 2rem;
+  border: 1px solid var(--sgb-line);
+  border-radius: 0 6px 6px 0;
+  inline-size: 2.6rem;
+  padding: 0.1rem;
+}
