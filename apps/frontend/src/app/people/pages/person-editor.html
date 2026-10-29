@@ -121,12 +121,10 @@
         </div>
         <div>
           <label class="field-label" for="p-birth">Geburtsdatum</label>
-          <input
-            id="p-birth"
-            class="input"
-            type="date"
+          <app-date-field
+            inputId="p-birth"
             [value]="draft().birthDate"
-            (change)="setText('birthDate', $event)"
+            (valueChange)="setDate('birthDate', $event)"
           />
         </div>
         <div>
@@ -141,12 +139,10 @@
         </div>
         <div>
           <label class="field-label" for="p-entry">Eintritt</label>
-          <input
-            id="p-entry"
-            class="input"
-            type="date"
+          <app-date-field
+            inputId="p-entry"
             [value]="draft().entry"
-            (change)="setText('entry', $event)"
+            (valueChange)="setDate('entry', $event)"
           />
         </div>
         <div>
@@ -157,12 +153,10 @@
         </div>
         <div>
           <label class="field-label" for="p-exit">Austritt am</label>
-          <input
-            id="p-exit"
-            class="input"
-            type="date"
+          <app-date-field
+            inputId="p-exit"
             [value]="draft().exitDate"
-            (change)="setText('exitDate', $event)"
+            (valueChange)="setDate('exitDate', $event)"
           />
         </div>
       </div>
@@ -270,12 +264,10 @@
         <div class="form-grid mt-4">
           <div>
             <label class="field-label" for="p-clearance">Führungszeugnis vom</label>
-            <input
-              id="p-clearance"
-              class="input"
-              type="date"
+            <app-date-field
+              inputId="p-clearance"
               [value]="draft().criminalRecordOn"
-              (change)="setText('criminalRecordOn', $event)"
+              (valueChange)="setDate('criminalRecordOn', $event)"
             />
             <small class="sub">Wird nur einmal pro Person erfasst, nicht je Rolle.</small>
           </div>
@@ -321,12 +313,10 @@
             </div>
             <div>
               <label class="field-label" for="s-attest">Sportgesundheit gültig bis</label>
-              <input
-                id="s-attest"
-                class="input"
-                type="date"
+              <app-date-field
+                inputId="s-attest"
                 [value]="draft().attestUntil"
-                (change)="setText('attestUntil', $event)"
+                (valueChange)="setDate('attestUntil', $event)"
               />
             </div>
             <div>
@@ -395,42 +385,34 @@
             </div>
             <div>
               <label class="field-label" for="t-until">Lizenz gültig bis</label>
-              <input
-                id="t-until"
-                class="input"
-                type="date"
+              <app-date-field
+                inputId="t-until"
                 [value]="draft().licenseUntil"
-                (change)="setText('licenseUntil', $event)"
+                (valueChange)="setDate('licenseUntil', $event)"
               />
             </div>
             <div>
               <label class="field-label" for="t-aid">Erste Hilfe bis</label>
-              <input
-                id="t-aid"
-                class="input"
-                type="date"
+              <app-date-field
+                inputId="t-aid"
                 [value]="draft().firstAidUntil"
-                (change)="setText('firstAidUntil', $event)"
+                (valueChange)="setDate('firstAidUntil', $event)"
               />
             </div>
             <div>
               <label class="field-label" for="t-rescue">Rettungsnachweis bis</label>
-              <input
-                id="t-rescue"
-                class="input"
-                type="date"
+              <app-date-field
+                inputId="t-rescue"
                 [value]="draft().lifeSavingUntil"
-                (change)="setText('lifeSavingUntil', $event)"
+                (valueChange)="setDate('lifeSavingUntil', $event)"
               />
             </div>
             <div>
               <label class="field-label" for="t-code">Ehrenkodex vom</label>
-              <input
-                id="t-code"
-                class="input"
-                type="date"
+              <app-date-field
+                inputId="t-code"
                 [value]="draft().codeOfConductOn"
-                (change)="setText('codeOfConductOn', $event)"
+                (valueChange)="setDate('codeOfConductOn', $event)"
               />
             </div>
             <div>
@@ -506,32 +488,26 @@
             </div>
             <div>
               <label class="field-label" for="r-until">WKR gültig bis</label>
-              <input
-                id="r-until"
-                class="input"
-                type="date"
+              <app-date-field
+                inputId="r-until"
                 [value]="draft().refereeUntil"
-                (change)="setText('refereeUntil', $event)"
+                (valueChange)="setDate('refereeUntil', $event)"
               />
             </div>
             <div>
               <label class="field-label" for="r-aw">AW gültig bis</label>
-              <input
-                id="r-aw"
-                class="input"
-                type="date"
+              <app-date-field
+                inputId="r-aw"
                 [value]="draft().refereeAwUntil"
-                (change)="setText('refereeAwUntil', $event)"
+                (valueChange)="setDate('refereeAwUntil', $event)"
               />
             </div>
             <div>
               <label class="field-label" for="r-sch">SCH gültig bis</label>
-              <input
-                id="r-sch"
-                class="input"
-                type="date"
+              <app-date-field
+                inputId="r-sch"
                 [value]="draft().refereeSchUntil"
-                (change)="setText('refereeSchUntil', $event)"
+                (valueChange)="setDate('refereeSchUntil', $event)"
               />
             </div>
           </div>
@@ -562,22 +538,18 @@
           <div class="form-grid mt-3">
             <div>
               <label class="field-label" for="o-since">Im Amt seit</label>
-              <input
-                id="o-since"
-                class="input"
-                type="date"
+              <app-date-field
+                inputId="o-since"
                 [value]="draft().officialSince"
-                (change)="setText('officialSince', $event)"
+                (valueChange)="setDate('officialSince', $event)"
               />
             </div>
             <div>
               <label class="field-label" for="o-until">Im Amt bis</label>
-              <input
-                id="o-until"
-                class="input"
-                type="date"
+              <app-date-field
+                inputId="o-until"
                 [value]="draft().officialUntil"
-                (change)="setText('officialUntil', $event)"
+                (valueChange)="setDate('officialUntil', $event)"
               />
             </div>
           </div>

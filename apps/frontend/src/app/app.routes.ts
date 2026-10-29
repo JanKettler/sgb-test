@@ -5,7 +5,7 @@ export const routes: Routes = [
     path: '',
     pathMatch: 'full',
     title: 'Startseite – SGB Portal',
-    loadComponent: () => import('./training/pages/home/home').then((module) => module.Home),
+    loadComponent: () => import('./start/start').then((module) => module.Start),
   },
   {
     path: 'training/anmeldung',
@@ -87,6 +87,11 @@ export const routes: Routes = [
     title: 'Person bearbeiten – SGB Portal',
     loadComponent: () =>
       import('./people/pages/person-editor').then((module) => module.PersonEditor),
+  },
+  {
+    path: 'brett',
+    title: 'Schwarzes Brett – SGB Portal',
+    loadComponent: () => import('./board/pages/board-page').then((module) => module.BoardPage),
   },
   {
     path: 'beitraege',

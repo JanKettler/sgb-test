@@ -1,0 +1,82 @@
+<div class="level is-mobile mb-4">
+  <h2 class="title is-4 mb-0">Willkommen</h2>
+  <span class="has-text-grey">{{ longDate }}</span>
+</div>
+
+<app-board [limit]="6" />
+
+<div class="columns is-mobile is-multiline mb-1">
+  @for (item of stats(); track item.label) {
+    <div class="column is-4-tablet is-12-mobile">
+      <div class="box has-text-centered">
+        <p class="heading"><app-icon [name]="item.icon" /> {{ item.label }}</p>
+        <p class="title is-3">{{ item.value }}</p>
+      </div>
+    </div>
+  }
+</div>
+
+<div class="columns">
+  <div class="column is-6">
+    <section class="box">
+      <h3 class="title is-5"><app-icon name="calendar" /> Nächste Termine</h3>
+      @for (item of nextSessions(); track item.id) {
+        <a class="media" routerLink="/training/anmeldung">
+          <div class="media-left">
+            <span class="tag is-info is-medium">{{ item.day }}</span>
+          </div>
+          <div class="media-content">
+            <p class="has-text-weight-bold">{{ item.title }}</p>
+            <p class="is-size-7 has-text-grey">{{ item.time }} Uhr · {{ item.place }}</p>
+          </div>
+        </a>
+      } @empty {
+        <p class="has-text-grey">Keine Termine in Sicht.</p>
+      }
+    </section>
+
+    @if (canManage()) {
+      <section class="box">
+        <h3 class="title is-5"><app-icon name="warning" /> Fristen und Hinweise</h3>
+        @for (item of deadlines(); track item.title) {
+          <a class="media" [routerLink]="item.route">
+            <div class="media-left">
+              <span [class]="'tag is-medium ' + item.tone"><app-icon name="warning" /></span>
+            </div>
+            <div class="media-content">
+              <p class="has-text-weight-bold">{{ item.title }}</p>
+              <p class="is-size-7 has-text-grey">{{ item.text }}</p>
+            </div>
+          </a>
+        } @empty {
+          <p class="has-text-grey">Keine Fristen in Sicht.</p>
+        }
+      </section>
+    }
+  </div>
+
+  <div class="column is-6">
+    <section class="box">
+      <h3 class="title is-5"><app-icon name="users" /> Gruppen</h3>
+      @for (group of groupCounts(); track group.name) {
+        <div class="level is-mobile mb-2">
+          <span>{{ group.name }}</span>
+          <strong>{{ group.count }}</strong>
+        </div>
+      }
+    </section>
+
+    <section class="box">
+      <h3 class="title is-5">Schnellzugriff</h3>
+      <div class="buttons">
+        @for (tile of tiles(); track tile.route) {
+          <a [class]="'button ' + tile.tone" [routerLink]="tile.route">
+            <app-icon [name]="tile.icon" /> {{ tile.label }}
+          </a>
+        }
+      </div>
+    </section>
+  </div>
+</div>
+
+<app-home />

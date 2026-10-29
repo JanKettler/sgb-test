@@ -18,6 +18,8 @@ export type IconName =
   | 'chevron-up'
   | 'eye-slash'
   | 'coins'
+  | 'pin'
+  | 'lock'
   | 'chevron-down'
   | 'home'
   | 'gear'
@@ -44,6 +46,8 @@ const FONT_AWESOME: Record<IconName, string> = {
   'chevron-up': 'fa-chevron-up',
   'eye-slash': 'fa-eye-slash',
   coins: 'fa-coins',
+  pin: 'fa-thumbtack',
+  lock: 'fa-lock',
   'chevron-down': 'fa-chevron-down',
   home: 'fa-house',
   gear: 'fa-gear',
