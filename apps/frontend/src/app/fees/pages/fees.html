@@ -1,62 +1,71 @@
-<header class="page-head">
+<header
+  class="is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
   <div>
-    <h2>Beiträge</h2>
-    <p>Zahlungen, Mahnungen und Beitragsarten für {{ store.year }}</p>
+    <h2 class="title is-4 mb-1">Beiträge</h2>
+    <p class="subtitle is-6 mb-0">Zahlungen, Mahnungen und Beitragsarten für {{ store.year }}</p>
   </div>
 </header>
 
 @if (message()) {
-  <div class="notice">
+  <div class="notification is-link is-flex is-justify-content-space-between is-align-items-center">
     <span>{{ message() }}</span>
-    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+    <button type="button" class="button is-small" (click)="message.set('')">Schließen</button>
   </div>
 }
 
-<section class="panel">
-  <div class="tabbar" role="tablist">
-    @for (item of tabs(); track item.id) {
-      <button
-        type="button"
-        role="tab"
-        class="tab-btn"
-        [class.is-on]="tab() === item.id"
-        [attr.aria-selected]="tab() === item.id"
-        (click)="tab.set(item.id)"
-      >
-        {{ item.label }}
-        @if (item.count > 0) {
-          <span class="count is-bad">{{ item.count }}</span>
-        }
-      </button>
-    }
-    <div class="tab-actions">
-      @switch (tab()) {
-        @case ('payments') {
-          <button type="button" class="btn is-small" (click)="payments()?.exportCsv()">
-            <app-icon name="sheet" /> Excel
-          </button>
-          <button type="button" class="btn is-small" (click)="payments()?.exportSepa()">
-            <app-icon name="download" /> SEPA-Lastschriftdatei
-          </button>
-          <button type="button" class="btn is-small is-primary" (click)="payments()?.generate()">
-            <app-icon name="plus" /> Zahlungen erzeugen
-          </button>
-        }
-        @case ('dunning') {
-          <button type="button" class="btn is-small" (click)="dunning()?.exportCsv()">
-            <app-icon name="sheet" /> Excel
-          </button>
-        }
-        @case ('types') {
-          <button type="button" class="btn is-small" (click)="types()?.exportCsv()">
-            <app-icon name="sheet" /> Excel
-          </button>
-          <button type="button" class="btn is-small is-primary" (click)="types()?.add()">
-            <app-icon name="plus" /> Neue Beitragsart
-          </button>
-        }
+<section class="box">
+  <div class="tabs" role="tablist">
+    <ul>
+      @for (item of tabs(); track item.id) {
+        <li [class.is-active]="tab() === item.id">
+          <a
+            role="tab"
+            tabindex="0"
+            [attr.aria-selected]="tab() === item.id"
+            (click)="tab.set(item.id)"
+            (keydown.enter)="tab.set(item.id)"
+          >
+            {{ item.label }}
+            @if (item.count > 0) {
+              <span class="tag is-danger is-rounded ml-2">{{ item.count }}</span>
+            }
+          </a>
+        </li>
       }
-    </div>
+      <li class="ml-auto buttons">
+        @switch (tab()) {
+          @case ('payments') {
+            <button type="button" class="button is-small" (click)="payments()?.exportCsv()">
+              <app-icon name="sheet" /> Excel
+            </button>
+            <button type="button" class="button is-small" (click)="payments()?.exportSepa()">
+              <app-icon name="download" /> SEPA-Lastschriftdatei
+            </button>
+            <button
+              type="button"
+              class="button is-small is-primary"
+              (click)="payments()?.generate()"
+            >
+              <app-icon name="plus" /> Zahlungen erzeugen
+            </button>
+          }
+          @case ('dunning') {
+            <button type="button" class="button is-small" (click)="dunning()?.exportCsv()">
+              <app-icon name="sheet" /> Excel
+            </button>
+          }
+          @case ('types') {
+            <button type="button" class="button is-small" (click)="types()?.exportCsv()">
+              <app-icon name="sheet" /> Excel
+            </button>
+            <button type="button" class="button is-small is-primary" (click)="types()?.add()">
+              <app-icon name="plus" /> Neue Beitragsart
+            </button>
+          }
+        }
+      </li>
+    </ul>
   </div>
 
   @switch (tab()) {

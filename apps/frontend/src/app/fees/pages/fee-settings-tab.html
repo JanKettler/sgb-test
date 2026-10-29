@@ -1,10 +1,10 @@
 <div class="cols">
   <div class="stack">
-    <section class="panel">
+    <section class="box">
       <h3>Mahnwesen</h3>
       <div class="form-grid">
         <div>
-          <label class="field-label" for="fs-fee1">Mahngebühr Stufe 1 in Euro</label>
+          <label class="label" for="fs-fee1">Mahngebühr Stufe 1 in Euro</label>
           <input
             id="fs-fee1"
             class="input"
@@ -14,7 +14,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="fs-fee2">Mahngebühr ab Stufe 2 in Euro</label>
+          <label class="label" for="fs-fee2">Mahngebühr ab Stufe 2 in Euro</label>
           <input
             id="fs-fee2"
             class="input"
@@ -24,7 +24,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="fs-days1">Zahlung in Tagen, Stufe 1</label>
+          <label class="label" for="fs-days1">Zahlung in Tagen, Stufe 1</label>
           <input
             id="fs-days1"
             class="input"
@@ -34,7 +34,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="fs-days2">Zahlung in Tagen, ab Stufe 2</label>
+          <label class="label" for="fs-days2">Zahlung in Tagen, ab Stufe 2</label>
           <input
             id="fs-days2"
             class="input"
@@ -44,7 +44,7 @@
           />
         </div>
       </div>
-      <label class="field-label" for="fs-copy">Kopie der Mahnungen an</label>
+      <label class="label" for="fs-copy">Kopie der Mahnungen an</label>
       <input
         id="fs-copy"
         class="input"
@@ -55,7 +55,7 @@
       />
     </section>
 
-    <section class="panel">
+    <section class="box">
       <h3>Zahlungserinnerung per E-Mail</h3>
       <label class="checkbox block">
         <input type="checkbox" [checked]="draft().remindDebit" (change)="flag('remindDebit')" />
@@ -73,17 +73,17 @@
   </div>
 
   <div class="stack">
-    <section class="panel">
+    <section class="box">
       <h3>Verwendungszweck</h3>
-      <label class="field-label" for="fs-purpose">Aufbau</label>
+      <label class="label" for="fs-purpose">Aufbau</label>
       <input
         id="fs-purpose"
         class="input"
         [value]="draft().purposeTemplate"
         (change)="text('purposeTemplate', $event)"
       />
-      <span class="field-label mt-3">Platzhalter zum Einfügen</span>
-      <div class="chips">
+      <span class="label mt-3">Platzhalter zum Einfügen</span>
+      <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2">
         @for (item of placeholders; track item) {
           <button type="button" class="chip" (click)="insert(item)">{{ item }}</button>
         }
@@ -91,23 +91,23 @@
       <p class="sub mt-3">Vorschau: {{ preview() }}</p>
     </section>
 
-    <section class="panel">
+    <section class="box">
       <div class="card-head">
         <h3>Vereinskonto</h3>
         <span class="pill is-info">Zahlungsempfänger</span>
       </div>
-      <label class="field-label" for="fs-holder">Name Kontoinhaber</label>
+      <label class="label" for="fs-holder">Name Kontoinhaber</label>
       <input
         id="fs-holder"
         class="input"
         [value]="draft().accountHolder"
         (change)="text('accountHolder', $event)"
       />
-      <label class="field-label" for="fs-bank">Name Bank</label>
+      <label class="label" for="fs-bank">Name Bank</label>
       <input id="fs-bank" class="input" [value]="draft().bank" (change)="text('bank', $event)" />
       <div class="form-grid">
         <div>
-          <label class="field-label" for="fs-iban">IBAN</label>
+          <label class="label" for="fs-iban">IBAN</label>
           <input
             id="fs-iban"
             class="input"
@@ -117,7 +117,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="fs-bic">BIC</label>
+          <label class="label" for="fs-bic">BIC</label>
           <input
             id="fs-bic"
             class="input"
@@ -127,7 +127,7 @@
           />
         </div>
       </div>
-      <label class="field-label" for="fs-creditor">Gläubiger-ID</label>
+      <label class="label" for="fs-creditor">Gläubiger-ID</label>
       <input
         id="fs-creditor"
         class="input"
@@ -141,8 +141,8 @@
 </div>
 
 <div class="icon-row mt-4">
-  <button type="button" class="btn is-primary" (click)="save()">
+  <button type="button" class="button is-primary" (click)="save()">
     <app-icon name="save" /> Speichern
   </button>
-  <button type="button" class="btn" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
+  <button type="button" class="button" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
 </div>

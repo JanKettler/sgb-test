@@ -17,7 +17,7 @@
     }
   </div>
   @if (otherSelected()) {
-    <label class="field-label mt-4" for="decline-note">Bemerkung (optional)</label>
+    <label class="label mt-4" for="decline-note">Bemerkung (optional)</label>
     <input
       id="decline-note"
       class="input"
@@ -29,16 +29,16 @@
   }
   <ng-container dialogActions>
     @if (otherSelected()) {
-      <button type="button" class="btn" (click)="otherSelected.set(false)">Zurück</button>
+      <button type="button" class="button" (click)="otherSelected.set(false)">Zurück</button>
       <button
         type="button"
-        class="btn is-danger"
+        class="button is-danger"
         (click)="chosen.emit({ reason: other, note: note() })"
       >
         Abmelden
       </button>
     } @else {
-      <button type="button" class="btn" (click)="closed.emit()">Abbrechen</button>
+      <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
     }
   </ng-container>
 </app-modal-dialog>

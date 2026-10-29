@@ -1,21 +1,21 @@
 <div class="tiles mb-3">
   <div class="tile">
-    <span class="field-label">Offen insgesamt</span>
+    <span class="label">Offen insgesamt</span>
     <strong class="big">{{ euro(store.openTotal()) }}</strong>
   </div>
   <div class="tile">
-    <span class="field-label">Offene Zahlungen</span>
+    <span class="label">Offene Zahlungen</span>
     <strong class="big">{{ store.open().length }}</strong>
   </div>
   <div class="tile">
-    <span class="field-label">Davon gemahnt</span>
+    <span class="label">Davon gemahnt</span>
     <strong class="big">{{ store.remindedCount() }}</strong>
   </div>
 </div>
 
-<div class="filters">
+<div class="is-flex is-flex-wrap-wrap is-align-items-flex-end is-gap-3 mb-4">
   <div>
-    <label class="field-label" for="pay-method">Zahlart</label>
+    <label class="label" for="pay-method">Zahlart</label>
     <div class="select">
       <select id="pay-method" (change)="method.set(value($event))">
         <option value="">Alle Zahlarten</option>
@@ -25,7 +25,7 @@
     </div>
   </div>
   <div>
-    <label class="field-label" for="pay-status">Status</label>
+    <label class="label" for="pay-status">Status</label>
     <div class="select">
       <select id="pay-status" (change)="status.set($any(value($event)))">
         <option value="open" [selected]="status() === 'open'">Nur offene Zahlungen</option>
@@ -36,17 +36,17 @@
   </div>
 </div>
 
-<div class="chips mb-3">
-  <span class="field-label m-0">{{ selected().size }} von {{ rows().length }} markiert</span>
-  <button type="button" class="btn is-small" [disabled]="selected().size === 0" (click)="book()">
+<div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
+  <span class="label m-0">{{ selected().size }} von {{ rows().length }} markiert</span>
+  <button type="button" class="button is-small" [disabled]="selected().size === 0" (click)="book()">
     <app-icon name="check" /> Zahlungseingang buchen
   </button>
-  <button type="button" class="btn is-small" [disabled]="selected().size === 0" (click)="dun()">
+  <button type="button" class="button is-small" [disabled]="selected().size === 0" (click)="dun()">
     <app-icon name="mail" /> Mahnung senden
   </button>
   <button
     type="button"
-    class="btn is-small is-danger"
+    class="button is-small is-danger"
     [disabled]="selected().size === 0"
     (click)="toDelete.set(true)"
   >
@@ -54,8 +54,8 @@
   </button>
 </div>
 
-<div class="table-scroll">
-  <table class="rdp-table">
+<div class="table-container">
+  <table class="table is-fullwidth is-hoverable">
     <thead>
       <tr>
         <th scope="col" class="narrow">
@@ -117,8 +117,8 @@
   <app-modal-dialog heading="Zahlungen löschen?" accent="red" (closed)="toDelete.set(false)">
     <p>{{ selected().size }} markierte Zahlungen werden endgültig gelöscht.</p>
     <ng-container dialogActions>
-      <button type="button" class="btn" (click)="toDelete.set(false)">Abbrechen</button>
-      <button type="button" class="btn is-danger" (click)="remove()">Löschen</button>
+      <button type="button" class="button" (click)="toDelete.set(false)">Abbrechen</button>
+      <button type="button" class="button is-danger" (click)="remove()">Löschen</button>
     </ng-container>
   </app-modal-dialog>
 }

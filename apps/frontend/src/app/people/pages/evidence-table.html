@@ -1,11 +1,11 @@
 @if (message()) {
-  <div class="notice">
+  <div class="notification is-link is-flex is-justify-content-space-between is-align-items-center">
     <span>{{ message() }}</span>
-    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+    <button type="button" class="button is-small" (click)="message.set('')">Schließen</button>
   </div>
 }
 
-<div class="chips mb-3">
+<div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
   <label class="checkbox">
     <input
       type="checkbox"
@@ -20,8 +20,8 @@
     </button>
   }
 </div>
-<div class="chips mb-3">
-  <span class="field-label m-0">Zeitraum</span>
+<div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
+  <span class="label m-0">Zeitraum</span>
   @for (item of periods(); track item.id) {
     <button
       type="button"
@@ -34,8 +34,8 @@
     </button>
   }
 </div>
-<div class="chips mb-3">
-  <span class="field-label m-0">Nachweis</span>
+<div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
+  <span class="label m-0">Nachweis</span>
   <button
     type="button"
     class="chip is-solid"
@@ -58,8 +58,8 @@
   }
 </div>
 
-<div class="table-scroll">
-  <table class="rdp-table">
+<div class="table-container">
+  <table class="table is-fullwidth is-hoverable">
     <thead>
       <tr>
         <th scope="col"><span class="is-sr-only">Auswahl</span></th>
@@ -100,10 +100,10 @@
               {{ rest(row) }}
             </span>
           </td>
-          <td class="actions">
+          <td class="has-text-right is-nowrap">
             <button
               type="button"
-              class="icon-btn"
+              class="button is-small"
               [attr.aria-label]="row.label + ' von ' + row.member.firstName + ' ausblenden'"
               title="Diesen Eintrag ausblenden"
               (click)="store.dismiss(row)"
@@ -124,7 +124,7 @@
 <div class="mt-4">
   <button
     type="button"
-    class="btn is-primary"
+    class="button is-primary"
     [disabled]="recipients().length === 0"
     (click)="mailing.set(true)"
   >

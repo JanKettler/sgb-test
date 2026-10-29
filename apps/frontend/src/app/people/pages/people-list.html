@@ -1,46 +1,55 @@
-<header class="page-head">
+<header
+  class="is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
   <div>
-    <h2>Personen</h2>
-    <p>Mitglieder, Eltern und Nachweise</p>
+    <h2 class="title is-4 mb-1">Personen</h2>
+    <p class="subtitle is-6 mb-0">Mitglieder, Eltern und Nachweise</p>
   </div>
-  <div class="page-actions">
-    <button type="button" class="btn" (click)="importDemo()">
+  <div class="buttons">
+    <button type="button" class="button" (click)="importDemo()">
       <app-icon name="download" /> Aus WebClub importieren
     </button>
-    <button type="button" class="btn" (click)="exportCsv()"><app-icon name="sheet" /> Excel</button>
-    <a class="btn is-primary" routerLink="/personen/neu"> <app-icon name="plus" /> Neue Person </a>
+    <button type="button" class="button" (click)="exportCsv()">
+      <app-icon name="sheet" /> Excel
+    </button>
+    <a class="button is-primary" routerLink="/personen/neu">
+      <app-icon name="plus" /> Neue Person
+    </a>
   </div>
 </header>
 
 @if (message()) {
-  <div class="notice">
+  <div class="notification is-link is-flex is-justify-content-space-between is-align-items-center">
     <span>{{ message() }}</span>
-    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+    <button type="button" class="button is-small" (click)="message.set('')">Schließen</button>
   </div>
 }
 
-<section class="panel">
-  <div class="tabbar" role="tablist">
-    @for (item of tabs(); track item.id) {
-      <button
-        type="button"
-        role="tab"
-        class="tab-btn"
-        [class.is-on]="tab() === item.id"
-        [attr.aria-selected]="tab() === item.id"
-        (click)="tab.set(item.id)"
-      >
-        {{ item.label }}
-        <span class="count" [class.is-bad]="item.bad">{{ item.count }}</span>
-      </button>
-    }
+<section class="box">
+  <div class="tabs" role="tablist">
+    <ul>
+      @for (item of tabs(); track item.id) {
+        <li [class.is-active]="tab() === item.id">
+          <a
+            role="tab"
+            tabindex="0"
+            [attr.aria-selected]="tab() === item.id"
+            (click)="tab.set(item.id)"
+            (keydown.enter)="tab.set(item.id)"
+          >
+            {{ item.label }}
+            <span class="tag is-rounded ml-2" [class.is-danger]="item.bad">{{ item.count }}</span>
+          </a>
+        </li>
+      }
+    </ul>
   </div>
 
   @switch (tab()) {
     @case ('members') {
-      <div class="filters">
-        <div class="grow">
-          <label class="field-label" for="people-search">Suche</label>
+      <div class="is-flex is-flex-wrap-wrap is-align-items-flex-end is-gap-3 mb-4">
+        <div class="is-flex-grow-1">
+          <label class="label" for="people-search">Suche</label>
           <input
             id="people-search"
             class="input"
@@ -51,7 +60,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="people-role">Rolle</label>
+          <label class="label" for="people-role">Rolle</label>
           <div class="select">
             <select id="people-role" (change)="role.set($any(value($event))); resetPage()">
               <option value="">Alle Rollen</option>
@@ -64,7 +73,7 @@
           </div>
         </div>
         <div>
-          <label class="field-label" for="people-group">Gruppe</label>
+          <label class="label" for="people-group">Gruppe</label>
           <div class="select">
             <select id="people-group" (change)="group.set($any(value($event))); resetPage()">
               <option value="">Alle Gruppen</option>
@@ -75,7 +84,7 @@
           </div>
         </div>
         <div>
-          <label class="field-label" for="people-status">Status</label>
+          <label class="label" for="people-status">Status</label>
           <div class="select">
             <select id="people-status" (change)="status.set($any(value($event))); resetPage()">
               <option value="all" [selected]="status() === 'all'">Alle</option>
@@ -86,8 +95,8 @@
         </div>
       </div>
 
-      <div class="table-scroll">
-        <table class="rdp-table">
+      <div class="table-container">
+        <table class="table is-fullwidth is-hoverable">
           <thead>
             <tr>
               <th scope="col">
@@ -138,9 +147,9 @@
                 <td>
                   <span [class]="'pill is-' + tone(row.status.tone)">{{ row.status.text }}</span>
                 </td>
-                <td class="actions">
+                <td class="has-text-right is-nowrap">
                   <a
-                    class="icon-btn is-warn"
+                    class="button is-small is-warning"
                     [routerLink]="['/personen', row.member.id]"
                     [attr.aria-label]="row.name + ' bearbeiten'"
                     title="Bearbeiten"
@@ -149,7 +158,7 @@
                   </a>
                   <button
                     type="button"
-                    class="icon-btn is-bad"
+                    class="button is-small is-danger"
                     [attr.aria-label]="row.name + ' löschen'"
                     title="Löschen"
                     (click)="toDelete.set(row.member)"
@@ -171,7 +180,7 @@
         <div class="pager">
           <button
             type="button"
-            class="btn is-small"
+            class="button is-small"
             [disabled]="page() === 0"
             (click)="goto(page() - 1)"
           >
@@ -180,7 +189,7 @@
           <span>Seite {{ page() + 1 }} von {{ pageCount() }}</span>
           <button
             type="button"
-            class="btn is-small"
+            class="button is-small"
             [disabled]="page() >= pageCount() - 1"
             (click)="goto(page() + 1)"
           >
@@ -202,8 +211,8 @@
   <app-modal-dialog heading="Person löschen?" accent="red" (closed)="toDelete.set(null)">
     <p>{{ member.firstName }} {{ member.lastName }} wird mit allen Angaben entfernt.</p>
     <ng-container dialogActions>
-      <button type="button" class="btn" (click)="toDelete.set(null)">Abbrechen</button>
-      <button type="button" class="btn is-danger" (click)="confirmDelete()">Löschen</button>
+      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
+      <button type="button" class="button is-danger" (click)="confirmDelete()">Löschen</button>
     </ng-container>
   </app-modal-dialog>
 }

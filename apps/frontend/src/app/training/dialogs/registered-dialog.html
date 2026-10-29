@@ -27,8 +27,8 @@
   }
   <ng-container dialogActions>
     @if (canMail()) {
-      <button type="button" class="btn" (click)="mail.emit()">Mail an Angemeldete</button>
+      <button type="button" class="button" (click)="mail.emit()">Mail an Angemeldete</button>
     }
-    <button type="button" class="btn" (click)="closed.emit()">Schließen</button>
+    <button type="button" class="button" (click)="closed.emit()">Schließen</button>
   </ng-container>
 </app-modal-dialog>

@@ -1,11 +1,11 @@
 <app-modal-dialog [heading]="heading()" (closed)="closed.emit()">
-  <label class="field-label" for="name-input">{{ label() }}</label>
+  <label class="label" for="name-input">{{ label() }}</label>
   <input id="name-input" class="input" type="text" [value]="value()" (input)="setValue($event)" />
   <ng-container dialogActions>
     @if (deletable()) {
-      <button type="button" class="btn is-danger" (click)="deleted.emit()">Löschen</button>
+      <button type="button" class="button is-danger" (click)="deleted.emit()">Löschen</button>
     }
-    <button type="button" class="btn" (click)="closed.emit()">Abbrechen</button>
-    <button type="button" class="btn is-primary" (click)="saved.emit(value())">Speichern</button>
+    <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
+    <button type="button" class="button is-primary" (click)="saved.emit(value())">Speichern</button>
   </ng-container>
 </app-modal-dialog>

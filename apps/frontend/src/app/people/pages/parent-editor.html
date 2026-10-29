@@ -1,21 +1,23 @@
-<header class="page-head">
+<header
+  class="is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
   <div>
-    <h2>{{ draft().name || 'Neue Eltern' }}</h2>
-    <p>Eltern bzw. Erziehungsberechtigte</p>
+    <h2 class="title is-4 mb-1">{{ draft().name || 'Neue Eltern' }}</h2>
+    <p class="subtitle is-6 mb-0">Eltern bzw. Erziehungsberechtigte</p>
   </div>
   <div class="icon-row">
-    <button type="button" class="btn" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
-    <button type="button" class="btn is-primary" (click)="save()">
+    <button type="button" class="button" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
+    <button type="button" class="button is-primary" (click)="save()">
       <app-icon name="save" /> Speichern
     </button>
   </div>
 </header>
 
-<section class="panel">
+<section class="box">
   <h3>Stammdaten</h3>
   <div class="form-grid">
     <div>
-      <label class="field-label" for="e-name">Name</label>
+      <label class="label" for="e-name">Name</label>
       <input
         id="e-name"
         class="input"
@@ -28,7 +30,7 @@
       }
     </div>
     <div>
-      <label class="field-label" for="e-rel">Beziehung</label>
+      <label class="label" for="e-rel">Beziehung</label>
       <div class="select">
         <select id="e-rel" (change)="setRelation($event)">
           @for (item of relations; track item) {
@@ -38,7 +40,7 @@
       </div>
     </div>
     <div>
-      <label class="field-label" for="e-mail">E-Mail</label>
+      <label class="label" for="e-mail">E-Mail</label>
       <input
         id="e-mail"
         class="input"
@@ -50,14 +52,14 @@
   </div>
 </section>
 
-<section class="panel">
+<section class="box">
   <h3>Zugang und Anmeldungen</h3>
   <p>
     <span [class]="draft().access === 'active' ? 'pill is-ok' : 'pill is-warn'">
       {{ draft().access === 'active' ? 'Zugang aktiv' : 'Einladung offen' }}
     </span>
     @if (draft().access === 'invited') {
-      <button type="button" class="btn is-small" (click)="invite()">
+      <button type="button" class="button is-small" (click)="invite()">
         <app-icon name="mail" /> Einladung erneut senden
       </button>
     }
@@ -84,9 +86,9 @@
   </div>
 </section>
 
-<section class="panel">
+<section class="box">
   <h3>Kinder im Verein</h3>
-  <table class="rdp-table">
+  <table class="table is-fullwidth is-hoverable">
     <tbody>
       @for (child of children(); track child.id) {
         <tr>
@@ -94,10 +96,10 @@
             <a [routerLink]="['/personen', child.id]">{{ child.name }}</a>
           </td>
           <td>Nr. {{ child.no }}</td>
-          <td class="actions">
+          <td class="has-text-right is-nowrap">
             <button
               type="button"
-              class="icon-btn is-bad"
+              class="button is-small is-danger"
               [attr.aria-label]="child.name + ' entfernen'"
               title="Verknüpfung entfernen"
               (click)="removeChild(child.id)"
@@ -113,7 +115,7 @@
       }
     </tbody>
   </table>
-  <label class="field-label" for="e-child">Kind hinzufügen</label>
+  <label class="label" for="e-child">Kind hinzufügen</label>
   <input
     id="e-child"
     class="input"
@@ -123,7 +125,7 @@
     (input)="search.set(value($event))"
   />
   @for (item of candidates(); track item.id) {
-    <button type="button" class="btn is-small mt-2 mr-2" (click)="addChild(item.id)">
+    <button type="button" class="button is-small mt-2 mr-2" (click)="addChild(item.id)">
       <app-icon name="plus" /> {{ item.name }} (Jg. {{ item.year }})
     </button>
   }

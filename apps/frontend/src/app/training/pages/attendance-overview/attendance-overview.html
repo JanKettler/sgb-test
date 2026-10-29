@@ -1,18 +1,20 @@
-<header class="page-head">
+<header
+  class="is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
   <div>
-    <h2>Anwesenheit</h2>
-    <p>Alle Gruppen im Überblick</p>
+    <h2 class="title is-4 mb-1">Anwesenheit</h2>
+    <p class="subtitle is-6 mb-0">Alle Gruppen im Überblick</p>
   </div>
 </header>
 
 @if (message()) {
-  <div class="notice">
+  <div class="notification is-link is-flex is-justify-content-space-between is-align-items-center">
     <span>{{ message() }}</span>
-    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+    <button type="button" class="button is-small" (click)="message.set('')">Schließen</button>
   </div>
 }
 
-<section class="panel">
+<section class="box">
   @if (hasAction()) {
     <div class="action-card">
       <h3><app-icon name="warning" /> Handlungsbedarf</h3>
@@ -25,14 +27,14 @@
           <div class="icon-row">
             <button
               type="button"
-              class="btn"
+              class="button"
               (click)="mailRequest.set({ kind: 'info', entry: entry })"
             >
               Mail senden
             </button>
             <button
               type="button"
-              class="btn is-primary"
+              class="button is-primary"
               (click)="mailRequest.set({ kind: 'inactive', entry: entry })"
             >
               Auf inaktiv setzen und informieren
@@ -48,7 +50,7 @@
           </div>
           <button
             type="button"
-            class="btn is-primary"
+            class="button is-primary"
             (click)="mailRequest.set({ kind: 'info', entry: entry })"
           >
             Info-Mail senden
@@ -59,7 +61,7 @@
   }
 
   <div class="toolbar">
-    <div class="chips">
+    <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2">
       @for (group of store.groups; track group.id) {
         <button
           type="button"
@@ -72,7 +74,7 @@
         </button>
       }
     </div>
-    <button type="button" class="btn is-ok" (click)="exporting.set(true)">
+    <button type="button" class="button is-success" (click)="exporting.set(true)">
       <app-icon name="sheet" /> Excel
     </button>
   </div>
@@ -80,7 +82,7 @@
   <div class="range">
     <button
       type="button"
-      class="icon-btn round"
+      class="button is-small is-rounded"
       aria-label="Einen Monat zurück"
       (click)="shift(-1)"
     >
@@ -90,13 +92,18 @@
     <app-date-field label="Von" [(value)]="from" />
     <span>bis</span>
     <app-date-field label="Bis" [(value)]="to" />
-    <button type="button" class="icon-btn round" aria-label="Einen Monat vor" (click)="shift(1)">
+    <button
+      type="button"
+      class="button is-small is-rounded"
+      aria-label="Einen Monat vor"
+      (click)="shift(1)"
+    >
       <app-icon name="chevron-right" />
     </button>
   </div>
 
   @let data = matrix();
-  <div class="table-scroll matrix">
+  <div class="table-container matrix">
     <table class="data-table">
       <thead>
         <tr>

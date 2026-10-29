@@ -1,7 +1,7 @@
 <app-modal-dialog heading="Excel-Liste" accent="green" [wide]="true" (closed)="closed.emit()">
   <div class="form-grid">
     <div>
-      <label class="field-label" for="export-group">Gruppe</label>
+      <label class="label" for="export-group">Gruppe</label>
       <div class="select is-fullwidth">
         <select id="export-group" (change)="setGroup($event)">
           @for (group of store.groups; track group.id) {
@@ -13,7 +13,7 @@
       </div>
     </div>
     <div>
-      <label class="field-label" for="export-content">Inhalt</label>
+      <label class="label" for="export-content">Inhalt</label>
       <div class="select is-fullwidth">
         <select id="export-content" (change)="setContent($event)">
           <option value="blank" [selected]="content() === 'blank'">Leer (zum Ausfüllen)</option>
@@ -22,21 +22,21 @@
       </div>
     </div>
     <div>
-      <label class="field-label" for="export-from">Von</label>
+      <label class="label" for="export-from">Von</label>
       <app-date-field inputId="export-from" [(value)]="from" />
     </div>
     <div>
-      <label class="field-label" for="export-to">Bis</label>
+      <label class="label" for="export-to">Bis</label>
       <app-date-field inputId="export-to" [(value)]="to" />
     </div>
   </div>
-  <div class="chips">
+  <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2">
     <button type="button" class="chip is-solid" (click)="thisMonthRange()">Dieser Monat</button>
     <button type="button" class="chip is-solid" (click)="lastThreeMonths()">Letzte 3 Monate</button>
     <button type="button" class="chip is-solid" (click)="season()">Saison</button>
   </div>
   <ng-container dialogActions>
-    <button type="button" class="btn" (click)="closed.emit()">Abbrechen</button>
-    <button type="button" class="btn is-ok" (click)="download()">Excel erstellen</button>
+    <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
+    <button type="button" class="button is-success" (click)="download()">Excel erstellen</button>
   </ng-container>
 </app-modal-dialog>
