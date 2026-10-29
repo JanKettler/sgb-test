@@ -76,12 +76,10 @@
       </div>
       <div>
         <label class="field-label" for="b-on">Mandat erteilt am</label>
-        <input
-          id="b-on"
-          class="input"
-          type="date"
+        <app-date-field
+          inputId="b-on"
           [value]="account().mandateOn"
-          (change)="setText('mandateOn', $event)"
+          (valueChange)="setDate($event)"
         />
       </div>
     </div>

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
+import { DateField } from '../../ui/date-field';
 import { Icon } from '../../ui/icon';
 import { fullDate } from '../../training/training-dates';
 import { GROUPS, GroupId } from '../../training/training.models';
@@ -66,7 +67,7 @@ type GroupKey = 'swimmerGroupIds' | 'trainerGroupIds';
 
 @Component({
   selector: 'app-person-editor',
-  imports: [RouterLink, Icon, PayAccountForm],
+  imports: [RouterLink, Icon, DateField, PayAccountForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './person-editor.html',
   styleUrl: './person-editor.scss',
@@ -118,6 +119,10 @@ export class PersonEditor {
 
   protected setText(key: TextKey, event: Event): void {
     this.draft.update((member) => ({ ...member, [key]: this.value(event) }));
+  }
+
+  protected setDate(key: TextKey, value: string): void {
+    this.draft.update((member) => ({ ...member, [key]: value }));
   }
 
   protected setNumber(key: 'memberNo', event: Event): void {

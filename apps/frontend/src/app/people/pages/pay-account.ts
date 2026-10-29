@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DateField } from '../../ui/date-field';
 import { Payment, euro } from '../../fees/fees.models';
 import { PayAccount, PayMethod } from '../people.models';
 import { fullDate } from '../../training/training-dates';
 
-type TextKey = 'holder' | 'iban' | 'bic' | 'bank' | 'mandateRef' | 'mandateOn';
+type TextKey = 'holder' | 'iban' | 'bic' | 'bank' | 'mandateRef';
 
 /** How a payer pays: method, bank account, SEPA mandate and the fees they pay. */
 @Component({
   selector: 'app-pay-account',
-  imports: [RouterLink],
+  imports: [RouterLink, DateField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './pay-account.html',
 })
@@ -33,6 +34,10 @@ export class PayAccountForm {
 
   protected setText(key: TextKey, event: Event): void {
     this.changed.emit({ ...this.account(), [key]: this.value(event) });
+  }
+
+  protected setDate(mandateOn: string): void {
+    this.changed.emit({ ...this.account(), mandateOn });
   }
 
   protected setMandate(on: boolean): void {

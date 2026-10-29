@@ -1,0 +1,199 @@
+<section class="box">
+  <div class="level is-mobile mb-3">
+    <h3 class="title is-5 mb-0"><app-icon name="pin" /> Schwarzes Brett</h3>
+    <div class="buttons">
+      @if (store.canWrite()) {
+        <button type="button" class="button is-warning is-small" (click)="add()">
+          <app-icon name="plus" /> Neue Mitteilung
+        </button>
+      }
+      @if (limit() > 0) {
+        <a class="button is-small" routerLink="/brett">
+          {{ store.canWrite() ? 'Verwalten' : 'Alle ansehen' }}
+        </a>
+      }
+    </div>
+  </div>
+
+  @for (post of shown(); track post.id) {
+    <article class="media" [class.has-background-warning-light]="post.important">
+      <div class="media-content">
+        <p class="has-text-weight-bold">
+          @if (post.important) {
+            <span class="tag is-danger mr-2">Wichtig</span>
+          }
+          {{ post.title }}
+        </p>
+        <p class="is-size-7 has-text-grey">
+          {{ post.author }} · {{ fullDate(post.date) }}
+          @if (post.until) {
+            · sichtbar bis {{ fullDate(post.until) }}
+          }
+          @if (post.groups.length) {
+            · <app-icon name="lock" /> {{ groupText(post.groups) }}
+          }
+        </p>
+        <p class="board-text">{{ post.text }}</p>
+      </div>
+      @if (store.canWrite()) {
+        <div class="media-right buttons are-small">
+          <button
+            type="button"
+            class="button"
+            aria-label="Nach oben"
+            [disabled]="!canMove(post, -1)"
+            (click)="store.move(post.id, -1)"
+          >
+            <app-icon name="chevron-up" />
+          </button>
+          <button
+            type="button"
+            class="button"
+            aria-label="Nach unten"
+            [disabled]="!canMove(post, 1)"
+            (click)="store.move(post.id, 1)"
+          >
+            <app-icon name="chevron-down" />
+          </button>
+          <button
+            type="button"
+            class="button is-warning"
+            aria-label="Bearbeiten"
+            (click)="edit(post)"
+          >
+            <app-icon name="pencil" />
+          </button>
+          <button
+            type="button"
+            class="button is-danger"
+            aria-label="Löschen"
+            (click)="toDelete.set(post)"
+          >
+            <app-icon name="trash" />
+          </button>
+        </div>
+      }
+    </article>
+  } @empty {
+    <p class="has-text-grey">Zurzeit gibt es keine Mitteilungen.</p>
+  }
+
+  @if (more() > 0) {
+    <p class="is-size-7 has-text-grey">Weitere {{ more() }} Mitteilungen unter „Alle ansehen“.</p>
+  }
+</section>
+
+@if (limit() === 0 && store.canWrite() && store.archive().length > 0) {
+  <details class="box">
+    <summary class="has-text-weight-bold is-clickable">
+      Archiv, abgelaufen ({{ store.archive().length }})
+    </summary>
+    <p class="is-size-7 has-text-grey mb-3">
+      Nur für Verfasser sichtbar. Mit dem Stift und neuem „Sichtbar bis“ wieder hervorholen.
+    </p>
+    @for (post of store.archive(); track post.id) {
+      <article class="media">
+        <div class="media-content">
+          <p class="has-text-weight-bold">{{ post.title }}</p>
+          <p class="is-size-7 has-text-grey">
+            {{ post.author }} · {{ fullDate(post.date) }} · abgelaufen {{ fullDate(post.until) }}
+          </p>
+        </div>
+        <div class="media-right buttons are-small">
+          <button
+            type="button"
+            class="button is-warning"
+            aria-label="Bearbeiten"
+            (click)="edit(post)"
+          >
+            <app-icon name="pencil" />
+          </button>
+          <button
+            type="button"
+            class="button is-danger"
+            aria-label="Löschen"
+            (click)="toDelete.set(post)"
+          >
+            <app-icon name="trash" />
+          </button>
+        </div>
+      </article>
+    }
+  </details>
+}
+
+@if (draft(); as post) {
+  <app-modal-dialog
+    [heading]="post.title ? 'Mitteilung bearbeiten' : 'Neue Mitteilung'"
+    [wide]="true"
+    (closed)="draft.set(null)"
+  >
+    <div class="field">
+      <label class="label" for="board-title">Überschrift</label>
+      <input
+        id="board-title"
+        class="input"
+        [class.is-danger]="invalid() && !post.title.trim()"
+        [value]="post.title"
+        (change)="set('title', $event)"
+      />
+      @if (invalid() && !post.title.trim()) {
+        <p class="help is-danger">Bitte eine Überschrift eingeben.</p>
+      }
+    </div>
+    <div class="field">
+      <label class="label" for="board-text">Text</label>
+      <textarea
+        id="board-text"
+        class="textarea"
+        rows="4"
+        [value]="post.text"
+        (change)="set('text', $event)"
+      ></textarea>
+    </div>
+    <div class="field">
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          [checked]="post.important"
+          (change)="setImportant($any($event.target).checked)"
+        />
+        Wichtig (steht ganz oben)
+      </label>
+    </div>
+    <div class="field">
+      <label class="label" for="board-until">Sichtbar bis</label>
+      <app-date-field inputId="board-until" [value]="post.until" (valueChange)="setUntil($event)" />
+      <p class="help">Leer lassen, dann bleibt die Mitteilung stehen.</p>
+    </div>
+    <div class="field">
+      <span class="label">Nur für bestimmte Gruppen (nichts angehakt = alle)</span>
+      <div class="buttons">
+        @for (group of groups; track group.id) {
+          <label class="checkbox mr-3">
+            <input
+              type="checkbox"
+              [checked]="post.groups.includes(group.id)"
+              (change)="toggleGroup(group.id)"
+            />
+            {{ group.name }}
+          </label>
+        }
+      </div>
+    </div>
+    <ng-container dialogActions>
+      <button type="button" class="button" (click)="draft.set(null)">Abbrechen</button>
+      <button type="button" class="button is-link" (click)="save()">Speichern</button>
+    </ng-container>
+  </app-modal-dialog>
+}
+
+@if (toDelete(); as post) {
+  <app-modal-dialog heading="Mitteilung löschen?" accent="red" (closed)="toDelete.set(null)">
+    <p>„{{ post.title }}“ wird gelöscht.</p>
+    <ng-container dialogActions>
+      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
+      <button type="button" class="button is-danger" (click)="remove()">Löschen</button>
+    </ng-container>
+  </app-modal-dialog>
+}
