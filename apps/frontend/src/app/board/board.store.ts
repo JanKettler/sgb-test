@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { addDays } from '../training/training-dates';
+import { GroupId } from '../training/training.models';
 import { TrainingStore } from '../training/training.store';
 import { BoardPost, emptyPost } from './board.models';
 
@@ -14,12 +15,43 @@ export class BoardStore {
   /** The author of new messages; the demo has no real login. */
   readonly author = 'Orga-Team';
   readonly canWrite = this.training.canManage;
+  /** Messages written after this day count as new. Kept per person in the real system. */
+  readonly seenOn = signal(addDays(this.today, -4));
 
-  readonly live = computed(() => this.sorted(this.posts().filter((post) => !this.expired(post))));
+  /** The groups of the people the current user acts for. */
+  private readonly viewerGroups = computed(
+    () =>
+      new Set<GroupId>(
+        this.training
+          .actors()
+          .flatMap((person) => [person.groupId, ...person.trainerGroupIds])
+          .filter((id): id is GroupId => id !== null),
+      ),
+  );
+
+  readonly live = computed(() =>
+    this.sorted(this.posts().filter((post) => !this.expired(post) && this.visible(post))),
+  );
   readonly archive = computed(() => this.sorted(this.posts().filter((post) => this.expired(post))));
 
   expired(post: BoardPost): boolean {
     return post.until !== '' && post.until < this.today;
+  }
+
+  /** Authors see everything; others only messages for everybody or for their role or groups. */
+  visible(post: BoardPost): boolean {
+    if (this.canWrite()) return true;
+    if (post.groups.length === 0 && post.roles.length === 0) return true;
+    if (post.roles.includes(this.training.role())) return true;
+    return post.groups.some((id) => this.viewerGroups().has(id));
+  }
+
+  isNew(post: BoardPost): boolean {
+    return post.date > this.seenOn() && post.author !== this.author;
+  }
+
+  markSeen(): void {
+    this.seenOn.set(this.today);
   }
 
   newPost(): BoardPost {
@@ -62,31 +94,33 @@ export class BoardStore {
 
   private sample(): BoardPost[] {
     const day = (offset: number) => addDays(this.today, offset);
-    const base = { author: 'Orga-Team', groups: [], order: null };
+    const base = { author: 'Orga-Team', groups: [], roles: [], bg: '', order: null };
     return [
       {
         ...base,
         id: 'b-1',
         title: 'Hallenzeiten in den Herbstferien',
-        text: 'Das Training der Gruppe 3 fällt in den Ferien aus. Die WK-Gruppe trainiert wie gewohnt.',
+        html: 'Das Training der Gruppe 3 fällt in den Ferien aus. <b>Die WK-Gruppe trainiert wie gewohnt.</b>',
         important: true,
         date: day(-2),
         until: day(14),
       },
       {
         ...base,
+        author: 'Vorstand',
         id: 'b-2',
         title: 'Weihnachtsmarkt: Helfer gesucht',
-        text: 'Für den Stand brauchen wir noch Helferinnen und Helfer. Bitte bei den Trainern melden.',
+        html: 'Für den Stand brauchen wir noch Helferinnen und Helfer. Bitte bei den Trainern melden oder direkt im <a href="/training/anmeldung">Training</a> nachfragen.',
         important: false,
-        date: day(-5),
+        date: day(-1),
         until: '',
+        bg: '#fff7d6',
       },
       {
         ...base,
         id: 'b-3',
         title: 'Neue Vereinsjacken sind da',
-        text: 'Die bestellten Jacken können montags nach dem Training abgeholt werden.',
+        html: 'Die bestellten Jacken können montags nach dem Training abgeholt werden.',
         important: false,
         date: day(-9),
         until: day(30),
@@ -96,17 +130,18 @@ export class BoardStore {
         author: 'Vorstand',
         id: 'b-4',
         title: 'Trainerfortbildung im Winter',
-        text: 'Termin und Ort folgen. Wer teilnehmen möchte, meldet sich bis Ende des Monats.',
+        html: 'Termin und Ort folgen. Wer teilnehmen möchte, meldet sich bis Ende des Monats.',
         important: false,
         date: day(-12),
         until: '',
         groups: ['WK', 'G3'],
+        roles: ['trainer'],
       },
       {
         ...base,
         id: 'b-5',
         title: 'Sommerfest: Danke!',
-        text: 'Danke an alle, die beim Sommerfest geholfen haben.',
+        html: 'Danke an alle, die beim <span style="color:#16a34a;font-size:20px">Sommerfest</span> geholfen haben.',
         important: false,
         date: day(-60),
         until: day(-20),

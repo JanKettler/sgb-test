@@ -1,0 +1,244 @@
+.greeting {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+.row-link {
+  align-items: center;
+  border-radius: 12px;
+  color: inherit;
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.4rem 0.3rem;
+
+  &:hover {
+    background: var(--sgb-hover);
+  }
+}
+
+.row-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+
+  i {
+    color: var(--sgb-soft);
+    font-size: 0.82rem;
+    font-style: normal;
+  }
+}
+
+.day-box {
+  align-items: center;
+  background: var(--info-bg);
+  border-radius: 10px;
+  color: var(--info-fg);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  line-height: 1.1;
+  padding: 0.3rem 0;
+  width: 3.1rem;
+
+  b {
+    font-size: 1.15rem;
+  }
+
+  i {
+    font-size: 0.62rem;
+    font-style: normal;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+}
+
+.notice-box {
+  align-items: center;
+  border-radius: 10px;
+  display: flex;
+  flex-shrink: 0;
+  height: 2.6rem;
+  justify-content: center;
+  width: 3.1rem;
+
+  &.is-bad {
+    background: var(--bad-bg);
+    color: var(--bad-fg);
+  }
+
+  &.is-warn {
+    background: var(--warn-bg);
+    color: var(--warn-fg);
+  }
+
+  &.is-info {
+    background: var(--info-bg);
+    color: var(--info-fg);
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+
+  i {
+    font-style: normal;
+    font-weight: 800;
+    margin-left: 0.25rem;
+    opacity: 0.7;
+  }
+}
+
+.task {
+  align-items: center;
+  border-top: 1px solid var(--sgb-line);
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+
+  &:first-of-type {
+    border-top: 0;
+  }
+}
+
+.system {
+  --acc: #94a3b8;
+
+  margin-top: 1.5rem;
+}
+
+.system-title {
+  align-items: center;
+  display: flex;
+  font-size: 1rem;
+  font-weight: 900;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+
+  &::after {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--acc) 55%, transparent),
+      transparent
+    );
+    border-radius: 2px;
+    content: '';
+    flex: 1;
+    height: 2px;
+  }
+}
+
+.system-icon {
+  align-items: center;
+  background: color-mix(in srgb, var(--acc) 22%, transparent);
+  border-radius: 9px;
+  color: var(--acc);
+  display: inline-flex;
+  height: 1.8rem;
+  justify-content: center;
+  width: 1.8rem;
+}
+
+.tiles {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+}
+
+.tile {
+  background: var(--sgb-card);
+  border: 1px solid var(--sgb-line);
+  border-radius: 20px;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 9.5rem;
+  overflow: hidden;
+  padding: 1.2rem 1.1rem 1rem;
+  position: relative;
+
+  &::before {
+    background: var(--acc);
+    content: '';
+    height: 5px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  &:hover {
+    box-shadow: 0 6px 18px rgb(0 0 0 / 12%);
+  }
+}
+
+.tile-icon {
+  align-items: center;
+  background: color-mix(in srgb, var(--acc) 16%, transparent);
+  border-radius: 14px;
+  color: var(--acc);
+  display: flex;
+  font-size: 1.4rem;
+  height: 3rem;
+  justify-content: center;
+  width: 3rem;
+}
+
+.tile-name {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.tile-hint {
+  color: var(--sgb-soft);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.tile-status {
+  align-items: center;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 0.45rem;
+  margin-top: auto;
+
+  &::before {
+    background: var(--ok-fg);
+    border-radius: 50%;
+    content: '';
+    height: 0.55rem;
+    width: 0.55rem;
+  }
+
+  &.is-warn::before {
+    background: var(--warn-fg);
+  }
+
+  &.is-bad::before {
+    background: var(--bad-fg);
+  }
+
+  &.is-info::before {
+    background: var(--info-fg);
+  }
+}
+
+@media (width <= 768px) {
+  .tiles {
+    gap: 0.6rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tile {
+    min-height: 8rem;
+    padding: 1rem 0.8rem 0.8rem;
+  }
+}

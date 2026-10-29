@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { TrainingStore } from '../training/training.store';
 import { BoardStore } from './board.store';
 
 describe('BoardStore', () => {
@@ -27,5 +28,23 @@ describe('BoardStore', () => {
     const before = store.live().map((post) => post.id);
     store.move(important.id, 1);
     expect(store.live().map((post) => post.id)).toEqual(before);
+  });
+});
+
+describe('BoardStore audience', () => {
+  it('hides messages for other roles from parents but not from authors', () => {
+    const store = TestBed.inject(BoardStore);
+    const post = { ...store.newPost(), title: 'Nur Trainer', roles: ['trainer' as const] };
+    store.save(post);
+    expect(store.live().some((item) => item.id === post.id)).toBe(true);
+    TestBed.inject(TrainingStore).role.set('parent');
+    expect(store.live().some((item) => item.id === post.id)).toBe(false);
+  });
+
+  it('counts messages of others after the last visit as new until they are seen', () => {
+    const store = TestBed.inject(BoardStore);
+    expect(store.live().some((post) => store.isNew(post))).toBe(true);
+    store.markSeen();
+    expect(store.live().some((post) => store.isNew(post))).toBe(false);
   });
 });

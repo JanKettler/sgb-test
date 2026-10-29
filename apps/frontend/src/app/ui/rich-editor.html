@@ -1,0 +1,201 @@
+<div class="rich">
+  <div class="bar" role="toolbar" aria-label="Formatierung" (mousedown)="keepSelection($event)">
+    <div class="buttons has-addons mb-0">
+      <button
+        type="button"
+        class="button is-small"
+        title="Linksbündig"
+        aria-label="Linksbündig"
+        (click)="command('justifyLeft')"
+      >
+        <app-icon name="align-left" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Zentriert"
+        aria-label="Zentriert"
+        (click)="command('justifyCenter')"
+      >
+        <app-icon name="align-center" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Rechtsbündig"
+        aria-label="Rechtsbündig"
+        (click)="command('justifyRight')"
+      >
+        <app-icon name="align-right" />
+      </button>
+    </div>
+
+    <div class="buttons has-addons mb-0">
+      @for (px of presets; track px) {
+        <button
+          type="button"
+          class="button is-small"
+          [title]="px + ' px'"
+          [attr.aria-label]="'Schriftgröße ' + px"
+          (click)="setSize(px)"
+        >
+          <span [style.font-size.px]="px > 22 ? 18 : px > 14 ? 15 : 12">A</span>
+        </button>
+      }
+      <input
+        type="number"
+        class="input is-small size"
+        [min]="minPx"
+        [max]="maxPx"
+        placeholder="px"
+        aria-label="Eigene Schriftgröße in Pixel"
+        (change)="sizeTyped($event)"
+      />
+    </div>
+
+    <div class="buttons has-addons mb-0">
+      <button
+        type="button"
+        class="button is-small"
+        title="Fett"
+        aria-label="Fett"
+        (click)="command('bold')"
+      >
+        <app-icon name="bold" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Kursiv"
+        aria-label="Kursiv"
+        (click)="command('italic')"
+      >
+        <app-icon name="italic" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Unterstrichen"
+        aria-label="Unterstrichen"
+        (click)="command('underline')"
+      >
+        <app-icon name="underline" />
+      </button>
+    </div>
+
+    <div class="buttons mb-0">
+      <button
+        type="button"
+        class="button is-small"
+        title="Textfarbe"
+        aria-label="Textfarbe"
+        [class.is-link]="menu() === 'color'"
+        (click)="toggle('color')"
+      >
+        <app-icon name="palette" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Textmarker"
+        aria-label="Textmarker"
+        [class.is-link]="menu() === 'mark'"
+        (click)="toggle('mark')"
+      >
+        <app-icon name="highlighter" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Link"
+        aria-label="Link"
+        [class.is-link]="menu() === 'link'"
+        (click)="toggle('link')"
+      >
+        <app-icon name="link" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Formatierung entfernen"
+        aria-label="Formatierung entfernen"
+        (click)="clearFormat()"
+      >
+        <app-icon name="eraser" />
+      </button>
+    </div>
+  </div>
+
+  @switch (menu()) {
+    @case ('color') {
+      <div class="pop">
+        <p class="label is-small mb-2">Textfarbe</p>
+        <app-color-field
+          label="Textfarbe"
+          [swatches]="textColors"
+          (valueChange)="setColor('foreColor', $event)"
+        />
+      </div>
+    }
+    @case ('mark') {
+      <div class="pop">
+        <p class="label is-small mb-2">Textmarker</p>
+        <app-color-field
+          label="Markerfarbe"
+          [swatches]="markColors"
+          (valueChange)="setColor('hiliteColor', $event)"
+        />
+      </div>
+    }
+    @case ('link') {
+      <div class="pop">
+        <p class="label is-small mb-2">Link auf eine Seite im Portal</p>
+        <div class="select is-small is-fullwidth">
+          <select aria-label="Seite im Portal" (change)="pageTyped($event)">
+            <option value="">Seite wählen …</option>
+            @for (page of pages; track page.path) {
+              <option [value]="page.path">{{ page.label }}</option>
+            }
+          </select>
+        </div>
+        <p class="label is-small mt-3 mb-2">Oder eine Adresse im Internet</p>
+        <div class="field has-addons mb-0">
+          <div class="control is-expanded">
+            <input
+              class="input is-small"
+              inputmode="url"
+              autocomplete="off"
+              aria-label="Adresse im Internet"
+              [value]="link()"
+              (input)="link.set($any($event.target).value)"
+            />
+          </div>
+          <div class="control">
+            <button type="button" class="button is-small is-link" (click)="setLink(link())">
+              Link setzen
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+  @if (hint()) {
+    <p class="help is-danger mt-1">{{ hint() }}</p>
+  }
+
+  <div
+    #area
+    class="area"
+    contenteditable="true"
+    role="textbox"
+    tabindex="0"
+    aria-multiline="true"
+    aria-label="Mitteilung"
+    data-placeholder="Mitteilung …"
+    [style.background]="background() || null"
+    [style.color]="textColor() || null"
+    (input)="changed()"
+    (paste)="paste($event)"
+  ></div>
+</div>

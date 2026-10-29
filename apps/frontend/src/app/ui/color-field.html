@@ -1,0 +1,50 @@
+<div class="swatches">
+  @for (color of swatches(); track color) {
+    <button
+      type="button"
+      class="swatch"
+      [class.is-on]="color === value()"
+      [style.background]="color"
+      [attr.aria-label]="label() + ' ' + color"
+      (mousedown)="$event.preventDefault()"
+      (click)="pick(color)"
+    ></button>
+  }
+  <button
+    type="button"
+    class="swatch is-none"
+    [attr.aria-label]="label() + ' entfernen'"
+    title="Keine Farbe"
+    (mousedown)="$event.preventDefault()"
+    (click)="pick('')"
+  >
+    <app-icon name="x" />
+  </button>
+</div>
+<div class="field has-addons mt-2 mb-0">
+  <div class="control">
+    <input
+      class="input is-small hex"
+      [class.is-danger]="invalid()"
+      maxlength="7"
+      placeholder="#1a2b3c"
+      inputmode="text"
+      autocomplete="off"
+      [value]="text()"
+      [attr.aria-label]="label() + ' als Hex-Wert'"
+      (input)="type($event)"
+    />
+  </div>
+  <div class="control">
+    <input
+      type="color"
+      class="native"
+      [value]="native()"
+      [attr.aria-label]="label() + ' wählen'"
+      (input)="pick($any($event.target).value)"
+    />
+  </div>
+</div>
+@if (invalid()) {
+  <p class="help is-danger">Bitte so eingeben: #1a2b3c</p>
+}
