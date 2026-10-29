@@ -12,7 +12,7 @@
   <h4 [id]="'move-dialog-title-' + entryId()" class="title is-4">Warteplatz ändern</h4>
   <p class="mb-4">Aktuell Platz {{ position() }} in Gruppe {{ group().slice(-1) }}.</p>
   @if (error()) {
-    <p class="notification is-danger is-light" role="alert">{{ error() }}</p>
+    <p class="notification is-danger" role="alert">{{ error() }}</p>
   }
   <form #moveForm (submit)="$event.preventDefault(); move(target.value, reason.value)" novalidate>
     <div class="field">
