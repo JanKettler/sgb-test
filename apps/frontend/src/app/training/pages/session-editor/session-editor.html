@@ -1,27 +1,33 @@
 @let session = draft();
-<header class="page-head">
+<header
+  class="is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
   <div>
-    <h2>{{ isNew() ? 'Neuer Termin' : 'Termin bearbeiten' }}</h2>
-    <p>{{ title() }}</p>
+    <h2 class="title is-4 mb-1">{{ isNew() ? 'Neuer Termin' : 'Termin bearbeiten' }}</h2>
+    <p class="subtitle is-6 mb-0">{{ title() }}</p>
   </div>
-  <div class="page-actions">
-    <a class="btn" routerLink="/training/termine">Abbrechen</a>
-    <button type="button" class="btn" (click)="save(true)">Als Kopie speichern</button>
-    <button type="button" class="btn is-primary" (click)="save(false)">Speichern</button>
+  <div class="buttons">
+    <a class="button" routerLink="/training/termine">Abbrechen</a>
+    <button type="button" class="button" (click)="save(true)">Als Kopie speichern</button>
+    <button type="button" class="button is-primary" (click)="save(false)">Speichern</button>
   </div>
 </header>
 
 @if (invalid()) {
-  <p class="notice is-bad">Bitte Datum, Uhrzeit und mindestens eine Gruppe angeben.</p>
+  <p
+    class="notification is-danger is-light is-flex is-justify-content-space-between is-align-items-center"
+  >
+    Bitte Datum, Uhrzeit und mindestens eine Gruppe angeben.
+  </p>
 }
 
 <div class="layout">
   <div class="column">
-    <section class="panel">
+    <section class="box">
       <h3>Termin</h3>
       <div class="form-grid">
         <div>
-          <label class="field-label" for="edit-date">Datum</label>
+          <label class="label" for="edit-date">Datum</label>
           <input
             id="edit-date"
             class="input"
@@ -31,7 +37,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="edit-time">Uhrzeit</label>
+          <label class="label" for="edit-time">Uhrzeit</label>
           <input
             id="edit-time"
             class="input"
@@ -41,7 +47,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="edit-duration">Dauer in Minuten</label>
+          <label class="label" for="edit-duration">Dauer in Minuten</label>
           <input
             id="edit-duration"
             class="input"
@@ -53,7 +59,7 @@
           />
         </div>
       </div>
-      <label class="field-label" for="edit-venue">Ort</label>
+      <label class="label" for="edit-venue">Ort</label>
       <div class="select is-fullwidth mb-3">
         <select id="edit-venue" (change)="patch({ venueId: value($event) })">
           @for (venue of store.venues(); track venue.id) {
@@ -63,8 +69,8 @@
           }
         </select>
       </div>
-      <span class="field-label">Gruppen</span>
-      <div class="chips mb-3">
+      <span class="label">Gruppen</span>
+      <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
         @for (group of store.groups; track group.id) {
           <button
             type="button"
@@ -77,7 +83,7 @@
           </button>
         }
       </div>
-      <label class="field-label" for="edit-note">Bemerkung</label>
+      <label class="label" for="edit-note">Bemerkung</label>
       <input
         id="edit-note"
         class="input"
@@ -88,13 +94,13 @@
       />
     </section>
 
-    <section class="panel">
+    <section class="box">
       <div class="panel-row">
         <h3>Trainer</h3>
         <span class="max">Max. {{ session.maxTrainers }}</span>
       </div>
-      <span class="field-label">Trainer der gewählten Gruppen</span>
-      <div class="chips mb-3">
+      <span class="label">Trainer der gewählten Gruppen</span>
+      <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
         @for (trainer of groupTrainers(); track trainer.id) {
           <button
             type="button"
@@ -109,8 +115,8 @@
           <span class="max">Für diese Gruppen ist kein Trainer hinterlegt.</span>
         }
       </div>
-      <span class="field-label">Zusätzlich nur für diesen Termin</span>
-      <div class="chips">
+      <span class="label">Zusätzlich nur für diesen Termin</span>
+      <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2">
         @for (trainer of extraTrainers(); track trainer.id) {
           <button
             type="button"
@@ -132,11 +138,11 @@
       }
     </section>
 
-    <section class="panel">
+    <section class="box">
       <h3>Schwimmer</h3>
       <p class="mb-3">Alle Schwimmer der gewählten Gruppen können sich anmelden.</p>
-      <span class="field-label">Zusätzlich nur für diesen Termin</span>
-      <div class="chips">
+      <span class="label">Zusätzlich nur für diesen Termin</span>
+      <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2">
         @for (swimmer of extraSwimmers(); track swimmer.id) {
           <button
             type="button"
@@ -156,11 +162,11 @@
   </div>
 
   <div class="column">
-    <section class="panel">
+    <section class="box">
       <h3>Anmeldung</h3>
       <div class="form-grid">
         <div>
-          <label class="field-label" for="edit-deadline-date">Meldeschluss Datum</label>
+          <label class="label" for="edit-deadline-date">Meldeschluss Datum</label>
           <input
             id="edit-deadline-date"
             class="input"
@@ -170,7 +176,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="edit-deadline-time">Meldeschluss Uhrzeit</label>
+          <label class="label" for="edit-deadline-time">Meldeschluss Uhrzeit</label>
           <input
             id="edit-deadline-time"
             class="input"
@@ -180,7 +186,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="edit-max-swimmers">Max. Schwimmer</label>
+          <label class="label" for="edit-max-swimmers">Max. Schwimmer</label>
           <input
             id="edit-max-swimmers"
             class="input"
@@ -191,7 +197,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="edit-max-trainers">Max. Trainer</label>
+          <label class="label" for="edit-max-trainers">Max. Trainer</label>
           <input
             id="edit-max-trainers"
             class="input"
@@ -205,7 +211,7 @@
     </section>
 
     @if (isNew()) {
-      <section class="panel">
+      <section class="box">
         <h3>Wiederholen</h3>
         <div class="segment mb-3">
           <button
@@ -226,7 +232,7 @@
           </button>
         </div>
         @if (series()) {
-          <label class="field-label" for="edit-rhythm">Rhythmus</label>
+          <label class="label" for="edit-rhythm">Rhythmus</label>
           <div class="select is-fullwidth mb-3">
             <select id="edit-rhythm" (change)="setRhythm($event)">
               @for (item of rhythms; track item.id) {
@@ -236,7 +242,7 @@
               }
             </select>
           </div>
-          <label class="field-label" for="edit-until">Bis</label>
+          <label class="label" for="edit-until">Bis</label>
           <input
             id="edit-until"
             class="input mb-3"
@@ -245,8 +251,8 @@
             (input)="until.set(value($event))"
           />
           @if (rhythm() !== 'monthly') {
-            <span class="field-label">Wochentage</span>
-            <div class="chips mb-3">
+            <span class="label">Wochentage</span>
+            <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
               @for (day of weekdays; track day.index) {
                 <button
                   type="button"

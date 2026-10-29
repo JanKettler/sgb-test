@@ -1,29 +1,33 @@
-<header class="page-head">
+<header
+  class="is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
   <div>
-    <h2>Training</h2>
-    <p>Termine</p>
+    <h2 class="title is-4 mb-1">Training</h2>
+    <p class="subtitle is-6 mb-0">Termine</p>
   </div>
-  <div class="page-actions">
-    <a class="btn" routerLink="/training/termine/neu" [queryParams]="{ serie: 1 }">
+  <div class="buttons">
+    <a class="button" routerLink="/training/termine/neu" [queryParams]="{ serie: 1 }">
       <app-icon name="plus" /> Serie anlegen
     </a>
-    <a class="btn is-primary" routerLink="/training/termine/neu">
+    <a class="button is-primary" routerLink="/training/termine/neu">
       <app-icon name="plus" /> Neuer Termin
     </a>
   </div>
 </header>
 
 @if (message()) {
-  <div class="notice">
+  <div
+    class="notification is-link is-light is-flex is-justify-content-space-between is-align-items-center"
+  >
     <span>{{ message() }}</span>
-    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+    <button type="button" class="button is-small" (click)="message.set('')">Schließen</button>
   </div>
 }
 
-<section class="panel">
-  <div class="filters">
+<section class="box">
+  <div class="is-flex is-flex-wrap-wrap is-align-items-flex-end is-gap-3 mb-4">
     <div>
-      <label class="field-label" for="filter-group">Gruppe</label>
+      <label class="label" for="filter-group">Gruppe</label>
       <div class="select">
         <select id="filter-group" (change)="setGroup($event)">
           <option value="">Alle Gruppen</option>
@@ -34,7 +38,7 @@
       </div>
     </div>
     <div>
-      <label class="field-label" for="filter-trainer">Trainer</label>
+      <label class="label" for="filter-trainer">Trainer</label>
       <div class="select">
         <select id="filter-trainer" (change)="trainer.set(value($event))">
           <option value="">Alle Trainer</option>
@@ -45,20 +49,20 @@
       </div>
     </div>
     <div>
-      <label class="field-label" for="filter-from">Von</label>
+      <label class="label" for="filter-from">Von</label>
       <app-date-field inputId="filter-from" [(value)]="from" />
     </div>
     <div>
-      <label class="field-label" for="filter-to">Bis</label>
+      <label class="label" for="filter-to">Bis</label>
       <app-date-field inputId="filter-to" [(value)]="to" />
     </div>
-    <div class="chips range">
+    <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 range">
       @if (filtered()) {
         <button type="button" class="chip" (click)="resetFilters()">Filter zurücksetzen</button>
       }
       <button
         type="button"
-        class="icon-btn is-info"
+        class="button is-small is-info"
         aria-label="Zum nächsten Termin"
         title="Zum nächsten Termin"
         (click)="scrollToNext()"
@@ -68,7 +72,7 @@
     </div>
   </div>
 
-  <div #scroller class="table-scroll is-tall">
+  <div #scroller class="table-container is-tall">
     <table class="table is-fullwidth is-hoverable is-narrow">
       <thead>
         <tr>
@@ -104,7 +108,7 @@
               <span class="icon-row">
                 <button
                   type="button"
-                  class="icon-btn is-violet"
+                  class="button is-small is-link"
                   aria-label="Angemeldete anzeigen"
                   title="Angemeldete"
                   (click)="viewing.set(row.session)"
@@ -112,7 +116,7 @@
                   <app-icon name="users" />
                 </button>
                 <a
-                  class="icon-btn is-teal"
+                  class="button is-small is-primary"
                   [class.is-off]="!row.started"
                   [routerLink]="row.started ? ['/training/anwesenheit', row.session.id] : null"
                   aria-label="Anwesenheit führen"
@@ -121,7 +125,7 @@
                   <app-icon name="clipboard" />
                 </a>
                 <a
-                  class="icon-btn is-warn"
+                  class="button is-small is-warning"
                   [routerLink]="['/training/termine', row.session.id]"
                   aria-label="Termin bearbeiten"
                   title="Bearbeiten"
@@ -129,7 +133,7 @@
                   <app-icon name="pencil" />
                 </a>
                 <a
-                  class="icon-btn"
+                  class="button is-small"
                   routerLink="/training/termine/neu"
                   [queryParams]="{ kopie: row.session.id }"
                   aria-label="Termin kopieren"
@@ -139,7 +143,7 @@
                 </a>
                 <button
                   type="button"
-                  class="icon-btn is-bad"
+                  class="button is-small is-danger"
                   aria-label="Termin löschen"
                   title="Löschen"
                   (click)="toDelete.set(row.session)"
@@ -162,10 +166,10 @@
 @if (toDelete(); as session) {
   <app-modal-dialog heading="Termin löschen?" accent="red" (closed)="toDelete.set(null)">
     <p>{{ deleteText(session) }}</p>
-    <p class="field-label mt-2">Alle Rückmeldungen zu diesem Termin werden ebenfalls gelöscht.</p>
+    <p class="label mt-2">Alle Rückmeldungen zu diesem Termin werden ebenfalls gelöscht.</p>
     <ng-container dialogActions>
-      <button type="button" class="btn" (click)="toDelete.set(null)">Abbrechen</button>
-      <button type="button" class="btn is-danger" (click)="confirmDelete()">Löschen</button>
+      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
+      <button type="button" class="button is-danger" (click)="confirmDelete()">Löschen</button>
     </ng-container>
   </app-modal-dialog>
 }

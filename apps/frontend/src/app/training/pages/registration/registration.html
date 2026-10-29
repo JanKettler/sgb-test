@@ -1,21 +1,25 @@
-<header class="page-head">
+<header
+  class="is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
   <div>
-    <h2>Trainingsanmeldung</h2>
-    <p>Rückmeldungen zu den Trainingseinheiten</p>
+    <h2 class="title is-4 mb-1">Trainingsanmeldung</h2>
+    <p class="subtitle is-6 mb-0">Rückmeldungen zu den Trainingseinheiten</p>
   </div>
 </header>
 
 @if (message()) {
-  <div class="notice">
+  <div
+    class="notification is-link is-light is-flex is-justify-content-space-between is-align-items-center"
+  >
     <span>{{ message() }}</span>
-    <button type="button" class="btn is-small" (click)="message.set('')">Schließen</button>
+    <button type="button" class="button is-small" (click)="message.set('')">Schließen</button>
   </div>
 }
 
-<section class="panel">
+<section class="box">
   @if (person(); as current) {
-    <div class="chips mb-3">
-      <span class="field-label for-person">Anmeldung für</span>
+    <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
+      <span class="label for-person">Anmeldung für</span>
       @for (actor of actors(); track actor.id) {
         <button
           type="button"
@@ -33,7 +37,7 @@
     <h3 class="band is-ok">
       Gemeldete Trainingseinheiten <span class="count">{{ data.reported.length }}</span>
     </h3>
-    <div class="table-scroll">
+    <div class="table-container">
       <table class="table is-fullwidth is-hoverable is-narrow">
         <thead>
           <tr>
@@ -54,7 +58,7 @@
                   @if (registered) {
                     <button
                       type="button"
-                      class="icon-btn is-bad"
+                      class="button is-small is-danger"
                       aria-label="Abmelden"
                       title="Abmelden"
                       (click)="declining.set({ session: row.session, role: row.role })"
@@ -64,7 +68,7 @@
                   } @else {
                     <button
                       type="button"
-                      class="icon-btn is-ok"
+                      class="button is-small is-success"
                       aria-label="Wieder anmelden"
                       title="Wieder anmelden"
                       (click)="register(row)"
@@ -74,7 +78,7 @@
                   }
                   <button
                     type="button"
-                    class="icon-btn is-violet"
+                    class="button is-small is-link"
                     aria-label="Angemeldete anzeigen"
                     title="Angemeldete"
                     (click)="viewing.set(row.session)"
@@ -83,7 +87,7 @@
                   </button>
                   @if (row.canTakeAttendance) {
                     <a
-                      class="icon-btn is-teal"
+                      class="button is-small is-primary"
                       [routerLink]="['/training/anwesenheit', row.session.id]"
                       aria-label="Anwesenheit führen"
                       title="Anwesenheit"
@@ -125,7 +129,7 @@
       <h3 class="band is-warn">
         Anmeldung möglich <span class="count">{{ data.open.length }}</span>
       </h3>
-      <div class="table-scroll">
+      <div class="table-container">
         <table class="table is-fullwidth is-hoverable is-narrow">
           <thead>
             <tr>
@@ -143,7 +147,7 @@
                   <span class="icon-row">
                     <button
                       type="button"
-                      class="icon-btn is-ok"
+                      class="button is-small is-success"
                       aria-label="Anmelden"
                       title="Anmelden"
                       (click)="register(row)"
@@ -152,7 +156,7 @@
                     </button>
                     <button
                       type="button"
-                      class="icon-btn is-bad"
+                      class="button is-small is-danger"
                       aria-label="Abmelden"
                       title="Abmelden"
                       (click)="declining.set({ session: row.session, role: row.role })"
@@ -161,7 +165,7 @@
                     </button>
                     <button
                       type="button"
-                      class="icon-btn is-violet"
+                      class="button is-small is-link"
                       aria-label="Angemeldete anzeigen"
                       title="Angemeldete"
                       (click)="viewing.set(row.session)"
@@ -192,7 +196,7 @@
         Einheiten, bei denen du Trainer bist
         <span class="count">{{ data.trainerOpen.length }}</span>
       </h3>
-      <div class="table-scroll">
+      <div class="table-container">
         <table class="table is-fullwidth is-hoverable is-narrow">
           <thead>
             <tr>
@@ -210,7 +214,7 @@
                   <span class="icon-row">
                     <button
                       type="button"
-                      class="icon-btn is-ok"
+                      class="button is-small is-success"
                       aria-label="Anmelden"
                       title="Anmelden"
                       (click)="register(row)"
@@ -219,7 +223,7 @@
                     </button>
                     <button
                       type="button"
-                      class="icon-btn is-bad"
+                      class="button is-small is-danger"
                       aria-label="Abmelden"
                       title="Abmelden"
                       (click)="declining.set({ session: row.session, role: row.role })"
@@ -228,7 +232,7 @@
                     </button>
                     <button
                       type="button"
-                      class="icon-btn is-violet"
+                      class="button is-small is-link"
                       aria-label="Angemeldete anzeigen"
                       title="Angemeldete"
                       (click)="viewing.set(row.session)"

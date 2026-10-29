@@ -1,4 +1,4 @@
-<section class="panel head">
+<section class="box head">
   <div class="avatar" aria-hidden="true">{{ initials() }}</div>
   <div class="who">
     <h2>{{ name() }}</h2>
@@ -16,93 +16,102 @@
     </div>
   </div>
   <div class="icon-row">
-    <button type="button" class="btn" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
-    <button type="button" class="btn is-primary" (click)="save()">
+    <button type="button" class="button" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
+    <button type="button" class="button is-primary" (click)="save()">
       <app-icon name="save" /> Speichern
     </button>
   </div>
 </section>
 
-<div class="tabbar" role="tablist">
-  <button
-    type="button"
-    role="tab"
-    class="tab-btn"
-    [class.is-on]="tab() === 'master'"
-    [attr.aria-selected]="tab() === 'master'"
-    (click)="tab.set('master')"
-  >
-    Stammdaten
-  </button>
-  <button
-    type="button"
-    role="tab"
-    class="tab-btn"
-    [class.is-on]="tab() === 'roles'"
-    [attr.aria-selected]="tab() === 'roles'"
-    (click)="tab.set('roles')"
-  >
-    Rollen
-  </button>
-  <button
-    type="button"
-    role="tab"
-    class="tab-btn"
-    [class.is-on]="tab() === 'family'"
-    [attr.aria-selected]="tab() === 'family'"
-    (click)="tab.set('family')"
-  >
-    Familie
-  </button>
-  <button
-    type="button"
-    role="tab"
-    class="tab-btn"
-    [class.is-on]="tab() === 'material'"
-    [attr.aria-selected]="tab() === 'material'"
-    (click)="tab.set('material')"
-  >
-    Material
-  </button>
-  <button
-    type="button"
-    role="tab"
-    class="tab-btn"
-    [class.is-on]="tab() === 'payment'"
-    [attr.aria-selected]="tab() === 'payment'"
-    (click)="tab.set('payment')"
-  >
-    Zahlung
-  </button>
-  <button
-    type="button"
-    role="tab"
-    class="tab-btn"
-    [class.is-on]="tab() === 'access'"
-    [attr.aria-selected]="tab() === 'access'"
-    (click)="tab.set('access')"
-  >
-    Zugang und Rechte
-  </button>
-  <button
-    type="button"
-    role="tab"
-    class="tab-btn"
-    [class.is-on]="tab() === 'extra'"
-    [attr.aria-selected]="tab() === 'extra'"
-    (click)="tab.set('extra')"
-  >
-    Weitere Felder
-  </button>
+<div class="tabs" role="tablist">
+  <ul>
+    <li [class.is-active]="tab() === 'master'">
+      <a
+        role="tab"
+        tabindex="0"
+        [attr.aria-selected]="tab() === 'master'"
+        (click)="tab.set('master')"
+        (keydown.enter)="tab.set('master')"
+      >
+        Stammdaten
+      </a>
+    </li>
+    <li [class.is-active]="tab() === 'roles'">
+      <a
+        role="tab"
+        tabindex="0"
+        [attr.aria-selected]="tab() === 'roles'"
+        (click)="tab.set('roles')"
+        (keydown.enter)="tab.set('roles')"
+      >
+        Rollen
+      </a>
+    </li>
+    <li [class.is-active]="tab() === 'family'">
+      <a
+        role="tab"
+        tabindex="0"
+        [attr.aria-selected]="tab() === 'family'"
+        (click)="tab.set('family')"
+        (keydown.enter)="tab.set('family')"
+      >
+        Familie
+      </a>
+    </li>
+    <li [class.is-active]="tab() === 'material'">
+      <a
+        role="tab"
+        tabindex="0"
+        [attr.aria-selected]="tab() === 'material'"
+        (click)="tab.set('material')"
+        (keydown.enter)="tab.set('material')"
+      >
+        Material
+      </a>
+    </li>
+    <li [class.is-active]="tab() === 'payment'">
+      <a
+        role="tab"
+        tabindex="0"
+        [attr.aria-selected]="tab() === 'payment'"
+        (click)="tab.set('payment')"
+        (keydown.enter)="tab.set('payment')"
+      >
+        Zahlung
+      </a>
+    </li>
+    <li [class.is-active]="tab() === 'access'">
+      <a
+        role="tab"
+        tabindex="0"
+        [attr.aria-selected]="tab() === 'access'"
+        (click)="tab.set('access')"
+        (keydown.enter)="tab.set('access')"
+      >
+        Zugang und Rechte
+      </a>
+    </li>
+    <li [class.is-active]="tab() === 'extra'">
+      <a
+        role="tab"
+        tabindex="0"
+        [attr.aria-selected]="tab() === 'extra'"
+        (click)="tab.set('extra')"
+        (keydown.enter)="tab.set('extra')"
+      >
+        Weitere Felder
+      </a>
+    </li>
+  </ul>
 </div>
 
 @switch (tab()) {
   @case ('master') {
-    <section class="panel">
+    <section class="box">
       <h3>Stammdaten</h3>
       <div class="form-grid">
         <div>
-          <label class="field-label" for="p-first">Vorname</label>
+          <label class="label" for="p-first">Vorname</label>
           <input
             id="p-first"
             class="input"
@@ -111,7 +120,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-last">Nachname</label>
+          <label class="label" for="p-last">Nachname</label>
           <input
             id="p-last"
             class="input"
@@ -120,7 +129,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-birth">Geburtsdatum</label>
+          <label class="label" for="p-birth">Geburtsdatum</label>
           <app-date-field
             inputId="p-birth"
             [value]="draft().birthDate"
@@ -128,7 +137,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-no">Mitgliedsnummer</label>
+          <label class="label" for="p-no">Mitgliedsnummer</label>
           <input
             id="p-no"
             class="input"
@@ -138,7 +147,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-entry">Eintritt</label>
+          <label class="label" for="p-entry">Eintritt</label>
           <app-date-field
             inputId="p-entry"
             [value]="draft().entry"
@@ -146,13 +155,13 @@
           />
         </div>
         <div>
-          <span class="field-label">Status</span>
+          <span class="label">Status</span>
           <span [class]="active() ? 'pill is-ok' : 'pill is-bad'">
             {{ active() ? 'Aktiv' : 'Inaktiv' }}
           </span>
         </div>
         <div>
-          <label class="field-label" for="p-exit">Austritt am</label>
+          <label class="label" for="p-exit">Austritt am</label>
           <app-date-field
             inputId="p-exit"
             [value]="draft().exitDate"
@@ -161,11 +170,11 @@
         </div>
       </div>
     </section>
-    <section class="panel">
+    <section class="box">
       <h3>Adresse und Kontakt</h3>
       <div class="form-grid">
         <div>
-          <label class="field-label" for="p-street">Straße</label>
+          <label class="label" for="p-street">Straße</label>
           <input
             id="p-street"
             class="input"
@@ -174,7 +183,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-house">Hausnummer</label>
+          <label class="label" for="p-house">Hausnummer</label>
           <input
             id="p-house"
             class="input"
@@ -183,7 +192,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-zip">Postleitzahl</label>
+          <label class="label" for="p-zip">Postleitzahl</label>
           <input
             id="p-zip"
             class="input"
@@ -193,7 +202,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-city">Ort</label>
+          <label class="label" for="p-city">Ort</label>
           <input
             id="p-city"
             class="input"
@@ -202,7 +211,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-mail1">E-Mail 1</label>
+          <label class="label" for="p-mail1">E-Mail 1</label>
           <input
             id="p-mail1"
             class="input"
@@ -212,7 +221,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-mail2">E-Mail 2</label>
+          <label class="label" for="p-mail2">E-Mail 2</label>
           <input
             id="p-mail2"
             class="input"
@@ -222,7 +231,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-phone1">Telefon 1</label>
+          <label class="label" for="p-phone1">Telefon 1</label>
           <input
             id="p-phone1"
             class="input"
@@ -232,7 +241,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="p-phone2">Telefon 2</label>
+          <label class="label" for="p-phone2">Telefon 2</label>
           <input
             id="p-phone2"
             class="input"
@@ -245,12 +254,12 @@
     </section>
   }
   @case ('roles') {
-    <section class="panel">
+    <section class="box">
       <h3>Nachweise</h3>
       <div class="tiles">
         @for (row of evidence(); track row.kind) {
           <div class="tile">
-            <span class="field-label">{{ row.label }}</span>
+            <span class="label">{{ row.label }}</span>
             <strong>{{ row.date ? fullDate(row.date) : 'nicht eingetragen' }}</strong>
             <span class="pill" [class]="'pill is-' + tone(row)">
               {{ row.tone === 'ok' ? 'gültig' : row.text }}
@@ -263,7 +272,7 @@
       @if (draft().trainer || draft().referee || draft().official) {
         <div class="form-grid mt-4">
           <div>
-            <label class="field-label" for="p-clearance">Führungszeugnis vom</label>
+            <label class="label" for="p-clearance">Führungszeugnis vom</label>
             <app-date-field
               inputId="p-clearance"
               [value]="draft().criminalRecordOn"
@@ -276,8 +285,8 @@
     </section>
 
     @if (missingRoles().length > 0) {
-      <div class="chips mb-3">
-        <span class="field-label m-0">Rolle hinzufügen</span>
+      <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
+        <span class="label m-0">Rolle hinzufügen</span>
         @for (item of missingRoles(); track item.key) {
           <button type="button" class="chip is-solid" (click)="setRole(item.key, true)">
             + {{ item.label }}
@@ -288,12 +297,12 @@
 
     <div class="cols">
       @if (draft().swimmer) {
-        <section class="panel">
+        <section class="box">
           <div class="card-head">
             <span class="pill is-info">Schwimmer</span>
             <button
               type="button"
-              class="icon-btn is-bad"
+              class="button is-small is-danger"
               aria-label="Rolle Schwimmer entfernen"
               title="Rolle entfernen"
               (click)="setRole('swimmer', false)"
@@ -303,7 +312,7 @@
           </div>
           <div class="form-grid">
             <div>
-              <label class="field-label" for="s-dsv">DSV-ID</label>
+              <label class="label" for="s-dsv">DSV-ID</label>
               <input
                 id="s-dsv"
                 class="input"
@@ -312,7 +321,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="s-attest">Sportgesundheit gültig bis</label>
+              <label class="label" for="s-attest">Sportgesundheit gültig bis</label>
               <app-date-field
                 inputId="s-attest"
                 [value]="draft().attestUntil"
@@ -320,7 +329,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="s-start">Startrecht</label>
+              <label class="label" for="s-start">Startrecht</label>
               <input
                 id="s-start"
                 class="input"
@@ -329,8 +338,8 @@
               />
             </div>
           </div>
-          <span class="field-label">Gruppen als Schwimmer</span>
-          <div class="chips">
+          <span class="label">Gruppen als Schwimmer</span>
+          <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2">
             @for (group of groups; track group.id) {
               <button
                 type="button"
@@ -347,12 +356,12 @@
       }
 
       @if (draft().trainer) {
-        <section class="panel">
+        <section class="box">
           <div class="card-head">
             <span class="pill is-ok">Trainer</span>
             <button
               type="button"
-              class="icon-btn is-bad"
+              class="button is-small is-danger"
               aria-label="Rolle Trainer entfernen"
               title="Rolle entfernen"
               (click)="setRole('trainer', false)"
@@ -362,7 +371,7 @@
           </div>
           <div class="form-grid">
             <div>
-              <label class="field-label" for="t-kind">Lizenzart</label>
+              <label class="label" for="t-kind">Lizenzart</label>
               <div class="select is-fullwidth">
                 <select id="t-kind" (change)="setText('licenseKind', $event)">
                   <option value="">Keine Angabe</option>
@@ -375,7 +384,7 @@
               </div>
             </div>
             <div>
-              <label class="field-label" for="t-no">Lizenznummer</label>
+              <label class="label" for="t-no">Lizenznummer</label>
               <input
                 id="t-no"
                 class="input"
@@ -384,7 +393,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="t-until">Lizenz gültig bis</label>
+              <label class="label" for="t-until">Lizenz gültig bis</label>
               <app-date-field
                 inputId="t-until"
                 [value]="draft().licenseUntil"
@@ -392,7 +401,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="t-aid">Erste Hilfe bis</label>
+              <label class="label" for="t-aid">Erste Hilfe bis</label>
               <app-date-field
                 inputId="t-aid"
                 [value]="draft().firstAidUntil"
@@ -400,7 +409,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="t-rescue">Rettungsnachweis bis</label>
+              <label class="label" for="t-rescue">Rettungsnachweis bis</label>
               <app-date-field
                 inputId="t-rescue"
                 [value]="draft().lifeSavingUntil"
@@ -408,7 +417,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="t-code">Ehrenkodex vom</label>
+              <label class="label" for="t-code">Ehrenkodex vom</label>
               <app-date-field
                 inputId="t-code"
                 [value]="draft().codeOfConductOn"
@@ -416,7 +425,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="t-fee">Honorar in Euro pro Stunde</label>
+              <label class="label" for="t-fee">Honorar in Euro pro Stunde</label>
               <input
                 id="t-fee"
                 class="input"
@@ -425,7 +434,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="t-iban">IBAN für das Honorar</label>
+              <label class="label" for="t-iban">IBAN für das Honorar</label>
               <input
                 id="t-iban"
                 class="input"
@@ -435,7 +444,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="t-bic">BIC</label>
+              <label class="label" for="t-bic">BIC</label>
               <input
                 id="t-bic"
                 class="input"
@@ -445,8 +454,8 @@
               />
             </div>
           </div>
-          <span class="field-label">Gruppen als Trainer</span>
-          <div class="chips">
+          <span class="label">Gruppen als Trainer</span>
+          <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2">
             @for (group of groups; track group.id) {
               <button
                 type="button"
@@ -463,12 +472,12 @@
       }
 
       @if (draft().referee) {
-        <section class="panel">
+        <section class="box">
           <div class="card-head">
             <span class="pill is-warn">Kampfrichter</span>
             <button
               type="button"
-              class="icon-btn is-bad"
+              class="button is-small is-danger"
               aria-label="Rolle Kampfrichter entfernen"
               title="Rolle entfernen"
               (click)="setRole('referee', false)"
@@ -478,7 +487,7 @@
           </div>
           <div class="form-grid">
             <div>
-              <label class="field-label" for="r-no">Lizenznummer</label>
+              <label class="label" for="r-no">Lizenznummer</label>
               <input
                 id="r-no"
                 class="input"
@@ -487,7 +496,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="r-until">WKR gültig bis</label>
+              <label class="label" for="r-until">WKR gültig bis</label>
               <app-date-field
                 inputId="r-until"
                 [value]="draft().refereeUntil"
@@ -495,7 +504,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="r-aw">AW gültig bis</label>
+              <label class="label" for="r-aw">AW gültig bis</label>
               <app-date-field
                 inputId="r-aw"
                 [value]="draft().refereeAwUntil"
@@ -503,7 +512,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="r-sch">SCH gültig bis</label>
+              <label class="label" for="r-sch">SCH gültig bis</label>
               <app-date-field
                 inputId="r-sch"
                 [value]="draft().refereeSchUntil"
@@ -515,12 +524,12 @@
       }
 
       @if (draft().official) {
-        <section class="panel">
+        <section class="box">
           <div class="card-head">
             <span class="pill is-violet">Funktionär</span>
             <button
               type="button"
-              class="icon-btn is-bad"
+              class="button is-small is-danger"
               aria-label="Rolle Funktionär entfernen"
               title="Rolle entfernen"
               (click)="setRole('official', false)"
@@ -528,7 +537,7 @@
               <app-icon name="x" />
             </button>
           </div>
-          <label class="field-label" for="o-function">Funktion</label>
+          <label class="label" for="o-function">Funktion</label>
           <input
             id="o-function"
             class="input"
@@ -537,7 +546,7 @@
           />
           <div class="form-grid mt-3">
             <div>
-              <label class="field-label" for="o-since">Im Amt seit</label>
+              <label class="label" for="o-since">Im Amt seit</label>
               <app-date-field
                 inputId="o-since"
                 [value]="draft().officialSince"
@@ -545,7 +554,7 @@
               />
             </div>
             <div>
-              <label class="field-label" for="o-until">Im Amt bis</label>
+              <label class="label" for="o-until">Im Amt bis</label>
               <app-date-field
                 inputId="o-until"
                 [value]="draft().officialUntil"
@@ -558,14 +567,14 @@
     </div>
   }
   @case ('material') {
-    <section class="panel">
+    <section class="box">
       <div class="card-head">
         <h3>Material</h3>
-        <button type="button" class="btn is-small" (click)="addMaterial()">
+        <button type="button" class="button is-small" (click)="addMaterial()">
           <app-icon name="plus" /> Material hinzufügen
         </button>
       </div>
-      <table class="rdp-table">
+      <table class="table is-fullwidth is-hoverable">
         <thead>
           <tr>
             <th scope="col">Gegenstand</th>
@@ -593,10 +602,10 @@
                   (change)="setMaterial(item.id, 'since', $event)"
                 />
               </td>
-              <td class="actions">
+              <td class="has-text-right is-nowrap">
                 <button
                   type="button"
-                  class="icon-btn is-bad"
+                  class="button is-small is-danger"
                   [attr.aria-label]="item.name + ' entfernen'"
                   title="Entfernen"
                   (click)="removeMaterial(item.id)"
@@ -623,14 +632,14 @@
     />
   }
   @case ('access') {
-    <section class="panel">
+    <section class="box">
       <div class="card-head">
         <h3>Zugang</h3>
         <span [class]="accessPill().css">{{ accessPill().text }}</span>
       </div>
       <div class="form-grid">
         <div>
-          <label class="field-label" for="a-user">Benutzername</label>
+          <label class="label" for="a-user">Benutzername</label>
           <input
             id="a-user"
             class="input"
@@ -639,7 +648,7 @@
           />
         </div>
         <div>
-          <label class="field-label" for="a-mail">E-Mail für Login und Hinweise</label>
+          <label class="label" for="a-mail">E-Mail für Login und Hinweise</label>
           <input
             id="a-mail"
             class="input"
@@ -651,23 +660,23 @@
       </div>
       <div class="icon-row mt-3">
         @if (draft().access === 'none') {
-          <button type="button" class="btn is-primary" (click)="setAccess('active')">
+          <button type="button" class="button is-primary" (click)="setAccess('active')">
             <app-icon name="mail" /> Zugang einrichten
           </button>
         } @else {
           <button
             type="button"
-            class="btn"
+            class="button"
             (click)="notice.set('Demo: Ein neues Kennwort wurde nicht versendet.')"
           >
             <app-icon name="mail" /> Neues Kennwort senden
           </button>
           @if (draft().access === 'active') {
-            <button type="button" class="btn is-danger" (click)="setAccess('blocked')">
+            <button type="button" class="button is-danger" (click)="setAccess('blocked')">
               Zugang sperren
             </button>
           } @else {
-            <button type="button" class="btn" (click)="setAccess('active')">
+            <button type="button" class="button" (click)="setAccess('active')">
               Zugang entsperren
             </button>
           }
@@ -677,7 +686,7 @@
         <p class="sub">{{ notice() }}</p>
       }
     </section>
-    <section class="panel">
+    <section class="box">
       <h3>Rollen</h3>
       <p class="sub">
         Dieselben Rollen wie in der Benutzerverwaltung. Änderungen gelten an beiden Stellen.
@@ -694,7 +703,7 @@
         </label>
       }
     </section>
-    <section class="panel">
+    <section class="box">
       <h3>Sonderrechte</h3>
       <p class="sub">
         Dieselben Sonderrechte wie in der Benutzerverwaltung, hier nur für
@@ -714,17 +723,17 @@
     </section>
   }
   @case ('extra') {
-    <section class="panel">
+    <section class="box">
       <div class="card-head">
         <h3>Weitere Felder</h3>
-        <button type="button" class="btn is-small" (click)="addExtra()">
+        <button type="button" class="button is-small" (click)="addExtra()">
           <app-icon name="plus" /> Feld hinzufügen
         </button>
       </div>
       @for (item of draft().extra; track item.id) {
         <div class="form-grid">
           <div>
-            <label class="field-label" [for]="'x-l-' + item.id">Bezeichnung</label>
+            <label class="label" [for]="'x-l-' + item.id">Bezeichnung</label>
             <input
               [id]="'x-l-' + item.id"
               class="input"
@@ -733,7 +742,7 @@
             />
           </div>
           <div>
-            <label class="field-label" [for]="'x-v-' + item.id">Wert</label>
+            <label class="label" [for]="'x-v-' + item.id">Wert</label>
             <input
               [id]="'x-v-' + item.id"
               class="input"
@@ -741,10 +750,10 @@
               (change)="setExtra(item.id, 'value', $event)"
             />
           </div>
-          <div class="actions">
+          <div class="has-text-right is-nowrap">
             <button
               type="button"
-              class="icon-btn is-bad"
+              class="button is-small is-danger"
               [attr.aria-label]="item.label + ' entfernen'"
               title="Entfernen"
               (click)="removeExtra(item.id)"
@@ -760,10 +769,10 @@
   }
   @case ('family') {
     <div class="cols">
-      <section class="panel">
+      <section class="box">
         <div class="card-head">
           <h3>Eltern und Erziehungsberechtigte</h3>
-          <a class="btn is-small" routerLink="/personen/eltern/neu">
+          <a class="button is-small" routerLink="/personen/eltern/neu">
             <app-icon name="plus" /> Elternteil hinzufügen
           </a>
         </div>
@@ -808,7 +817,7 @@
           <p class="sub">Keine Eltern hinterlegt.</p>
         }
       </section>
-      <section class="panel">
+      <section class="box">
         <h3>Geschwister im Verein</h3>
         @for (sibling of siblings(); track sibling.id) {
           <p>

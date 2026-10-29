@@ -1,5 +1,5 @@
 <app-modal-dialog [heading]="heading()" (closed)="closed.emit()">
-  <label class="field-label" for="picker-search">Suchen</label>
+  <label class="label" for="picker-search">Suchen</label>
   <input id="picker-search" class="input mb-3" type="search" (input)="setQuery($event)" />
   <ul class="picker-list">
     @for (match of matches(); track match.person.id) {
@@ -14,6 +14,6 @@
     }
   </ul>
   <ng-container dialogActions>
-    <button type="button" class="btn" (click)="closed.emit()">Abbrechen</button>
+    <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
   </ng-container>
 </app-modal-dialog>

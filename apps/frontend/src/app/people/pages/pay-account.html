@@ -1,6 +1,6 @@
-<section class="panel">
+<section class="box">
   <h3>Zahlart</h3>
-  <div class="chips">
+  <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2">
     @for (item of methods; track item) {
       <button
         type="button"
@@ -15,11 +15,11 @@
   </div>
 </section>
 
-<section class="panel">
+<section class="box">
   <h3>Bankverbindung</h3>
   <div class="form-grid">
     <div>
-      <label class="field-label" for="b-holder">Kontoinhaber</label>
+      <label class="label" for="b-holder">Kontoinhaber</label>
       <input
         id="b-holder"
         class="input"
@@ -28,7 +28,7 @@
       />
     </div>
     <div>
-      <label class="field-label" for="b-bank">Name Bank</label>
+      <label class="label" for="b-bank">Name Bank</label>
       <input
         id="b-bank"
         class="input"
@@ -37,7 +37,7 @@
       />
     </div>
     <div>
-      <label class="field-label" for="b-iban">IBAN</label>
+      <label class="label" for="b-iban">IBAN</label>
       <input
         id="b-iban"
         class="input"
@@ -46,7 +46,7 @@
       />
     </div>
     <div>
-      <label class="field-label" for="b-bic">BIC</label>
+      <label class="label" for="b-bic">BIC</label>
       <input id="b-bic" class="input" [value]="account().bic" (change)="setText('bic', $event)" />
     </div>
   </div>
@@ -54,7 +54,7 @@
 </section>
 
 @if (account().method === 'Lastschrift') {
-  <section class="panel">
+  <section class="box">
     <h3>SEPA-Mandat</h3>
     <label class="checkbox block">
       <input
@@ -66,7 +66,7 @@
     </label>
     <div class="form-grid">
       <div>
-        <label class="field-label" for="b-ref">Mandatsreferenz</label>
+        <label class="label" for="b-ref">Mandatsreferenz</label>
         <input
           id="b-ref"
           class="input"
@@ -75,7 +75,7 @@
         />
       </div>
       <div>
-        <label class="field-label" for="b-on">Mandat erteilt am</label>
+        <label class="label" for="b-on">Mandat erteilt am</label>
         <app-date-field
           inputId="b-on"
           [value]="account().mandateOn"
@@ -86,12 +86,12 @@
   </section>
 }
 
-<section class="panel">
+<section class="box">
   <div class="card-head">
     <h3>Beiträge, die gezahlt werden</h3>
-    <a class="btn is-small" routerLink="/beitraege">Zu den Zahlungen</a>
+    <a class="button is-small" routerLink="/beitraege">Zu den Zahlungen</a>
   </div>
-  <table class="rdp-table">
+  <table class="table is-fullwidth is-hoverable">
     <thead>
       <tr>
         <th scope="col">Für</th>

@@ -2,7 +2,7 @@
   <p class="mb-3">
     <strong>Empfänger ({{ recipients().length }}):</strong> {{ recipients().join(', ') }}
   </p>
-  <label class="field-label" for="mail-template">Vorlage</label>
+  <label class="label" for="mail-template">Vorlage</label>
   <div class="select is-fullwidth mb-3">
     <select id="mail-template" (change)="applyTemplate($event)">
       <option value="">Leer</option>
@@ -13,7 +13,7 @@
       }
     </select>
   </div>
-  <label class="field-label" for="mail-subject">Betreff</label>
+  <label class="label" for="mail-subject">Betreff</label>
   <input
     id="mail-subject"
     class="input mb-3"
@@ -21,13 +21,13 @@
     [value]="subject()"
     (input)="setSubject($event)"
   />
-  <label class="field-label" for="mail-text">Text</label>
+  <label class="label" for="mail-text">Text</label>
   <textarea id="mail-text" class="textarea" rows="8" [value]="text()" (input)="setText($event)">
   </textarea>
-  <p class="field-label mt-2">Demo: Es wird keine Mail verschickt.</p>
+  <p class="label mt-2">Demo: Es wird keine Mail verschickt.</p>
   <ng-container dialogActions>
-    <button type="button" class="btn" (click)="closed.emit()">Abbrechen</button>
-    <button type="button" class="btn is-primary" (click)="sent.emit(recipients().length)">
+    <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
+    <button type="button" class="button is-primary" (click)="sent.emit(recipients().length)">
       Senden
     </button>
   </ng-container>

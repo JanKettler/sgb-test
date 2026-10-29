@@ -1,18 +1,18 @@
 <div class="tiles mb-3">
   <div class="tile">
-    <span class="field-label">Zu mahnen</span>
+    <span class="label">Zu mahnen</span>
     <strong class="big">{{ chosen().length }}</strong>
   </div>
   <div class="tile">
-    <span class="field-label">Offene Beiträge</span>
+    <span class="label">Offene Beiträge</span>
     <strong class="big">{{ euro(sums().open) }}</strong>
   </div>
   <div class="tile">
-    <span class="field-label">Mahngebühren</span>
+    <span class="label">Mahngebühren</span>
     <strong class="big">{{ euro(sums().fees) }}</strong>
   </div>
   <div class="tile">
-    <span class="field-label">Gesamt</span>
+    <span class="label">Gesamt</span>
     <strong class="big">{{ euro(sums().total) }}</strong>
   </div>
 </div>
@@ -20,8 +20,8 @@
 <h3>Wer wird gemahnt</h3>
 <p class="sub">{{ chosen().length }} von {{ rows().length }} markiert</p>
 
-<div class="table-scroll">
-  <table class="rdp-table">
+<div class="table-container">
+  <table class="table is-fullwidth is-hoverable">
     <thead>
       <tr>
         <th scope="col" class="narrow"><span class="is-sr-only">Auswahl</span></th>
@@ -66,8 +66,13 @@
   </table>
 </div>
 
-<div class="chips mt-3">
-  <button type="button" class="btn is-primary" [disabled]="chosen().length === 0" (click)="send()">
+<div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mt-3">
+  <button
+    type="button"
+    class="button is-primary"
+    [disabled]="chosen().length === 0"
+    (click)="send()"
+  >
     <app-icon name="mail" /> Mahnungen versenden ({{ chosen().length }})
   </button>
 </div>
@@ -84,19 +89,19 @@
       @for (line of text.lines; track line) {
         <p>{{ line }}</p>
       }
-      <table class="rdp-table small">
+      <table class="table is-fullwidth is-hoverable small">
         <tbody>
           <tr>
             <td>Offener Beitrag</td>
-            <td class="actions">{{ euro(row.payment.amount) }}</td>
+            <td class="has-text-right is-nowrap">{{ euro(row.payment.amount) }}</td>
           </tr>
           <tr>
             <td>Mahngebühr</td>
-            <td class="actions">{{ euro(row.fee) }}</td>
+            <td class="has-text-right is-nowrap">{{ euro(row.fee) }}</td>
           </tr>
           <tr>
             <td><strong>Gesamt</strong></td>
-            <td class="actions">
+            <td class="has-text-right is-nowrap">
               <strong>{{ euro(row.total) }}</strong>
             </td>
           </tr>
