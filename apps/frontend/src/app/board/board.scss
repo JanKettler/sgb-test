@@ -37,8 +37,30 @@
     opacity: 0.75;
   }
 
-  tr.is-important:not([style*='background']) > td {
+  .flags {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.6rem;
+    margin-bottom: 0.25rem;
+
+    .note {
+      margin-top: 0;
+    }
+  }
+
+  tr.is-important:not(.has-bg) > td {
     background: color-mix(in srgb, #dc2626 9%, var(--sgb-card));
+  }
+
+  /* A colour chosen for the entry wins over the theme, and so does the matching text colour. */
+  tr.has-bg > td {
+    background: var(--row-bg);
+    color: var(--row-ink);
+
+    a {
+      color: inherit;
+    }
   }
 }
 

@@ -34,23 +34,27 @@
           @for (post of shown(); track post.id) {
             <tr
               [class.is-important]="post.important"
-              [style.background]="post.bg || null"
-              [style.color]="ink(post)"
+              [class.has-bg]="!!post.bg"
+              [style.--row-bg]="post.bg || null"
+              [style.--row-ink]="ink(post)"
             >
               <td class="meta">{{ post.author }}</td>
               <td class="meta">{{ day(post.date) }}</td>
               <td class="message">
-                <strong>
-                  @if (post.important) {
-                    <app-icon name="bullhorn" class="has-text-danger" />
-                  }
-                  {{ post.title }}
-                </strong>
-                @if (store.isNew(post)) {
-                  <span class="tag is-success is-rounded ml-2">NEU</span>
-                }
-                @if (audience(post)) {
-                  <span class="note"><app-icon name="lock" /> {{ audience(post) }}</span>
+                @if (post.important || store.isNew(post) || audience(post)) {
+                  <div class="flags">
+                    @if (post.important) {
+                      <span class="tag is-danger is-rounded">
+                        <app-icon name="bullhorn" /> Wichtig
+                      </span>
+                    }
+                    @if (store.isNew(post)) {
+                      <span class="tag is-success is-rounded">NEU</span>
+                    }
+                    @if (audience(post)) {
+                      <span class="note"><app-icon name="lock" /> {{ audience(post) }}</span>
+                    }
+                  </div>
                 }
                 <div class="content-text" [appRichText]="post.html"></div>
                 @if (post.until) {
@@ -118,10 +122,11 @@
 @if (limit() === 0 && store.canWrite() && store.archive().length > 0) {
   <details class="box">
     <summary class="has-text-weight-bold is-clickable">
-      <app-icon name="list" /> Archiv, abgelaufen ({{ store.archive().length }})
+      <app-icon name="list" /> Archiv: abgelaufen und gelöscht ({{ store.archive().length }})
     </summary>
     <p class="is-size-7 has-text-grey my-3">
-      Nur für Verfasser sichtbar. Mit dem Stift und neuem „Sichtbar bis“ wieder hervorholen.
+      Die letzten 30 Tage nach dem Abnehmen vom Brett. Abgelaufene Einträge lassen sich mit dem
+      Stift und neuem „Sichtbar bis“ zurückholen, gelöschte mit „Wiederherstellen“.
     </p>
     <div class="table-container">
       <table class="table is-bordered is-fullwidth board-table">
@@ -134,33 +139,48 @@
           </tr>
         </thead>
         <tbody>
-          @for (post of store.archive(); track post.id) {
+          @for (entry of store.archive(); track entry.post.id) {
             <tr>
-              <td class="meta">{{ post.author }}</td>
-              <td class="meta">{{ day(post.date) }}</td>
+              <td class="meta">{{ entry.post.author }}</td>
+              <td class="meta">{{ day(entry.post.date) }}</td>
               <td class="message">
-                <strong>{{ post.title }}</strong>
-                <div class="content-text" [appRichText]="post.html"></div>
-                <span class="note">abgelaufen am {{ fullDate(post.until) }}</span>
+                <div class="flags">
+                  <span class="tag is-rounded" [class.is-danger]="inArchive(entry)">
+                    {{ inArchive(entry) ? 'gelöscht' : 'abgelaufen' }} am {{ fullDate(entry.on) }}
+                  </span>
+                </div>
+                <div class="content-text" [appRichText]="entry.post.html"></div>
               </td>
               <td class="actions">
-                <div class="buttons is-flex-wrap-nowrap are-small">
-                  <button
-                    type="button"
-                    class="button is-warning"
-                    aria-label="Bearbeiten"
-                    (click)="edit(post)"
-                  >
-                    <app-icon name="pencil" />
-                  </button>
-                  <button
-                    type="button"
-                    class="button is-danger"
-                    aria-label="Löschen"
-                    (click)="toDelete.set(post)"
-                  >
-                    <app-icon name="trash" />
-                  </button>
+                <div class="buttons is-flex-wrap-nowrap">
+                  @if (inArchive(entry)) {
+                    <button
+                      type="button"
+                      class="button is-success"
+                      aria-label="Wiederherstellen"
+                      title="Wiederherstellen"
+                      (click)="store.restore(entry.post.id)"
+                    >
+                      <app-icon name="restore" />
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="button is-warning"
+                      aria-label="Bearbeiten"
+                      (click)="edit(entry.post)"
+                    >
+                      <app-icon name="pencil" />
+                    </button>
+                    <button
+                      type="button"
+                      class="button is-danger"
+                      aria-label="Löschen"
+                      (click)="toDelete.set(entry.post)"
+                    >
+                      <app-icon name="trash" />
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -173,7 +193,7 @@
 
 @if (draft(); as post) {
   <app-modal-dialog
-    [heading]="post.title ? 'Mitteilung bearbeiten' : 'Neue Mitteilung'"
+    [heading]="creating() ? 'Neue Mitteilung' : 'Mitteilung bearbeiten'"
     accent="amber"
     [wide]="true"
     (closed)="draft.set(null)"
@@ -187,7 +207,7 @@
           maxlength="60"
           placeholder="z. B. Jan, i. A. Frieda"
           [value]="post.author"
-          (change)="text('author', $event)"
+          (change)="setAuthor($event)"
         />
       </div>
       <div class="column is-12-mobile is-6-tablet">
@@ -201,27 +221,19 @@
     </div>
 
     <div class="field">
-      <label class="label" for="board-title">Überschrift</label>
-      <input
-        id="board-title"
-        class="input"
-        [class.is-danger]="invalid() && !post.title.trim()"
-        [value]="post.title"
-        (change)="text('title', $event)"
-      />
-      @if (invalid() && !post.title.trim()) {
-        <p class="help is-danger">Bitte eine Überschrift eingeben.</p>
-      }
-    </div>
-
-    <div class="field">
       <span class="label">Mitteilung</span>
+      <p class="help mb-2">
+        Die erste Zeile ist die Überschrift: einfach markieren und größer oder fett machen.
+      </p>
       <app-rich-editor
         [html]="post.html"
         [background]="post.bg"
         [textColor]="ink(post) ?? ''"
         (htmlChange)="patch({ html: $event })"
       />
+      @if (invalid() && !post.html) {
+        <p class="help is-danger">Bitte einen Text eingeben.</p>
+      }
     </div>
 
     <div class="field">
@@ -301,7 +313,7 @@
 
 @if (toDelete(); as post) {
   <app-modal-dialog heading="Mitteilung löschen?" accent="red" (closed)="toDelete.set(null)">
-    <p>„{{ post.title }}“ wird gelöscht.</p>
+    <p>„{{ titleOf(post) }}“ wird gelöscht und bleibt 30 Tage im Archiv.</p>
     <ng-container dialogActions>
       <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
       <button type="button" class="button is-danger" (click)="remove()">Löschen</button>

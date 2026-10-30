@@ -9,6 +9,11 @@ app-icon {
   display: inline-flex;
 }
 
+/* Boxes keep the same distance everywhere (Bulma uses a bigger one). */
+.box:not(:last-child) {
+  margin-bottom: 1rem;
+}
+
 .app-icon {
   text-align: center;
   width: 1.1em;

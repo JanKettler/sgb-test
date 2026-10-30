@@ -30,6 +30,7 @@
   --bulma-primary-h: 209;
   --bulma-primary-s: 50%;
   --bulma-primary-l: 46%;
+  --bulma-primary-invert-l: 100%;
   color-scheme: dark;
 }
 
@@ -46,6 +47,8 @@
   --bulma-primary-h: 208;
   --bulma-primary-s: 67%;
   --bulma-primary-l: 21%;
+  /* Bulma works out the text colour of buttons at build time; with our own navy it has to be set. */
+  --bulma-primary-invert-l: 100%;
   --sgb-navy: #12395c;
   --sgb-strong: #12395c;
   --sgb-on-strong: #fff;

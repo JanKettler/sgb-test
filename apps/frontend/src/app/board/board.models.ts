@@ -3,7 +3,6 @@ import { DemoRole, GroupId } from '../training/training.models';
 /** A message on the notice board ("Schwarzes Brett"). */
 export interface BoardPost {
   id: string;
-  title: string;
   /** Formatted message text (cleaned HTML) */
   html: string;
   important: boolean;
@@ -26,7 +25,6 @@ export interface BoardPost {
 export function emptyPost(id: string, author: string, today: string): BoardPost {
   return {
     id,
-    title: '',
     html: '',
     important: false,
     date: today,
@@ -37,4 +35,21 @@ export function emptyPost(id: string, author: string, today: string): BoardPost 
     bg: '',
     order: null,
   };
+}
+
+/** The heading of a message is simply its first line of text. */
+export function titleOf(post: Pick<BoardPost, 'html'>): string {
+  const box = document.createElement('div');
+  box.innerHTML = post.html.replace(/<(br|\/div|\/p)\s*\/?>/gi, '\n');
+  const first = (box.textContent ?? '').split('\n').find((line) => line.trim() !== '') ?? '';
+  const line = first.trim();
+  return line.length > 60 ? `${line.slice(0, 57)}…` : line;
+}
+
+/** A message that is no longer on the board but can still be found for a while. */
+export interface ArchiveEntry {
+  post: BoardPost;
+  reason: 'expired' | 'deleted';
+  /** ISO date it expired or was deleted */
+  on: string;
 }
