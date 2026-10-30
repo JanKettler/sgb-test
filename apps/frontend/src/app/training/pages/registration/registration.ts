@@ -7,12 +7,19 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { GroupChips } from '../../../ui/group-chips';
 import { Icon } from '../../../ui/icon';
 import { DeclineChoice, DeclineDialog } from '../../dialogs/decline-dialog';
 import { MailDialog } from '../../dialogs/mail-dialog';
 import { RegisteredDialog } from '../../dialogs/registered-dialog';
 import { endTime, fullDate, weekdayLong } from '../../training-dates';
-import { PersonRole, SessionResponse, TrainingSession } from '../../training.models';
+import {
+  GroupId,
+  Person,
+  PersonRole,
+  SessionResponse,
+  TrainingSession,
+} from '../../training.models';
 import { TrainingStore } from '../../training.store';
 
 interface Row {
@@ -34,7 +41,7 @@ interface DeclineTarget {
 
 @Component({
   selector: 'app-training-registration',
-  imports: [RouterLink, Icon, DeclineDialog, RegisteredDialog, MailDialog],
+  imports: [RouterLink, Icon, GroupChips, DeclineDialog, RegisteredDialog, MailDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './registration.html',
   styleUrl: './registration.scss',
@@ -48,6 +55,11 @@ export class TrainingRegistration {
   protected readonly declining = signal<DeclineTarget | null>(null);
   protected readonly viewing = signal<TrainingSession | null>(null);
   protected readonly mailing = signal<TrainingSession | null>(null);
+
+  /** The groups a person swims in or trains, shown next to the name. */
+  protected groupIdsOf(person: Person): GroupId[] {
+    return [...(person.groupId ? [person.groupId] : []), ...person.trainerGroupIds];
+  }
 
   /** The person whose registrations are shown, for parents one of the children. */
   protected readonly person = computed(() => {

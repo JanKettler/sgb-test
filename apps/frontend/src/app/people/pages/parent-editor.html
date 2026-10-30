@@ -49,6 +49,24 @@
         (change)="set('email', $event)"
       />
     </div>
+    <div>
+      <label class="label" for="e-no">Mitgliedsnummer</label>
+      <input
+        id="e-no"
+        class="input"
+        inputmode="numeric"
+        placeholder="leer = kein Mitglied"
+        [value]="draft().memberNo ?? ''"
+        (change)="setMemberNo($event)"
+      />
+      <p class="help">
+        {{
+          draft().memberNo
+            ? 'Mitglied: zahlt Beitrag oder Familienbeitrag.'
+            : 'Kein Mitglied: ohne Beitrag, nur als Kontakt der Kinder.'
+        }}
+      </p>
+    </div>
   </div>
 </section>
 

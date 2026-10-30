@@ -152,6 +152,8 @@ export interface Parent {
   name: string;
   relation: Relation;
   email: string;
+  /** Parents with a member number are club members; without one they are not. */
+  memberNo: number | null;
   access: 'active' | 'invited';
   trainingRegistration: boolean;
   competitionRegistration: boolean;

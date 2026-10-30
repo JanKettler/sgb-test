@@ -5,21 +5,52 @@
   </div>
 }
 
-<div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
-  <label class="checkbox">
-    <input
-      type="checkbox"
-      [checked]="store.hideMissing()"
-      (change)="store.hideMissing.set($any($event.target).checked)"
-    />
-    Fehlende Nachweise überall ausblenden
-  </label>
-  @if (store.dismissed().size > 0) {
-    <button type="button" class="chip" (click)="store.showDismissed()">
-      {{ store.dismissed().size }} einzeln ausgeblendet – wieder einblenden
+<div
+  class="is-flex is-flex-wrap-wrap is-justify-content-space-between is-align-items-center is-gap-3 mb-3"
+>
+  <div class="tabs is-toggle mb-0" role="tablist">
+    <ul>
+      @for (item of categories; track item[0]) {
+        <li [class.is-active]="category() === item[0]">
+          <a
+            role="tab"
+            tabindex="0"
+            [attr.aria-selected]="category() === item[0]"
+            (click)="selectCategory(item[0])"
+            (keydown.enter)="selectCategory(item[0])"
+          >
+            {{ item[1].label }}
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+  <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-3">
+    <label class="checkbox is-size-7">
+      <input
+        type="checkbox"
+        [checked]="forAll()"
+        (change)="forAll.set($any($event.target).checked)"
+      />
+      für alle Kategorien
+    </label>
+    <button
+      type="button"
+      class="button"
+      [class.is-link]="hidingMissing()"
+      [attr.aria-pressed]="hidingMissing()"
+      (click)="toggleHidingMissing()"
+    >
+      <app-icon name="eye-slash" /> Fehlende ausblenden
     </button>
-  }
+    @if (store.dismissed().size > 0) {
+      <button type="button" class="chip" (click)="store.showDismissed()">
+        {{ store.dismissed().size }} einzeln ausgeblendet – wieder einblenden
+      </button>
+    }
+  </div>
 </div>
+
 <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
   <span class="label m-0">Zeitraum</span>
   @for (item of periods(); track item.id) {
@@ -33,9 +64,24 @@
       {{ item.label }} · {{ item.count }}
     </button>
   }
+  <button
+    type="button"
+    class="chip is-solid"
+    [class.is-on]="period() === 'range'"
+    [attr.aria-pressed]="period() === 'range'"
+    (click)="period.set('range')"
+  >
+    Zeitraum eingeben
+  </button>
+  @if (period() === 'range') {
+    <span>von</span>
+    <app-date-field label="Von" [(value)]="from" />
+    <span>bis</span>
+    <app-date-field label="Bis" [(value)]="to" />
+  }
 </div>
 <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
-  <span class="label m-0">Nachweis</span>
+  <span class="label m-0">Art</span>
   <button
     type="button"
     class="chip is-solid"
@@ -45,7 +91,7 @@
   >
     Alle Arten
   </button>
-  @for (item of kinds; track item) {
+  @for (item of kinds(); track item) {
     <button
       type="button"
       class="chip is-solid"

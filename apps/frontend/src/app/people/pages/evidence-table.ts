@@ -1,53 +1,76 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DateField } from '../../ui/date-field';
 import { Icon } from '../../ui/icon';
 import { MailDialog } from '../../training/dialogs/mail-dialog';
-import { fullDate } from '../../training/training-dates';
-import { EVIDENCE_KINDS, EVIDENCE_LABELS, EvidenceKind, EvidenceRow } from '../people-evidence';
+import { addDays, fullDate } from '../../training/training-dates';
+import {
+  EVIDENCE_CATEGORIES,
+  EVIDENCE_LABELS,
+  EvidenceCategory,
+  EvidenceKind,
+  EvidenceRow,
+  categoryOf,
+} from '../people-evidence';
 import { fullName } from '../people.models';
 import { PeopleStore } from '../people.store';
 
-type Period = 'all' | 'overdue' | '30' | '90';
+type Period = 'all' | 'overdue' | '30' | 'range';
 
 @Component({
   selector: 'app-evidence-table',
-  imports: [RouterLink, Icon, MailDialog],
+  imports: [RouterLink, Icon, MailDialog, DateField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './evidence-table.html',
 })
 export class EvidenceTable {
   protected readonly store = inject(PeopleStore);
-  protected readonly kinds = EVIDENCE_KINDS;
+  protected readonly categories = Object.entries(EVIDENCE_CATEGORIES) as [
+    EvidenceCategory,
+    (typeof EVIDENCE_CATEGORIES)[EvidenceCategory],
+  ][];
   protected readonly labels = EVIDENCE_LABELS;
   protected readonly fullDate = fullDate;
 
+  protected readonly category = signal<EvidenceCategory>('proof');
   protected readonly period = signal<Period>('all');
+  protected readonly from = signal(this.store.today);
+  protected readonly to = signal(addDays(this.store.today, 90));
   protected readonly kind = signal<EvidenceKind | ''>('');
+  /** Hide missing evidence only in the shown category or in all of them. */
+  protected readonly forAll = signal(false);
   protected readonly selected = signal<ReadonlySet<string>>(new Set());
   protected readonly mailing = signal(false);
   protected readonly message = signal('');
 
   private readonly due = this.store.dueEvidence;
 
+  /** The evidence of the shown category, before the period is applied. */
+  private readonly inCategory = computed(() =>
+    this.due().filter((row) => categoryOf(row.kind) === this.category()),
+  );
+
+  protected readonly kinds = computed(() => EVIDENCE_CATEGORIES[this.category()].kinds);
+  protected readonly hidingMissing = computed(() => this.store.hideMissing()[this.category()]);
+
   protected readonly periods = computed(() => {
-    const rows = this.due();
+    const rows = this.inCategory();
     const count = (test: (row: EvidenceRow) => boolean) => rows.filter(test).length;
     return [
       { id: 'all' as const, label: 'Alle', count: rows.length },
       { id: 'overdue' as const, label: 'Abgelaufen', count: count(this.isOverdue) },
       { id: '30' as const, label: 'Nächste 30 Tage', count: count((row) => this.within(row, 30)) },
-      { id: '90' as const, label: 'Nächste 90 Tage', count: count((row) => this.within(row, 90)) },
     ];
   });
 
   protected readonly rows = computed(() => {
     const period = this.period();
     const kind = this.kind();
-    return this.due().filter((row) => {
+    return this.inCategory().filter((row) => {
       if (kind && row.kind !== kind) return false;
       if (period === 'overdue') return this.isOverdue(row);
       if (period === '30') return this.within(row, 30);
-      if (period === '90') return this.within(row, 90);
+      if (period === 'range') return !!row.date && row.date >= this.from() && row.date <= this.to();
       return true;
     });
   });
@@ -59,6 +82,16 @@ export class EvidenceTable {
       .map((row) => fullName(row.member));
     return [...new Set(names)];
   });
+
+  protected selectCategory(category: EvidenceCategory): void {
+    this.category.set(category);
+    this.kind.set('');
+    this.selected.set(new Set());
+  }
+
+  protected toggleHidingMissing(): void {
+    this.store.setHideMissing(this.forAll() ? 'all' : this.category(), !this.hidingMissing());
+  }
 
   protected key(row: EvidenceRow): string {
     return `${row.member.id}:${row.kind}`;

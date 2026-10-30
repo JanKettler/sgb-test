@@ -24,7 +24,8 @@ interface MailRequest {
 export class AttendanceOverview {
   protected readonly store = inject(TrainingStore);
 
-  protected readonly groupId = signal<GroupId>('WK');
+  protected readonly groupId = signal<GroupId | 'all'>('all');
+  protected readonly groups = this.store.viewableGroups;
   protected readonly from = signal(`${monthKey(addMonths(this.store.today, -1))}-01`);
   protected readonly to = signal(addDays(this.store.today, -1));
   protected readonly exporting = signal(false);
@@ -34,6 +35,11 @@ export class AttendanceOverview {
   protected readonly matrix = computed(() =>
     this.store.matrix(this.groupId(), this.from(), this.to()),
   );
+  /** The Excel export works per group; for "all" it starts with the first group the user may see. */
+  protected readonly exportGroup = computed<GroupId>(() => {
+    const selected = this.groupId();
+    return selected === 'all' ? (this.groups()[0]?.id ?? 'WK') : selected;
+  });
   protected readonly action = computed(() => this.store.actionNeeded());
   protected readonly hasAction = computed(
     () => this.action().inactive.length + this.action().info.length > 0,

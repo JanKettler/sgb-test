@@ -104,7 +104,7 @@
                   Name {{ sortMark('name') }}
                 </button>
               </th>
-              <th scope="col">Rollen</th>
+              <th scope="col" class="roles-col">Rollen</th>
               <th scope="col">Schwimmer in</th>
               <th scope="col">Trainer in</th>
               <th scope="col">Nachweise</th>
@@ -125,9 +125,14 @@
                     >Jg. {{ year(row.member) }} · Nr. {{ row.member.memberNo }}</small
                   >
                 </td>
-                <td>
-                  @for (chip of row.chips; track chip.label) {
+                <td class="roles-col">
+                  @for (chip of row.chips.slice(0, 2); track chip.label) {
                     <span [class]="chip.css">{{ chip.label }}</span>
+                  }
+                  @if (row.chips.length > 2) {
+                    <span class="pill" [title]="row.chips.slice(2).map(rolesLabel).join(', ')">
+                      +{{ row.chips.length - 2 }}
+                    </span>
                   }
                 </td>
                 <td>
@@ -149,7 +154,7 @@
                 </td>
                 <td class="has-text-right is-nowrap">
                   <a
-                    class="button is-small is-warning"
+                    class="button is-warning"
                     [routerLink]="['/personen', row.member.id]"
                     [attr.aria-label]="row.name + ' bearbeiten'"
                     title="Bearbeiten"
@@ -158,7 +163,7 @@
                   </a>
                   <button
                     type="button"
-                    class="button is-small is-danger"
+                    class="button is-danger"
                     [attr.aria-label]="row.name + ' löschen'"
                     title="Löschen"
                     (click)="toDelete.set(row.member)"

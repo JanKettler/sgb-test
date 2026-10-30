@@ -3,7 +3,7 @@
 >
   <div>
     <h2 class="title is-4 mb-1">Anwesenheit</h2>
-    <p class="subtitle is-6 mb-0">Alle Gruppen im Überblick</p>
+    <p class="subtitle is-6 mb-0">Gruppen im Überblick</p>
   </div>
 </header>
 
@@ -62,7 +62,16 @@
 
   <div class="toolbar">
     <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2">
-      @for (group of store.groups; track group.id) {
+      <button
+        type="button"
+        class="chip is-solid"
+        [class.is-on]="groupId() === 'all'"
+        [attr.aria-pressed]="groupId() === 'all'"
+        (click)="groupId.set('all')"
+      >
+        Alle Gruppen
+      </button>
+      @for (group of groups(); track group.id) {
         <button
           type="button"
           class="chip is-solid"
@@ -161,7 +170,7 @@
 </section>
 
 @if (exporting()) {
-  <app-export-dialog [initialGroup]="groupId()" (closed)="exporting.set(false)" />
+  <app-export-dialog [initialGroup]="exportGroup()" (closed)="exporting.set(false)" />
 }
 
 @if (mailRequest(); as request) {

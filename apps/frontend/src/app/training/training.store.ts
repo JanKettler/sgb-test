@@ -156,6 +156,13 @@ export class TrainingStore {
     return ids.map((id) => byId.get(id)).filter((person): person is Person => !!person);
   });
 
+  /** Groups whose attendance the current user may see: admins all, trainers the groups they train. */
+  readonly viewableGroups = computed<TrainingGroup[]>(() => {
+    if (this.role() === 'admin') return [...this.groups];
+    const own = new Set(this.actors().flatMap((person) => person.trainerGroupIds));
+    return this.groups.filter((group) => own.has(group.id));
+  });
+
   readonly canManage = computed(() => this.role() !== 'parent');
   readonly isAdmin = computed(() => this.role() === 'admin');
 
@@ -537,23 +544,31 @@ export class TrainingStore {
     );
   }
 
-  matrix(groupId: GroupId, from: string, to: string): Matrix {
+  /** One group, or "all" for every group the user may see. */
+  matrix(selection: GroupId | 'all', from: string, to: string): Matrix {
+    const groupIds =
+      selection === 'all' ? this.viewableGroups().map((group) => group.id) : [selection];
     const sessions = this.sessions().filter(
       (session) =>
         session.date < this.today &&
         (!from || session.date >= from) &&
         (!to || session.date <= to) &&
-        session.groupIds.includes(groupId),
+        session.groupIds.some((id) => groupIds.includes(id)),
     );
     const members = this.people()
-      .filter((person) => person.groupId === groupId || person.trainerGroupIds.includes(groupId))
+      .filter(
+        (person) =>
+          (person.groupId !== null && groupIds.includes(person.groupId)) ||
+          person.trainerGroupIds.some((id) => groupIds.includes(id)),
+      )
       .sort(byName);
     const rows = members.map((person): MatrixRow => {
       const cells = sessions.map((session) => {
         const role = this.roleIn(session, person);
         return role ? this.stateOf(session, person.id, role) : null;
       });
-      return { person, isTrainer: person.groupId !== groupId, cells };
+      const swimsHere = person.groupId !== null && groupIds.includes(person.groupId);
+      return { person, isTrainer: !swimsHere, cells };
     });
     rows.sort((a, b) => Number(b.isTrainer) - Number(a.isTrainer));
     return { sessions, rows };
@@ -580,8 +595,9 @@ export class TrainingStore {
     const skip = new Set([...this.handledIds(), ...this.inactiveIds()]);
     const inactive: ActionNeeded[] = [];
     const info: ActionNeeded[] = [];
+    const visible = new Set(this.viewableGroups().map((group) => group.id));
     for (const person of this.swimmers()) {
-      if (skip.has(person.id)) continue;
+      if (skip.has(person.id) || person.groupId === null || !visible.has(person.groupId)) continue;
       const { count, registered } = this.missingStreak(person);
       const entry = { person, streak: count, registered };
       if (count >= settings.inactiveAfter) inactive.push(entry);
