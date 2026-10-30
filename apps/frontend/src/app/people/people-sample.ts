@@ -168,6 +168,7 @@ function buildParents(members: Member[], today: string): Parent[] {
         name: `${firstName} ${lastName}`,
         relation,
         email: `${slug(firstName)}.${slug(lastName)}@example.org`,
+        memberNo: position === 0 && counter % 3 === 0 ? 7000 + counter : null,
         access: position === 0 ? 'active' : 'invited',
         trainingRegistration: true,
         competitionRegistration: position === 0,

@@ -14,6 +14,8 @@ export class ModalDialog {
   readonly heading = input.required<string>();
   readonly subtitle = input('');
   readonly badge = input('');
+  /** Colour of the badge: one of the pill tones, e.g. "is-ok". */
+  readonly badgeTone = input('is-violet');
   readonly accent = input<DialogAccent>('navy');
   readonly wide = input(false);
   readonly closed = output();

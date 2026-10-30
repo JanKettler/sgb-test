@@ -22,6 +22,24 @@ export const EVIDENCE_LABELS: Record<EvidenceKind, string> = {
 
 export const EVIDENCE_KINDS = Object.keys(EVIDENCE_LABELS) as EvidenceKind[];
 
+export type EvidenceCategory = 'proof' | 'license';
+
+/** Proofs (health, first aid, ...) and licences are listed apart. */
+export const EVIDENCE_CATEGORIES: Record<
+  EvidenceCategory,
+  { label: string; kinds: EvidenceKind[] }
+> = {
+  proof: {
+    label: 'Nachweise',
+    kinds: ['attest', 'firstAid', 'lifeSaving', 'criminalRecord', 'codeOfConduct'],
+  },
+  license: { label: 'Lizenzen', kinds: ['license', 'refereeLicense'] },
+};
+
+export function categoryOf(kind: EvidenceKind): EvidenceCategory {
+  return EVIDENCE_CATEGORIES.license.kinds.includes(kind) ? 'license' : 'proof';
+}
+
 /** bad = missing or expired, warn = soon, info = within 90 days, ok = fine */
 export type Tone = 'bad' | 'warn' | 'info' | 'ok';
 

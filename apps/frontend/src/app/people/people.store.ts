@@ -1,7 +1,14 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { GroupId } from '../training/training.models';
 import { TrainingStore } from '../training/training.store';
-import { EvidenceRow, MemberStatus, evidenceOf, statusOf } from './people-evidence';
+import {
+  EvidenceCategory,
+  EvidenceRow,
+  MemberStatus,
+  categoryOf,
+  evidenceOf,
+  statusOf,
+} from './people-evidence';
 import { createPeopleSample } from './people-sample';
 import { fullDate } from '../training/training-dates';
 import {
@@ -32,8 +39,11 @@ export class PeopleStore {
   readonly parents = signal<Parent[]>(this.sample.parents);
   /** One-time message shown after saving on another page. */
   readonly flash = signal('');
-  /** Hide evidence that was never entered, in every list. */
-  readonly hideMissing = signal(false);
+  /** Hide evidence that was never entered, per category. */
+  readonly hideMissing = signal<Record<EvidenceCategory, boolean>>({
+    proof: false,
+    license: false,
+  });
   /** Single evidence entries the user hid, as "memberId:kind". */
   readonly dismissed = signal<ReadonlySet<string>>(new Set());
 
@@ -80,8 +90,19 @@ export class PeopleStore {
     );
   }
 
+  /** All roles of a member; somebody who swims and trains is one "Schwimmer-Trainer". */
   roleChips(member: Member): { label: string; css: string }[] {
-    return ROLES.filter((role) => member[role.key]);
+    const roles = ROLES.filter((role) => member[role.key]);
+    if (!(member.swimmer && member.trainer)) return roles;
+    const both = { label: 'Schwimmer-Trainer', css: 'pill is-info' };
+    return [both, ...roles.filter((role) => role.key !== 'swimmer' && role.key !== 'trainer')];
+  }
+
+  /** Sets the hiding of missing evidence for one category or for all of them. */
+  setHideMissing(category: EvidenceCategory | 'all', on: boolean): void {
+    this.hideMissing.update((current) =>
+      category === 'all' ? { proof: on, license: on } : { ...current, [category]: on },
+    );
   }
 
   statusOf(member: Member): MemberStatus {
@@ -93,7 +114,9 @@ export class PeopleStore {
     const hidden = this.dismissed();
     const hideMissing = this.hideMissing();
     return this.allEvidenceOf(member).filter(
-      (item) => !(hideMissing && item.missing) && !hidden.has(`${member.id}:${item.kind}`),
+      (item) =>
+        !(hideMissing[categoryOf(item.kind)] && item.missing) &&
+        !hidden.has(`${member.id}:${item.kind}`),
     );
   }
 
@@ -133,6 +156,7 @@ export class PeopleStore {
       name: '',
       relation: 'Mutter',
       email: '',
+      memberNo: null,
       access: 'invited',
       trainingRegistration: true,
       competitionRegistration: true,

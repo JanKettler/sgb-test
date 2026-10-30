@@ -60,7 +60,7 @@
       }
       <button
         type="button"
-        class="button is-small is-info"
+        class="button is-info"
         aria-label="Zum nächsten Termin"
         title="Zum nächsten Termin"
         (click)="scrollToNext()"
@@ -106,7 +106,8 @@
               <span class="icon-row">
                 <button
                   type="button"
-                  class="button is-small is-link"
+                  class="button"
+                  [class]="'grp-' + row.session.groupIds[0]"
                   aria-label="Angemeldete anzeigen"
                   title="Angemeldete"
                   (click)="viewing.set(row.session)"
@@ -114,7 +115,7 @@
                   <app-icon name="users" />
                 </button>
                 <a
-                  class="button is-small is-primary"
+                  class="button is-primary"
                   [class.is-off]="!row.started"
                   [routerLink]="row.started ? ['/training/anwesenheit', row.session.id] : null"
                   aria-label="Anwesenheit führen"
@@ -123,7 +124,7 @@
                   <app-icon name="clipboard" />
                 </a>
                 <a
-                  class="button is-small is-warning"
+                  class="button is-warning"
                   [routerLink]="['/training/termine', row.session.id]"
                   aria-label="Termin bearbeiten"
                   title="Bearbeiten"
@@ -131,7 +132,7 @@
                   <app-icon name="pencil" />
                 </a>
                 <a
-                  class="button is-small"
+                  class="button"
                   routerLink="/training/termine/neu"
                   [queryParams]="{ kopie: row.session.id }"
                   aria-label="Termin kopieren"
@@ -141,7 +142,7 @@
                 </a>
                 <button
                   type="button"
-                  class="button is-small is-danger"
+                  class="button is-danger"
                   aria-label="Termin löschen"
                   title="Löschen"
                   (click)="toDelete.set(row.session)"

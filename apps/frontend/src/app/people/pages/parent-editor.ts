@@ -73,6 +73,14 @@ export class ParentEditor {
     this.draft.update((parent) => ({ ...parent, [key]: this.value(event) }));
   }
 
+  protected setMemberNo(event: Event): void {
+    const number = Number(this.value(event).trim());
+    this.draft.update((parent) => ({
+      ...parent,
+      memberNo: Number.isInteger(number) && number > 0 ? number : null,
+    }));
+  }
+
   protected setRelation(event: Event): void {
     this.draft.update((parent) => ({ ...parent, relation: this.value(event) as Relation }));
   }

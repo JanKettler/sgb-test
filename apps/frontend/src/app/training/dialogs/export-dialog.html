@@ -4,7 +4,7 @@
       <label class="label" for="export-group">Gruppe</label>
       <div class="select is-fullwidth">
         <select id="export-group" (change)="setGroup($event)">
-          @for (group of store.groups; track group.id) {
+          @for (group of store.viewableGroups(); track group.id) {
             <option [value]="group.id" [selected]="group.id === currentGroup()">
               {{ group.name }}
             </option>

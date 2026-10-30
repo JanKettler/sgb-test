@@ -6,6 +6,7 @@
         <th scope="col">Beziehung</th>
         <th scope="col">E-Mail</th>
         <th scope="col">Kinder im Verein</th>
+        <th scope="col">Mitglied</th>
         <th scope="col">Zugang</th>
         <th scope="col"><span class="is-sr-only">Aktionen</span></th>
       </tr>
@@ -24,6 +25,13 @@
             }
           </td>
           <td>
+            @if (row.parent.memberNo) {
+              <span class="pill is-ok">Mitglied · Nr. {{ row.parent.memberNo }}</span>
+            } @else {
+              <span class="pill">kein Mitglied</span>
+            }
+          </td>
+          <td>
             <span
               class="pill"
               [class]="row.parent.access === 'active' ? 'pill is-ok' : 'pill is-warn'"
@@ -33,7 +41,7 @@
           </td>
           <td class="has-text-right is-nowrap">
             <a
-              class="button is-small is-warning"
+              class="button is-warning"
               [routerLink]="['/personen/eltern', row.parent.id]"
               [attr.aria-label]="row.parent.name + ' bearbeiten'"
               title="Bearbeiten"
@@ -42,7 +50,7 @@
             </a>
             <button
               type="button"
-              class="button is-small is-danger"
+              class="button is-danger"
               [attr.aria-label]="row.parent.name + ' löschen'"
               title="Löschen"
               (click)="toDelete.set(row.parent)"
@@ -53,7 +61,7 @@
         </tr>
       } @empty {
         <tr>
-          <td colspan="6" class="empty">Noch keine Eltern erfasst.</td>
+          <td colspan="7" class="empty">Noch keine Eltern erfasst.</td>
         </tr>
       }
     </tbody>

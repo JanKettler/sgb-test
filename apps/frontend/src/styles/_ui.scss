@@ -83,7 +83,9 @@ app-icon {
 }
 
 .pill {
+  background: var(--sgb-hover);
   border-radius: 999px;
+  color: var(--sgb-soft);
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 700;
@@ -405,4 +407,18 @@ app-date-field {
 .checkbox.block {
   display: block;
   margin-bottom: 0.6rem;
+}
+
+/* Action buttons in table rows are easy to hit on a phone, too. */
+td .button:has(app-icon:only-child),
+.icon-row .button {
+  height: 2.6rem;
+  min-width: 2.6rem;
+}
+
+/* Hints about what just happened stay quiet: neutral surface with a thin accent, not a blue bar. */
+.notification.is-link {
+  background: var(--sgb-hover);
+  border-left: 4px solid var(--sgb-strong);
+  color: var(--sgb-ink);
 }

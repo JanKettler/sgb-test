@@ -1,8 +1,9 @@
 @let data = view();
 <app-modal-dialog
   heading="Angemeldet"
-  accent="violet"
+  [accent]="data.look.accent"
   [badge]="data.badge"
+  [badgeTone]="data.look.tone"
   [subtitle]="data.subtitle"
   (closed)="closed.emit()"
 >
@@ -22,9 +23,6 @@
       <li class="none">Noch niemand angemeldet</li>
     }
   </ul>
-  @if (data.more > 0) {
-    <p class="more">+ {{ data.more }} weitere</p>
-  }
   <ng-container dialogActions>
     @if (canMail()) {
       <button type="button" class="button" (click)="mail.emit()">Mail an Angemeldete</button>

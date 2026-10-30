@@ -1,10 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
-import { ModalDialog } from '../../ui/modal-dialog';
+import { DialogAccent, ModalDialog } from '../../ui/modal-dialog';
 import { shortDay } from '../training-dates';
-import { TrainingSession } from '../training.models';
+import { GroupId, TrainingSession } from '../training.models';
 import { TrainingStore } from '../training.store';
 
-const VISIBLE_SWIMMERS = 8;
+/** The dialog takes the colour of the first group of the session. */
+const GROUP_LOOK: Record<GroupId, { accent: DialogAccent; tone: string }> = {
+  G1: { accent: 'navy', tone: 'is-info' },
+  G2: { accent: 'amber', tone: 'is-warn' },
+  G3: { accent: 'green', tone: 'is-ok' },
+  WK: { accent: 'violet', tone: 'is-violet' },
+  MA: { accent: 'red', tone: 'is-bad' },
+};
 
 /** Lists everybody who registered for a session: trainers first, then swimmers. */
 @Component({
@@ -29,8 +36,8 @@ export class RegisteredDialog {
       badge: `${swimmers.length} von ${session.maxSwimmers}`,
       subtitle: `${shortDay(session.date)}, ${session.time} · ${this.store.groupNames(session)}`,
       trainers,
-      swimmers: swimmers.slice(0, VISIBLE_SWIMMERS),
-      more: Math.max(swimmers.length - VISIBLE_SWIMMERS, 0),
+      swimmers,
+      look: GROUP_LOOK[session.groupIds[0]] ?? GROUP_LOOK.G1,
     };
   });
 }

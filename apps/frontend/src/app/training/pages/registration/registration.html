@@ -27,6 +27,7 @@
           (click)="select(actor.id)"
         >
           {{ actor.name }}
+          <app-group-chips [groupIds]="groupIdsOf(actor)" />
         </button>
       }
     </div>
@@ -56,7 +57,7 @@
                   @if (registered) {
                     <button
                       type="button"
-                      class="button is-small is-danger"
+                      class="button is-danger"
                       aria-label="Abmelden"
                       title="Abmelden"
                       (click)="declining.set({ session: row.session, role: row.role })"
@@ -66,7 +67,7 @@
                   } @else {
                     <button
                       type="button"
-                      class="button is-small is-success"
+                      class="button is-success"
                       aria-label="Wieder anmelden"
                       title="Wieder anmelden"
                       (click)="register(row)"
@@ -76,7 +77,8 @@
                   }
                   <button
                     type="button"
-                    class="button is-small is-link"
+                    class="button"
+                    [class]="'grp-' + row.session.groupIds[0]"
                     aria-label="Angemeldete anzeigen"
                     title="Angemeldete"
                     (click)="viewing.set(row.session)"
@@ -85,7 +87,7 @@
                   </button>
                   @if (row.canTakeAttendance) {
                     <a
-                      class="button is-small is-primary"
+                      class="button is-primary"
                       [routerLink]="['/training/anwesenheit', row.session.id]"
                       aria-label="Anwesenheit führen"
                       title="Anwesenheit"
@@ -145,7 +147,7 @@
                   <span class="icon-row">
                     <button
                       type="button"
-                      class="button is-small is-success"
+                      class="button is-success"
                       aria-label="Anmelden"
                       title="Anmelden"
                       (click)="register(row)"
@@ -154,7 +156,7 @@
                     </button>
                     <button
                       type="button"
-                      class="button is-small is-danger"
+                      class="button is-danger"
                       aria-label="Abmelden"
                       title="Abmelden"
                       (click)="declining.set({ session: row.session, role: row.role })"
@@ -163,7 +165,8 @@
                     </button>
                     <button
                       type="button"
-                      class="button is-small is-link"
+                      class="button"
+                      [class]="'grp-' + row.session.groupIds[0]"
                       aria-label="Angemeldete anzeigen"
                       title="Angemeldete"
                       (click)="viewing.set(row.session)"
@@ -212,7 +215,7 @@
                   <span class="icon-row">
                     <button
                       type="button"
-                      class="button is-small is-success"
+                      class="button is-success"
                       aria-label="Anmelden"
                       title="Anmelden"
                       (click)="register(row)"
@@ -221,7 +224,7 @@
                     </button>
                     <button
                       type="button"
-                      class="button is-small is-danger"
+                      class="button is-danger"
                       aria-label="Abmelden"
                       title="Abmelden"
                       (click)="declining.set({ session: row.session, role: row.role })"
@@ -230,7 +233,8 @@
                     </button>
                     <button
                       type="button"
-                      class="button is-small is-link"
+                      class="button"
+                      [class]="'grp-' + row.session.groupIds[0]"
                       aria-label="Angemeldete anzeigen"
                       title="Angemeldete"
                       (click)="viewing.set(row.session)"

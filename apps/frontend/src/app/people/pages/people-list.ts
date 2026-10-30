@@ -39,6 +39,7 @@ export class PeopleList {
   protected readonly page = signal(0);
   protected readonly toDelete = signal<Member | null>(null);
   protected readonly year = birthYear;
+  protected readonly rolesLabel = (chip: { label: string }): string => chip.label;
 
   protected readonly rows = computed(() => {
     const term = this.search().trim().toLowerCase();
