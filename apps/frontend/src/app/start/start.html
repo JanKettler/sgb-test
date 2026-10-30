@@ -6,10 +6,66 @@
   <span class="has-text-grey has-text-weight-semibold">{{ longDate }}</span>
 </div>
 
-<app-board [limit]="6" />
+<div class="start-grid">
+  <div class="area-board">
+    <app-board [limit]="6" />
+  </div>
 
-<div class="columns">
-  <div class="column is-7-desktop">
+  <div class="area-side">
+    @if (canSeeClub()) {
+      <section class="box">
+        <div class="level is-mobile mb-3">
+          <h3 class="title is-5 mb-0">
+            <app-icon name="tasks" class="has-text-success" />
+            {{ taskMode() === 'mine' || !canSeeAllTasks() ? 'Meine Aufgaben' : 'Offene Aufgaben' }}
+          </h3>
+          <span class="has-text-grey is-size-7">{{ tasks().length }} offen</span>
+        </div>
+        @if (canSeeAllTasks()) {
+          <div class="buttons has-addons mb-3">
+            <button
+              type="button"
+              class="button is-small"
+              [class.is-link]="taskMode() === 'mine'"
+              (click)="taskMode.set('mine')"
+            >
+              Meine ({{ data.myTasks().length }})
+            </button>
+            <button
+              type="button"
+              class="button is-small"
+              [class.is-link]="taskMode() === 'all'"
+              (click)="taskMode.set('all')"
+            >
+              Alle ({{ data.tasks().length }})
+            </button>
+          </div>
+        }
+        @for (task of tasks(); track task.id) {
+          <div class="task">
+            <span>
+              @if (task.high) {
+                <app-icon name="warning" class="has-text-danger" />
+              }
+              {{ task.title }}
+            </span>
+            @if (task.due) {
+              <span class="tag is-rounded" [class]="dueTone(task.due)">
+                {{ dueText(task.due) }}
+              </span>
+            }
+          </div>
+        } @empty {
+          <p class="has-text-grey">
+            {{
+              taskMode() === 'mine' || !canSeeAllTasks()
+                ? 'Dir ist nichts zugewiesen.'
+                : 'Alles erledigt.'
+            }}
+          </p>
+        }
+      </section>
+    }
     @if (canSeeClub()) {
       <section class="box">
         <h3 class="title is-5">
@@ -89,85 +145,7 @@
     }
   </div>
 
-  <div class="column is-5-desktop">
-    @if (canSeeClub()) {
-      <section class="box">
-        <div class="level is-mobile mb-3">
-          <h3 class="title is-5 mb-0">
-            <app-icon name="tasks" class="has-text-success" />
-            {{ taskMode() === 'mine' || !canSeeAllTasks() ? 'Meine Aufgaben' : 'Offene Aufgaben' }}
-          </h3>
-          <span class="has-text-grey is-size-7">{{ tasks().length }} offen</span>
-        </div>
-        @if (canSeeAllTasks()) {
-          <div class="buttons has-addons mb-3">
-            <button
-              type="button"
-              class="button is-small"
-              [class.is-link]="taskMode() === 'mine'"
-              (click)="taskMode.set('mine')"
-            >
-              Meine ({{ data.myTasks().length }})
-            </button>
-            <button
-              type="button"
-              class="button is-small"
-              [class.is-link]="taskMode() === 'all'"
-              (click)="taskMode.set('all')"
-            >
-              Alle ({{ data.tasks().length }})
-            </button>
-          </div>
-        }
-        @for (task of tasks(); track task.id) {
-          <div class="task">
-            <span>
-              @if (task.high) {
-                <app-icon name="warning" class="has-text-danger" />
-              }
-              {{ task.title }}
-            </span>
-            @if (task.due) {
-              <span class="tag is-rounded" [class]="dueTone(task.due)">
-                {{ dueText(task.due) }}
-              </span>
-            }
-          </div>
-        } @empty {
-          <p class="has-text-grey">
-            {{
-              taskMode() === 'mine' || !canSeeAllTasks()
-                ? 'Dir ist nichts zugewiesen.'
-                : 'Alles erledigt.'
-            }}
-          </p>
-        }
-      </section>
-    }
+  <div class="area-calendar">
+    <app-home />
   </div>
-</div>
-
-<app-home />
-
-<div class="systems">
-  @for (category of categories; track category.name) {
-    <section class="system" [style.--acc]="category.color">
-      <h3 class="system-title">
-        <span class="system-icon"><app-icon [name]="category.icon" /></span>
-        {{ category.name }}
-      </h3>
-      <div class="tiles">
-        @for (tile of tilesOf(category.name); track tile.route) {
-          <a class="tile" [routerLink]="tile.route">
-            <span class="tile-icon"><app-icon [name]="tile.icon" /></span>
-            <span class="tile-name">{{ tile.label }}</span>
-            <span class="tile-hint">{{ tile.hint }}</span>
-            @if (tile.status; as status) {
-              <span class="tile-status" [class]="'is-' + status.tone">{{ status.text }}</span>
-            }
-          </a>
-        }
-      </div>
-    </section>
-  }
 </div>

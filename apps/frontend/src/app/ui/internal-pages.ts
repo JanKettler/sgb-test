@@ -8,7 +8,7 @@ export const INTERNAL_PAGES: readonly InternalPage[] = [
   { label: 'Startseite', path: '/' },
   { label: 'Schwarzes Brett', path: '/brett' },
   { label: 'Training: Anmeldung', path: '/training/anmeldung' },
-  { label: 'Training: Termine', path: '/training/termine' },
+  { label: 'Training: Trainingstermine', path: '/training/termine' },
   { label: 'Training: Anwesenheit', path: '/training/anwesenheit' },
   { label: 'Personen', path: '/personen' },
   { label: 'Beiträge', path: '/beitraege' },

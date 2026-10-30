@@ -48,7 +48,8 @@ export type IconName =
   | 'bullhorn'
   | 'bolt'
   | 'arrow-right'
-  | 'swim';
+  | 'swim'
+  | 'restore';
 
 const FONT_AWESOME: Record<IconName, string> = {
   check: 'fa-check',
@@ -99,6 +100,7 @@ const FONT_AWESOME: Record<IconName, string> = {
   bolt: 'fa-bolt',
   'arrow-right': 'fa-arrow-right',
   swim: 'fa-person-swimming',
+  restore: 'fa-rotate-left',
 };
 
 /**

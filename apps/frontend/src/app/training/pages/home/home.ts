@@ -4,7 +4,7 @@ import { Icon } from '../../../ui/icon';
 import { addDays, endTime, minutesOfDay, parseIsoDate, weekdayShort } from '../../training-dates';
 import { TrainingStore } from '../../training.store';
 
-const HOUR_HEIGHT = 56;
+const HOUR_HEIGHT = 40;
 const FALLBACK_HOURS = [17, 21] as const;
 
 interface CalendarEvent {
@@ -69,7 +69,7 @@ export class Home {
             time: `${session.time}–${endTime(session.time, session.durationMinutes)} Uhr`,
             detail: labels.length > 0 ? labels.join(', ') : this.store.venueName(session.venueId),
             top: ((minutesOfDay(session.time) - firstMinute) / 60) * HOUR_HEIGHT,
-            height: Math.max((session.durationMinutes / 60) * HOUR_HEIGHT - 3, 28),
+            height: Math.max((session.durationMinutes / 60) * HOUR_HEIGHT - 3, 24),
           };
         });
       const date = parseIsoDate(iso);

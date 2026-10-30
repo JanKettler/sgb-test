@@ -1,5 +1,3 @@
-import { IconName } from '../ui/icon';
-
 /** A swim meet. Meets have no module of their own yet, only what the start page shows. */
 export interface Competition {
   id: string;
@@ -42,16 +40,4 @@ export interface Notice {
   route: string;
   /** Sort key: days until the deadline */
   days: number;
-}
-
-export type TileCategory = 'Training' | 'Verein';
-
-export interface Tile {
-  category: TileCategory;
-  label: string;
-  hint: string;
-  route: string;
-  icon: IconName;
-  /** Optional status below the text, with a coloured dot */
-  status?: { text: string; tone: Tone | 'ok' };
 }

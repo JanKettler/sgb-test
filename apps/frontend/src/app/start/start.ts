@@ -1,20 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Board } from '../board/board';
-import { BoardStore } from '../board/board.store';
 import { FeesStore } from '../fees/fees.store';
 import { PeopleStore } from '../people/people.store';
 import { Home } from '../training/pages/home/home';
 import { fullDate, parseIsoDate, weekdayShort } from '../training/training-dates';
 import { TrainingStore } from '../training/training.store';
 import { Icon, IconName } from '../ui/icon';
-import { Notice, Tile, TileCategory, Tone } from './start.models';
+import { Notice, Tone } from './start.models';
 import { StartStore } from './start.store';
-
-const CATEGORIES: { name: TileCategory; icon: IconName; color: string }[] = [
-  { name: 'Training', icon: 'swim', color: '#06b6d4' },
-  { name: 'Verein', icon: 'users', color: '#3b82f6' },
-];
 
 const NOTICE_ICON: Record<Tone, IconName> = { bad: 'warning', warn: 'hourglass', info: 'info' };
 const PRESSING_DAYS = 3;
@@ -44,11 +38,9 @@ export class Start {
   private readonly training = inject(TrainingStore);
   private readonly people = inject(PeopleStore);
   private readonly fees = inject(FeesStore);
-  private readonly board = inject(BoardStore);
   protected readonly data = inject(StartStore);
 
   protected readonly fullDate = fullDate;
-  protected readonly categories = CATEGORIES;
   protected readonly noticeIcon = NOTICE_ICON;
   protected readonly canManage = this.training.canManage;
   protected readonly canSeeClub = this.data.canSeeClub;
@@ -159,83 +151,6 @@ export class Start {
     );
   });
 
-  protected readonly tiles = computed<Tile[]>(() => {
-    const open = this.fees.open().length;
-    const due = this.people.dueEvidence().length;
-    const posts = this.board.live();
-    const fresh = posts.filter((post) => this.board.isNew(post)).length;
-    const tiles: Tile[] = [
-      {
-        category: 'Training',
-        label: 'Anmeldung',
-        hint: 'Zu- und Absagen zum Training',
-        route: '/training/anmeldung',
-        icon: 'check',
-        status: { text: `${this.training.weekEntries().length} Termine in 7 Tagen`, tone: 'ok' },
-      },
-    ];
-    if (this.canManage()) {
-      tiles.push(
-        {
-          category: 'Training',
-          label: 'Termine',
-          hint: 'Einheiten anlegen, kopieren, Serien',
-          route: '/training/termine',
-          icon: 'calendar',
-        },
-        {
-          category: 'Training',
-          label: 'Anwesenheit',
-          hint: 'Listen führen und auswerten',
-          route: '/training/anwesenheit',
-          icon: 'clipboard',
-        },
-      );
-    }
-    tiles.push({
-      category: 'Verein',
-      label: 'Schwarzes Brett',
-      hint: 'Mitteilungen für den ganzen Verein',
-      route: '/brett',
-      icon: 'pin',
-      status: fresh
-        ? { text: `${fresh} neu`, tone: 'info' }
-        : { text: `${posts.length} Mitteilungen`, tone: 'ok' },
-    });
-    if (this.canManage()) {
-      tiles.push(
-        {
-          category: 'Verein',
-          label: 'Personen',
-          hint: 'Mitglieder, Eltern, Nachweise',
-          route: '/personen',
-          icon: 'users',
-          status: due
-            ? { text: `${due} Nachweise prüfen`, tone: 'warn' }
-            : { text: 'Alles in Ordnung', tone: 'ok' },
-        },
-        {
-          category: 'Verein',
-          label: 'Beiträge',
-          hint: 'Zahlungen, Mahnungen, Beitragsarten',
-          route: '/beitraege',
-          icon: 'coins',
-          status: open
-            ? { text: `${open} offen`, tone: 'warn' }
-            : { text: 'Alles bezahlt', tone: 'ok' },
-        },
-      );
-    }
-    tiles.push({
-      category: 'Verein',
-      label: 'Warteliste',
-      hint: 'Für einen Platz anmelden',
-      route: '/warteliste/anmelden',
-      icon: 'list',
-    });
-    return tiles;
-  });
-
   protected dayNumber(iso: string): string {
     return iso.slice(8, 10);
   }
@@ -246,10 +161,6 @@ export class Start {
 
   protected countdown(days: number): string {
     return days === 0 ? 'heute' : days === 1 ? 'morgen' : `in ${days} Tagen`;
-  }
-
-  protected tilesOf(category: TileCategory): Tile[] {
-    return this.tiles().filter((tile) => tile.category === category);
   }
 
   protected dueTone(due: string): string {

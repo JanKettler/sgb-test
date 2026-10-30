@@ -107,138 +107,41 @@
   }
 }
 
-.system {
-  --acc: #94a3b8;
-
-  margin-top: 1.5rem;
-}
-
-.system-title {
-  align-items: center;
-  display: flex;
-  font-size: 1rem;
-  font-weight: 900;
-  gap: 0.6rem;
-  margin-bottom: 0.7rem;
-
-  &::after {
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--acc) 55%, transparent),
-      transparent
-    );
-    border-radius: 2px;
-    content: '';
-    flex: 1;
-    height: 2px;
-  }
-}
-
-.system-icon {
-  align-items: center;
-  background: color-mix(in srgb, var(--acc) 22%, transparent);
-  border-radius: 9px;
-  color: var(--acc);
-  display: inline-flex;
-  height: 1.8rem;
-  justify-content: center;
-  width: 1.8rem;
-}
-
-.tiles {
+/* One grid, one gap: the board and the week on the left, everything else on the right. */
+.start-grid {
   display: grid;
-  gap: 0.9rem;
-  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
-}
+  gap: 1rem;
+  grid-template-areas:
+    'board side'
+    'calendar side';
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-rows: auto 1fr;
 
-.tile {
-  background: var(--sgb-card);
-  border: 1px solid var(--sgb-line);
-  border-radius: 20px;
-  color: inherit;
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  min-height: 9.5rem;
-  overflow: hidden;
-  padding: 1.2rem 1.1rem 1rem;
-  position: relative;
-
-  &::before {
-    background: var(--acc);
-    content: '';
-    height: 5px;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-  }
-
-  &:hover {
-    box-shadow: 0 6px 18px rgb(0 0 0 / 12%);
+  > div > :not(:last-child) {
+    margin-bottom: 1rem;
   }
 }
 
-.tile-icon {
-  align-items: center;
-  background: color-mix(in srgb, var(--acc) 16%, transparent);
-  border-radius: 14px;
-  color: var(--acc);
-  display: flex;
-  font-size: 1.4rem;
-  height: 3rem;
-  justify-content: center;
-  width: 3rem;
+.area-board {
+  grid-area: board;
 }
 
-.tile-name {
-  font-size: 1.1rem;
-  font-weight: 800;
+.area-calendar {
+  grid-area: calendar;
 }
 
-.tile-hint {
-  color: var(--sgb-soft);
-  font-size: 0.82rem;
-  line-height: 1.35;
+.area-side {
+  align-self: start;
+  grid-area: side;
 }
 
-.tile-status {
-  align-items: center;
-  display: inline-flex;
-  font-size: 0.82rem;
-  font-weight: 800;
-  gap: 0.45rem;
-  margin-top: auto;
-
-  &::before {
-    background: var(--ok-fg);
-    border-radius: 50%;
-    content: '';
-    height: 0.55rem;
-    width: 0.55rem;
-  }
-
-  &.is-warn::before {
-    background: var(--warn-fg);
-  }
-
-  &.is-bad::before {
-    background: var(--bad-fg);
-  }
-
-  &.is-info::before {
-    background: var(--info-fg);
-  }
-}
-
-@media (width <= 768px) {
-  .tiles {
-    gap: 0.6rem;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .tile {
-    min-height: 8rem;
-    padding: 1rem 0.8rem 0.8rem;
+@media (width <= 1024px) {
+  .start-grid {
+    grid-template-areas:
+      'board'
+      'side'
+      'calendar';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
   }
 }

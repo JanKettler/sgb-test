@@ -16,7 +16,7 @@ import { Icon } from '../ui/icon';
 import { ModalDialog } from '../ui/modal-dialog';
 import { RichEditor } from '../ui/rich-editor';
 import { RichText, htmlToText } from '../ui/rich-text';
-import { BoardPost } from './board.models';
+import { ArchiveEntry, BoardPost, titleOf } from './board.models';
 import { BoardStore } from './board.store';
 
 const SEEN_AFTER_MS = 15000;
@@ -35,6 +35,7 @@ export class Board {
   protected readonly roles = DEMO_ROLES;
   protected readonly backgrounds = BACKGROUND_COLORS;
   protected readonly fullDate = fullDate;
+  protected readonly titleOf = titleOf;
 
   /** Shows only the first messages and a link to the full page. */
   readonly limit = input(0);
@@ -46,6 +47,9 @@ export class Board {
   protected readonly more = computed(() => this.store.live().length - this.shown().length);
 
   protected readonly draft = signal<BoardPost | null>(null);
+  protected readonly creating = computed(
+    () => !this.store.posts().some((post) => post.id === this.draft()?.id),
+  );
   protected readonly invalid = signal(false);
   protected readonly toDelete = signal<BoardPost | null>(null);
 
@@ -88,6 +92,10 @@ export class Board {
     this.draft.set(this.store.newPost());
   }
 
+  protected inArchive(entry: ArchiveEntry): boolean {
+    return entry.reason === 'deleted';
+  }
+
   protected edit(post: BoardPost): void {
     this.invalid.set(false);
     this.draft.set({ ...post, groups: [...post.groups], roles: [...post.roles] });
@@ -97,8 +105,8 @@ export class Board {
     this.draft.update((post) => (post ? { ...post, ...change } : post));
   }
 
-  protected text(key: 'title' | 'author', event: Event): void {
-    this.patch({ [key]: (event.target as HTMLInputElement).value });
+  protected setAuthor(event: Event): void {
+    this.patch({ author: (event.target as HTMLInputElement).value });
   }
 
   protected toggleGroup(id: GroupId): void {
@@ -122,16 +130,11 @@ export class Board {
   protected save(): void {
     const post = this.draft();
     if (!post) return;
-    if (!post.title.trim()) {
+    if (!htmlToText(post.html)) {
       this.invalid.set(true);
       return;
     }
-    this.store.save({
-      ...post,
-      title: post.title.trim(),
-      author: post.author.trim() || this.store.author,
-      html: htmlToText(post.html) || post.html.includes('<a') ? post.html : '',
-    });
+    this.store.save({ ...post, author: post.author.trim() || this.store.author });
     this.draft.set(null);
   }
 

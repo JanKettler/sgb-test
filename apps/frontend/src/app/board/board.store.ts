@@ -2,7 +2,14 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { addDays } from '../training/training-dates';
 import { GroupId } from '../training/training.models';
 import { TrainingStore } from '../training/training.store';
-import { BoardPost, emptyPost } from './board.models';
+import { ArchiveEntry, BoardPost, emptyPost } from './board.models';
+
+const ARCHIVE_DAYS = 30;
+
+/** A big bold first line, which is how the heading of a message looks. */
+function heading(text: string): string {
+  return `<div style="font-size:20px"><b>${text}</b></div>`;
+}
 
 /** In-memory stand-in for the future notice board API. All texts are invented. */
 @Injectable({ providedIn: 'root' })
@@ -12,6 +19,8 @@ export class BoardStore {
   private nextId = 1;
 
   readonly posts = signal<BoardPost[]>(this.sample());
+  /** Deleted messages stay findable in the archive for 30 days. */
+  private readonly trash = signal<{ post: BoardPost; deletedOn: string }[]>(this.sampleTrash());
   /** The author of new messages; the demo has no real login. */
   readonly author = 'Orga-Team';
   readonly canWrite = this.training.canManage;
@@ -32,7 +41,19 @@ export class BoardStore {
   readonly live = computed(() =>
     this.sorted(this.posts().filter((post) => !this.expired(post) && this.visible(post))),
   );
-  readonly archive = computed(() => this.sorted(this.posts().filter((post) => this.expired(post))));
+  /** Everyone who may write also sees the archive: expired and deleted messages of the last 30 days. */
+  readonly archive = computed<ArchiveEntry[]>(() => {
+    const since = addDays(this.today, -ARCHIVE_DAYS);
+    const entries: ArchiveEntry[] = [
+      ...this.posts()
+        .filter((post) => this.expired(post) && post.until >= since)
+        .map((post) => ({ post, reason: 'expired' as const, on: post.until })),
+      ...this.trash()
+        .filter((item) => item.deletedOn >= since)
+        .map((item) => ({ post: item.post, reason: 'deleted' as const, on: item.deletedOn })),
+    ];
+    return entries.sort((a, b) => b.on.localeCompare(a.on));
+  });
 
   expired(post: BoardPost): boolean {
     return post.until !== '' && post.until < this.today;
@@ -66,7 +87,18 @@ export class BoardStore {
   }
 
   remove(id: string): void {
-    this.posts.update((all) => all.filter((post) => post.id !== id));
+    const post = this.posts().find((item) => item.id === id);
+    if (!post) return;
+    this.posts.update((all) => all.filter((item) => item.id !== id));
+    this.trash.update((all) => [{ post, deletedOn: this.today }, ...all]);
+  }
+
+  /** Takes a deleted message back onto the board. */
+  restore(id: string): void {
+    const item = this.trash().find((entry) => entry.post.id === id);
+    if (!item) return;
+    this.trash.update((all) => all.filter((entry) => entry.post.id !== id));
+    this.posts.update((all) => [item.post, ...all]);
   }
 
   /** Moves a live message up or down; important and normal messages stay apart. */
@@ -92,6 +124,28 @@ export class BoardStore {
     );
   }
 
+  private sampleTrash(): { post: BoardPost; deletedOn: string }[] {
+    return [
+      {
+        deletedOn: addDays(this.today, -6),
+        post: {
+          id: 'b-6',
+          html:
+            heading('Hallenschlüssel zurückgeben') +
+            'Bitte die Schlüssel bis Freitag im Vereinsheim abgeben.',
+          important: false,
+          date: addDays(this.today, -15),
+          author: 'Orga-Team',
+          until: '',
+          groups: [],
+          roles: [],
+          bg: '',
+          order: null,
+        },
+      },
+    ];
+  }
+
   private sample(): BoardPost[] {
     const day = (offset: number) => addDays(this.today, offset);
     const base = { author: 'Orga-Team', groups: [], roles: [], bg: '', order: null };
@@ -99,8 +153,9 @@ export class BoardStore {
       {
         ...base,
         id: 'b-1',
-        title: 'Hallenzeiten in den Herbstferien',
-        html: 'Das Training der Gruppe 3 fällt in den Ferien aus. <b>Die WK-Gruppe trainiert wie gewohnt.</b>',
+        html:
+          heading('Hallenzeiten in den Herbstferien') +
+          'Das Training der Gruppe 3 fällt in den Ferien aus. <b>Die WK-Gruppe trainiert wie gewohnt.</b>',
         important: true,
         date: day(-2),
         until: day(14),
@@ -109,8 +164,9 @@ export class BoardStore {
         ...base,
         author: 'Vorstand',
         id: 'b-2',
-        title: 'Weihnachtsmarkt: Helfer gesucht',
-        html: 'Für den Stand brauchen wir noch Helferinnen und Helfer. Bitte bei den Trainern melden oder direkt im <a href="/training/anmeldung">Training</a> nachfragen.',
+        html:
+          heading('Weihnachtsmarkt: Helfer gesucht') +
+          'Für den Stand brauchen wir noch Helferinnen und Helfer. Bitte bei den Trainern melden oder direkt im <a href="/training/anmeldung">Training</a> nachfragen.',
         important: false,
         date: day(-1),
         until: '',
@@ -119,8 +175,9 @@ export class BoardStore {
       {
         ...base,
         id: 'b-3',
-        title: 'Neue Vereinsjacken sind da',
-        html: 'Die bestellten Jacken können montags nach dem Training abgeholt werden.',
+        html:
+          heading('Neue Vereinsjacken sind da') +
+          'Die bestellten Jacken können montags nach dem Training abgeholt werden.',
         important: false,
         date: day(-9),
         until: day(30),
@@ -129,8 +186,9 @@ export class BoardStore {
         ...base,
         author: 'Vorstand',
         id: 'b-4',
-        title: 'Trainerfortbildung im Winter',
-        html: 'Termin und Ort folgen. Wer teilnehmen möchte, meldet sich bis Ende des Monats.',
+        html:
+          heading('Trainerfortbildung im Winter') +
+          'Termin und Ort folgen. Wer teilnehmen möchte, meldet sich bis Ende des Monats.',
         important: false,
         date: day(-12),
         until: '',
@@ -140,8 +198,9 @@ export class BoardStore {
       {
         ...base,
         id: 'b-5',
-        title: 'Sommerfest: Danke!',
-        html: 'Danke an alle, die beim <span style="color:#16a34a;font-size:20px">Sommerfest</span> geholfen haben.',
+        html:
+          heading('Sommerfest: Danke!') +
+          'Danke an alle, die beim <span style="color:#16a34a;font-size:20px">Sommerfest</span> geholfen haben.',
         important: false,
         date: day(-60),
         until: day(-20),
