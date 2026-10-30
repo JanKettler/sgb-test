@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { TrainingStore } from './training.store';
+import { addDays } from './training-dates';
 
 describe('TrainingStore', () => {
   let store: TrainingStore;
@@ -91,7 +92,8 @@ describe('TrainingStore', () => {
   });
 
   it('exports a semicolon separated list with one row per swimmer', () => {
-    const csv = store.attendanceCsv('WK', 'blank', store.today, store.today);
+    // A range, not just today: on days without a session the header has no date columns.
+    const csv = store.attendanceCsv('WK', 'blank', store.today, addDays(store.today, 14));
     const lines = csv.split('\r\n');
     expect(lines[0].startsWith('﻿Name;')).toBe(true);
     expect(lines.length).toBe(1 + store.swimmers().filter((p) => p.groupId === 'WK').length);
