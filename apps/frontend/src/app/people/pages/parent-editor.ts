@@ -11,15 +11,7 @@ import { PeopleStore } from '../people.store';
 import { PayAccountForm } from './pay-account';
 
 type TextField =
-  | 'name'
-  | 'email'
-  | 'email2'
-  | 'street'
-  | 'houseNo'
-  | 'zip'
-  | 'city'
-  | 'phone1'
-  | 'phone2';
+  'name' | 'email' | 'email2' | 'street' | 'houseNo' | 'zip' | 'city' | 'phone1' | 'phone2';
 
 const RELATIONS: readonly Relation[] = [
   'Mutter',
