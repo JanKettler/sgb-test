@@ -138,6 +138,20 @@ export class PeopleStore {
     return emptyMember(`m-new-${this.nextId++}`, highest + 1, this.today);
   }
 
+  /** Copies a member with a new membership number; returns the copy for editing. */
+  duplicateMember(id: string): Member | undefined {
+    const source = this.memberById().get(id);
+    if (!source) return undefined;
+    const highest = Math.max(0, ...this.members().map((member) => member.memberNo));
+    const copy: Member = {
+      ...structuredClone(source),
+      id: `m-new-${this.nextId++}`,
+      memberNo: highest + 1,
+    };
+    this.members.update((all) => [...all, copy]);
+    return copy;
+  }
+
   save(input: Member): void {
     const member = { ...input, active: isActive(input, this.today) };
     const exists = this.memberById().has(member.id);
@@ -157,6 +171,16 @@ export class PeopleStore {
       relation: 'Mutter',
       email: '',
       memberNo: null,
+      birthDate: '',
+      entry: '',
+      exitDate: '',
+      street: '',
+      houseNo: '',
+      zip: '',
+      city: '',
+      email2: '',
+      phone1: '',
+      phone2: '',
       access: 'invited',
       trainingRegistration: true,
       competitionRegistration: true,

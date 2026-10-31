@@ -133,7 +133,7 @@
             <span>{{ subsDone(task) }}/{{ task.subs.length }} Schritte</span>
           }
           @if (task.repeat) {
-            <span>{{ repeatLabel[task.repeat] }}</span>
+            <span>{{ repeatText(task) }}</span>
           }
           @if (task.status === 'done' && task.doneBy) {
             <span>erledigt von {{ task.doneBy }}, {{ fullDate(task.doneOn).slice(0, 6) }}</span>

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Toasts } from '../../../ui/toast';
 import { Icon } from '../../../ui/icon';
 import { NameDialog } from '../../dialogs/name-dialog';
 import { TemplateDialog } from '../../dialogs/template-dialog';
@@ -19,6 +20,7 @@ type ReasonEdit = string | 'new' | null;
   styleUrl: './settings.scss',
 })
 export class TrainingSettings {
+  protected readonly toasts = inject(Toasts);
   protected readonly store = inject(TrainingStore);
   protected readonly other = OTHER_REASON;
 
@@ -26,7 +28,6 @@ export class TrainingSettings {
   private snapshot: SettingsSnapshot | null = null;
 
   protected readonly groupId = signal<GroupId>('G1');
-  protected readonly message = signal('');
   protected readonly venueEdit = signal<VenueEdit>(null);
   protected readonly reasonEdit = signal<ReasonEdit>(null);
   protected readonly templateEdit = signal<MailTemplate | null>(null);
@@ -42,13 +43,13 @@ export class TrainingSettings {
     if (this.snapshot) this.store.restoreSettings(this.snapshot);
     this.snapshot = null;
     this.editing.set(false);
-    this.message.set('Änderungen verworfen.');
+    this.toasts.cancelled('Änderungen verworfen');
   }
 
   protected saveEdit(): void {
     this.snapshot = null;
     this.editing.set(false);
-    this.message.set('Einstellungen gespeichert.');
+    this.toasts.saved('Einstellungen gespeichert');
   }
 
   protected changeSeason(step: number): void {
@@ -82,11 +83,8 @@ export class TrainingSettings {
   protected deleteVenue(): void {
     const edit = this.venueEdit();
     if (edit && edit !== 'new') {
-      this.message.set(
-        this.store.deleteVenue(edit.id)
-          ? 'Der Ort wurde gelöscht.'
-          : 'Der Ort wird noch von Terminen oder Standardwerten verwendet.',
-      );
+      if (this.store.deleteVenue(edit.id)) this.toasts.saved('Der Ort wurde gelöscht');
+      else this.toasts.failed('Der Ort wird noch von Terminen oder Standardwerten verwendet');
     }
     this.venueEdit.set(null);
   }

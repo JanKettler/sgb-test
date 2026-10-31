@@ -2,18 +2,29 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
+import { DateField } from '../../ui/date-field';
 import { Icon } from '../../ui/icon';
+import { Toasts } from '../../ui/toast';
 import { PayAccount, Parent, Relation, birthYear, fullName } from '../people.models';
 import { FeesStore } from '../../fees/fees.store';
 import { PeopleStore } from '../people.store';
 import { PayAccountForm } from './pay-account';
 
-const RELATIONS: readonly Relation[] = ['Mutter', 'Vater', 'Erziehungsberechtigte'];
+const RELATIONS: readonly Relation[] = [
+  'Mutter',
+  'Vater',
+  'Großmutter',
+  'Großvater',
+  'Pflegemutter',
+  'Pflegevater',
+  'Erziehungsberechtigte',
+  'Andere Person',
+];
 
 /** Edit page for one parent or guardian, including the children they are linked to. */
 @Component({
   selector: 'app-parent-editor',
-  imports: [RouterLink, Icon, PayAccountForm],
+  imports: [RouterLink, Icon, PayAccountForm, DateField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './parent-editor.html',
 })
@@ -21,6 +32,7 @@ export class ParentEditor {
   private readonly store = inject(PeopleStore);
   private readonly router = inject(Router);
   private readonly fees = inject(FeesStore);
+  private readonly toasts = inject(Toasts);
   private readonly id = toSignal(
     inject(ActivatedRoute).paramMap.pipe(map((params) => params.get('id') ?? '')),
     { initialValue: '' },
@@ -69,8 +81,23 @@ export class ParentEditor {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
-  protected set<K extends 'name' | 'email'>(key: K, event: Event): void {
+  protected set<
+    K extends
+      | 'name'
+      | 'email'
+      | 'email2'
+      | 'street'
+      | 'houseNo'
+      | 'zip'
+      | 'city'
+      | 'phone1'
+      | 'phone2',
+  >(key: K, event: Event): void {
     this.draft.update((parent) => ({ ...parent, [key]: this.value(event) }));
+  }
+
+  protected setDate(key: 'birthDate' | 'entry' | 'exitDate', iso: string): void {
+    this.draft.update((parent) => ({ ...parent, [key]: iso }));
   }
 
   protected setMemberNo(event: Event): void {
@@ -110,15 +137,17 @@ export class ParentEditor {
     const parent = this.draft();
     if (!parent.name.trim()) {
       this.invalid.set(true);
+      this.toasts.failed('Bitte einen Namen eintragen');
       return;
     }
     this.store.saveParent(parent, this.childIds());
     this.fees.generate();
-    this.store.flash.set(`${parent.name} wurde gespeichert.`);
+    this.toasts.saved(`${parent.name} gespeichert`);
     void this.router.navigate(['/personen']);
   }
 
   protected cancel(): void {
+    this.toasts.cancelled();
     void this.router.navigate(['/personen']);
   }
 }

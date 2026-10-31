@@ -7,28 +7,29 @@
   </div>
 </header>
 
-@if (message()) {
-  <div class="notification is-link is-flex is-justify-content-space-between is-align-items-center">
-    <span>{{ message() }}</span>
-    <button type="button" class="button is-small" (click)="message.set('')">Schließen</button>
-  </div>
-}
-
 <section class="box">
   @if (person(); as current) {
-    <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
-      <span class="label for-person">Anmeldung für</span>
-      @for (actor of actors(); track actor.id) {
-        <button
-          type="button"
-          class="chip"
-          [class.is-on]="current.id === actor.id"
-          [attr.aria-pressed]="current.id === actor.id"
-          (click)="select(actor.id)"
-        >
-          {{ actor.name }}
-          <app-group-chips [groupIds]="groupIdsOf(actor)" />
-        </button>
+    <div class="person-bar">
+      <p class="mb-0">
+        <span class="label for-person">Anmeldung für</span>
+        <strong>{{ current.name }}</strong>
+        @if (groupNamesOf(current)) {
+          <span class="has-text-grey"> · {{ groupNamesOf(current) }}</span>
+        }
+      </p>
+      @if (actors().length > 1) {
+        <div class="select is-small">
+          <select aria-label="Person wechseln" (change)="select(value($event))">
+            @for (actor of actors(); track actor.id) {
+              <option [value]="actor.id" [selected]="current.id === actor.id">
+                {{ actor.name }}
+                @if (groupNamesOf(actor)) {
+                  · {{ groupNamesOf(actor) }}
+                }
+              </option>
+            }
+          </select>
+        </div>
       }
     </div>
 
@@ -78,7 +79,6 @@
                   <button
                     type="button"
                     class="button"
-                    [class]="'grp-' + row.session.groupIds[0]"
                     aria-label="Angemeldete anzeigen"
                     title="Angemeldete"
                     (click)="viewing.set(row.session)"
@@ -166,7 +166,6 @@
                     <button
                       type="button"
                       class="button"
-                      [class]="'grp-' + row.session.groupIds[0]"
                       aria-label="Angemeldete anzeigen"
                       title="Angemeldete"
                       (click)="viewing.set(row.session)"
@@ -234,7 +233,6 @@
                     <button
                       type="button"
                       class="button"
-                      [class]="'grp-' + row.session.groupIds[0]"
                       aria-label="Angemeldete anzeigen"
                       title="Angemeldete"
                       (click)="viewing.set(row.session)"
@@ -283,7 +281,8 @@
     [recipients]="mailRecipients(session)"
     (closed)="mailing.set(null)"
     (sent)="
-      mailing.set(null); message.set('Demo: Die Mail wurde vorbereitet, aber nicht versendet.')
+      mailing.set(null);
+      toasts.show('Demo: Die Mail wurde vorbereitet, aber nicht versendet', 'info')
     "
   />
 }

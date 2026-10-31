@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Toasts } from '../../../ui/toast';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Icon } from '../../../ui/icon';
 import { PersonPickerDialog } from '../../dialogs/person-picker-dialog';
@@ -33,6 +34,7 @@ type Picker = 'trainer' | 'swimmer' | null;
   styleUrl: './session-editor.scss',
 })
 export class SessionEditor {
+  protected readonly toasts = inject(Toasts);
   protected readonly store = inject(TrainingStore);
   private readonly router = inject(Router);
   protected readonly weekdays = WEEKDAYS;
@@ -191,6 +193,7 @@ export class SessionEditor {
     const draft = this.draft();
     if (!draft.date || !draft.time || draft.groupIds.length === 0) {
       this.invalid.set(true);
+      this.toasts.failed('Bitte Datum, Uhrzeit und mindestens eine Gruppe wählen');
       return;
     }
     const session = asCopy ? { ...draft, id: '' } : draft;
@@ -199,9 +202,7 @@ export class SessionEditor {
         ? { rhythm: this.rhythm(), until: this.until(), weekdays: this.repeatDays() }
         : null;
     const count = this.store.saveSession(session, repeat);
-    this.store.flash.set(
-      count > 1 ? `${count} Termine wurden angelegt.` : 'Der Termin wurde gespeichert.',
-    );
+    this.toasts.saved(count > 1 ? `${count} Termine angelegt` : 'Termin gespeichert');
     void this.router.navigateByUrl('/training/termine');
   }
 }

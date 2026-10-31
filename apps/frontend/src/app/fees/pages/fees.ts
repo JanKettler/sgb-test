@@ -6,6 +6,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { Toasts } from '../../ui/toast';
 import { Icon } from '../../ui/icon';
 import { FeesStore } from '../fees.store';
 import { DunningTab } from './dunning-tab';
@@ -22,9 +23,9 @@ type Tab = 'payments' | 'dunning' | 'types' | 'settings';
   templateUrl: './fees.html',
 })
 export class Fees {
+  protected readonly toasts = inject(Toasts);
   protected readonly store = inject(FeesStore);
   protected readonly tab = signal<Tab>('payments');
-  protected readonly message = signal('');
   protected readonly payments = viewChild(PaymentsTab);
   protected readonly dunning = viewChild(DunningTab);
   protected readonly types = viewChild(FeeTypesTab);

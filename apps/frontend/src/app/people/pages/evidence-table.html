@@ -1,39 +1,19 @@
-@if (message()) {
-  <div class="notification is-link is-flex is-justify-content-space-between is-align-items-center">
-    <span>{{ message() }}</span>
-    <button type="button" class="button is-small" (click)="message.set('')">Schließen</button>
+<div class="evidence-bar">
+  <div class="buttons has-addons mb-0" role="tablist">
+    @for (item of categories; track item[0]) {
+      <button
+        type="button"
+        role="tab"
+        class="button"
+        [class.is-link]="category() === item[0]"
+        [attr.aria-selected]="category() === item[0]"
+        (click)="selectCategory(item[0])"
+      >
+        {{ item[1].label }}
+      </button>
+    }
   </div>
-}
-
-<div
-  class="is-flex is-flex-wrap-wrap is-justify-content-space-between is-align-items-center is-gap-3 mb-3"
->
-  <div class="tabs is-toggle mb-0" role="tablist">
-    <ul>
-      @for (item of categories; track item[0]) {
-        <li [class.is-active]="category() === item[0]">
-          <a
-            role="tab"
-            tabindex="0"
-            [attr.aria-selected]="category() === item[0]"
-            (click)="selectCategory(item[0])"
-            (keydown.enter)="selectCategory(item[0])"
-          >
-            {{ item[1].label }}
-          </a>
-        </li>
-      }
-    </ul>
-  </div>
-  <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-3">
-    <label class="checkbox is-size-7">
-      <input
-        type="checkbox"
-        [checked]="forAll()"
-        (change)="forAll.set($any($event.target).checked)"
-      />
-      für alle Kategorien
-    </label>
+  <div class="hide-box">
     <button
       type="button"
       class="button"
@@ -43,65 +23,67 @@
     >
       <app-icon name="eye-slash" /> Fehlende ausblenden
     </button>
+    <label class="checkbox is-size-7">
+      <input
+        type="checkbox"
+        [checked]="forAll()"
+        (change)="forAll.set($any($event.target).checked)"
+      />
+      für alle Kategorien
+    </label>
     @if (store.dismissed().size > 0) {
-      <button type="button" class="chip" (click)="store.showDismissed()">
-        {{ store.dismissed().size }} einzeln ausgeblendet – wieder einblenden
+      <button type="button" class="button is-small" (click)="store.showDismissed()">
+        {{ store.dismissed().size }} einzeln ausgeblendet · einblenden
       </button>
     }
   </div>
 </div>
 
-<div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
-  <span class="label m-0">Zeitraum</span>
-  @for (item of periods(); track item.id) {
-    <button
-      type="button"
-      class="chip is-solid"
-      [class.is-on]="period() === item.id"
-      [attr.aria-pressed]="period() === item.id"
-      (click)="period.set(item.id)"
-    >
-      {{ item.label }} · {{ item.count }}
-    </button>
-  }
-  <button
-    type="button"
-    class="chip is-solid"
-    [class.is-on]="period() === 'range'"
-    [attr.aria-pressed]="period() === 'range'"
-    (click)="period.set('range')"
-  >
-    Zeitraum eingeben
-  </button>
+<div class="filter-panel">
+  <div>
+    <label class="label" for="ev-period">Zeitraum</label>
+    <div class="select">
+      <select id="ev-period" (change)="setPeriod(value($event))">
+        @for (item of periods(); track item.id) {
+          <option [value]="item.id" [selected]="period() === item.id">
+            {{ item.label }} ({{ item.count }})
+          </option>
+        }
+        <option value="range" [selected]="period() === 'range'">Zeitraum eingeben …</option>
+      </select>
+    </div>
+  </div>
   @if (period() === 'range') {
-    <span>von</span>
-    <app-date-field label="Von" [(value)]="from" />
-    <span>bis</span>
-    <app-date-field label="Bis" [(value)]="to" />
+    <div>
+      <label class="label" for="ev-from">Von</label>
+      <app-date-field inputId="ev-from" [(value)]="from" />
+    </div>
+    <div>
+      <label class="label" for="ev-to">Bis</label>
+      <app-date-field inputId="ev-to" [(value)]="to" />
+    </div>
   }
-</div>
-<div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
-  <span class="label m-0">Art</span>
-  <button
-    type="button"
-    class="chip is-solid"
-    [class.is-on]="kind() === ''"
-    [attr.aria-pressed]="kind() === ''"
-    (click)="kind.set('')"
-  >
-    Alle Arten
-  </button>
-  @for (item of kinds(); track item) {
+  <div>
+    <label class="label" for="ev-kind">Art</label>
+    <div class="select">
+      <select id="ev-kind" (change)="setKind(value($event))">
+        <option value="" [selected]="kind() === ''">Alle Arten</option>
+        @for (item of kinds(); track item) {
+          <option [value]="item" [selected]="kind() === item">{{ labels[item] }}</option>
+        }
+      </select>
+    </div>
+  </div>
+  <div class="send">
     <button
       type="button"
-      class="chip is-solid"
-      [class.is-on]="kind() === item"
-      [attr.aria-pressed]="kind() === item"
-      (click)="kind.set(item)"
+      class="button is-primary"
+      [disabled]="recipients().length === 0"
+      (click)="mailing.set(true)"
     >
-      {{ labels[item] }}
+      <app-icon name="mail" /> Erinnerung senden ({{ recipients().length }})
     </button>
-  }
+  </div>
 </div>
 
 <div class="table-container">
@@ -109,16 +91,16 @@
     <thead>
       <tr>
         <th scope="col"><span class="is-sr-only">Auswahl</span></th>
-        <th scope="col">Person</th>
-        <th scope="col">Nachweis</th>
-        <th scope="col">Rolle</th>
-        <th scope="col">Gültig bis</th>
-        <th scope="col">Rest</th>
+        <th scope="col"><app-sort-button label="Person" column="person" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Nachweis" column="kind" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Rolle" column="role" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Gültig bis" column="date" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Rest" column="rest" [sort]="sort" /></th>
         <th scope="col"><span class="is-sr-only">Ausblenden</span></th>
       </tr>
     </thead>
     <tbody>
-      @for (row of rows(); track key(row)) {
+      @for (row of pageRows(); track key(row)) {
         <tr>
           <td>
             <input
@@ -166,17 +148,7 @@
     </tbody>
   </table>
 </div>
-
-<div class="mt-4">
-  <button
-    type="button"
-    class="button is-primary"
-    [disabled]="recipients().length === 0"
-    (click)="mailing.set(true)"
-  >
-    <app-icon name="mail" /> Erinnerung an Auswahl senden ({{ recipients().length }})
-  </button>
-</div>
+<app-table-pager [total]="rows().length" [(page)]="page" [(size)]="size" />
 
 @if (mailing()) {
   <app-mail-dialog [recipients]="recipients()" (closed)="mailing.set(false)" (sent)="sent()" />

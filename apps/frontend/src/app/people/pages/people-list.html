@@ -18,13 +18,6 @@
   </div>
 </header>
 
-@if (message()) {
-  <div class="notification is-link is-flex is-justify-content-space-between is-align-items-center">
-    <span>{{ message() }}</span>
-    <button type="button" class="button is-small" (click)="message.set('')">Schließen</button>
-  </div>
-}
-
 <section class="box">
   <div class="tabs" role="tablist">
     <ul>
@@ -100,14 +93,12 @@
           <thead>
             <tr>
               <th scope="col">
-                <button type="button" class="sort-btn" (click)="sortBy('name')">
-                  Name {{ sortMark('name') }}
-                </button>
+                <app-sort-button label="Name" column="name" [sort]="sort" />
               </th>
               <th scope="col" class="roles-col">Rollen</th>
-              <th scope="col">Schwimmer in</th>
-              <th scope="col">Trainer in</th>
-              <th scope="col">Nachweise</th>
+              <th scope="col">Schwimmer</th>
+              <th scope="col">Trainer</th>
+              <th scope="col" class="evidence-col">Nachweise</th>
               <th scope="col"><span class="is-sr-only">Aktionen</span></th>
             </tr>
           </thead>
@@ -149,27 +140,38 @@
                     <span class="sub">–</span>
                   }
                 </td>
-                <td>
+                <td class="evidence-col">
                   <span [class]="'pill is-' + tone(row.status.tone)">{{ row.status.text }}</span>
                 </td>
                 <td class="has-text-right is-nowrap">
-                  <a
-                    class="button is-warning"
-                    [routerLink]="['/personen', row.member.id]"
-                    [attr.aria-label]="row.name + ' bearbeiten'"
-                    title="Bearbeiten"
-                  >
-                    <app-icon name="pencil" />
-                  </a>
-                  <button
-                    type="button"
-                    class="button is-danger"
-                    [attr.aria-label]="row.name + ' löschen'"
-                    title="Löschen"
-                    (click)="toDelete.set(row.member)"
-                  >
-                    <app-icon name="trash" />
-                  </button>
+                  <span class="icon-row">
+                    <button
+                      type="button"
+                      class="button"
+                      [attr.aria-label]="row.name + ' duplizieren'"
+                      title="Duplizieren"
+                      (click)="duplicate(row.member)"
+                    >
+                      <app-icon name="copy" />
+                    </button>
+                    <a
+                      class="button is-warning"
+                      [routerLink]="['/personen', row.member.id]"
+                      [attr.aria-label]="row.name + ' bearbeiten'"
+                      title="Bearbeiten"
+                    >
+                      <app-icon name="pencil" />
+                    </a>
+                    <button
+                      type="button"
+                      class="button is-danger"
+                      [attr.aria-label]="row.name + ' löschen'"
+                      title="Löschen"
+                      (click)="toDelete.set(row.member)"
+                    >
+                      <app-icon name="trash" />
+                    </button>
+                  </span>
                 </td>
               </tr>
             } @empty {
@@ -181,27 +183,7 @@
         </table>
       </div>
 
-      @if (pageCount() > 1) {
-        <div class="pager">
-          <button
-            type="button"
-            class="button is-small"
-            [disabled]="page() === 0"
-            (click)="goto(page() - 1)"
-          >
-            <app-icon name="chevron-left" /> Zurück
-          </button>
-          <span>Seite {{ page() + 1 }} von {{ pageCount() }}</span>
-          <button
-            type="button"
-            class="button is-small"
-            [disabled]="page() >= pageCount() - 1"
-            (click)="goto(page() + 1)"
-          >
-            Weiter <app-icon name="chevron-right" />
-          </button>
-        </div>
-      }
+      <app-table-pager [total]="rows().length" [(page)]="page" [(size)]="size" />
     }
     @case ('parents') {
       <app-parents-table />

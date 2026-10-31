@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Toasts } from '../../../ui/toast';
 import { DateField } from '../../../ui/date-field';
 import { Icon } from '../../../ui/icon';
 import { ExportDialog } from '../../dialogs/export-dialog';
@@ -22,6 +23,7 @@ interface MailRequest {
   styleUrl: './attendance-overview.scss',
 })
 export class AttendanceOverview {
+  protected readonly toasts = inject(Toasts);
   protected readonly store = inject(TrainingStore);
 
   protected readonly groupId = signal<GroupId | 'all'>('all');
@@ -30,7 +32,6 @@ export class AttendanceOverview {
   protected readonly to = signal(addDays(this.store.today, -1));
   protected readonly exporting = signal(false);
   protected readonly mailRequest = signal<MailRequest | null>(null);
-  protected readonly message = signal('');
 
   protected readonly matrix = computed(() =>
     this.store.matrix(this.groupId(), this.from(), this.to()),
@@ -50,9 +51,11 @@ export class AttendanceOverview {
   }
 
   protected reasonText(entry: ActionNeeded): string {
-    return entry.registered
-      ? `${entry.streak} Mal hintereinander angemeldet und nicht gekommen`
-      : `${entry.streak} Mal ohne Rückmeldung nicht gekommen`;
+    if (entry.registered) return `${entry.streak} Mal hintereinander angemeldet und nicht gekommen`;
+    if (entry.unanswered === entry.streak) {
+      return `${entry.streak} Mal ohne Rückmeldung nicht gekommen`;
+    }
+    return `${entry.streak} Mal hintereinander nicht gekommen, davon ${entry.unanswered} Mal ohne Rückmeldung`;
   }
 
   protected columnDay(session: TrainingSession): string {
@@ -76,10 +79,10 @@ export class AttendanceOverview {
     const name = request.entry.person.name;
     if (request.kind === 'inactive') {
       this.store.markInactive(request.entry.person.id);
-      this.message.set(`${name} wurde auf inaktiv gesetzt (Demo: keine Mail versendet).`);
+      this.toasts.show(`${name} wurde auf inaktiv gesetzt (Demo: keine Mail versendet)`);
     } else {
       this.store.markHandled(request.entry.person.id);
-      this.message.set(`Info-Mail an ${name} vorbereitet (Demo: keine Mail versendet).`);
+      this.toasts.show(`Info-Mail an ${name} vorbereitet (Demo: keine Mail versendet)`, 'info');
     }
     this.mailRequest.set(null);
   }

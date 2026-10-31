@@ -7,8 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { GroupChips } from '../../../ui/group-chips';
 import { Icon } from '../../../ui/icon';
+import { Toasts } from '../../../ui/toast';
 import { DeclineChoice, DeclineDialog } from '../../dialogs/decline-dialog';
 import { MailDialog } from '../../dialogs/mail-dialog';
 import { RegisteredDialog } from '../../dialogs/registered-dialog';
@@ -41,24 +41,29 @@ interface DeclineTarget {
 
 @Component({
   selector: 'app-training-registration',
-  imports: [RouterLink, Icon, GroupChips, DeclineDialog, RegisteredDialog, MailDialog],
+  imports: [RouterLink, Icon, DeclineDialog, RegisteredDialog, MailDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './registration.html',
   styleUrl: './registration.scss',
 })
 export class TrainingRegistration {
   protected readonly store = inject(TrainingStore);
+  protected readonly toasts = inject(Toasts);
   protected readonly actors = this.store.actors;
 
   private readonly selectedId = signal('');
-  protected readonly message = signal('');
   protected readonly declining = signal<DeclineTarget | null>(null);
   protected readonly viewing = signal<TrainingSession | null>(null);
   protected readonly mailing = signal<TrainingSession | null>(null);
 
-  /** The groups a person swims in or trains, shown next to the name. */
-  protected groupIdsOf(person: Person): GroupId[] {
-    return [...(person.groupId ? [person.groupId] : []), ...person.trainerGroupIds];
+  /** The groups a person swims in or trains, as plain text next to the name. */
+  protected groupNamesOf(person: Person): string {
+    const ids: GroupId[] = [...(person.groupId ? [person.groupId] : []), ...person.trainerGroupIds];
+    return ids.map((id) => this.store.groupName(id)).join(', ');
+  }
+
+  protected value(event: Event): string {
+    return (event.target as HTMLSelectElement).value;
   }
 
   /** The person whose registrations are shown, for parents one of the children. */
@@ -116,7 +121,9 @@ export class TrainingRegistration {
 
   protected register(row: Row): void {
     const person = this.person();
-    if (person) this.store.respond(row.session.id, person.id, row.role, 'registered');
+    if (!person) return;
+    this.store.respond(row.session.id, person.id, row.role, 'registered');
+    this.toasts.show(`${person.name} ist angemeldet`);
   }
 
   protected decline(choice: DeclineChoice): void {
@@ -126,6 +133,6 @@ export class TrainingRegistration {
     const { session, role } = target;
     this.store.respond(session.id, person.id, role, 'declined', choice.reason, choice.note);
     this.declining.set(null);
-    this.message.set(`${person.name} wurde abgemeldet.`);
+    this.toasts.show(`${person.name} wurde abgemeldet`);
   }
 }

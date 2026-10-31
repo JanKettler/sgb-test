@@ -29,6 +29,7 @@ interface Section {
   tasks: Task[];
 }
 
+const BOM = String.fromCharCode(0xfeff);
 const REPEATS = Object.entries(REPEAT_LABEL) as [TaskRepeat, string][];
 const STATUSES = Object.entries(STATUS_LABEL) as [TaskStatus, string][];
 
@@ -49,7 +50,6 @@ export class Tasks {
 
   protected readonly repeats = REPEATS;
   protected readonly statuses = STATUSES;
-  protected readonly repeatLabel = REPEAT_LABEL;
 
   protected readonly layout = signal<Layout>('list');
   protected readonly query = signal('');
@@ -190,6 +190,10 @@ export class Tasks {
     return days === 1 ? `bis ${date} · morgen` : `bis ${date}`;
   }
 
+  protected repeatText(task: Task): string {
+    return REPEAT_LABEL[task.repeat];
+  }
+
   protected isOver(task: Task): boolean {
     return task.status !== 'done' && !!task.due && this.store.daysTo(task.due) <= 0;
   }
@@ -326,7 +330,7 @@ export class Tasks {
           .map((cell) => `"${cell.replace(/"/g, '""')}"`)
           .join(';'),
       );
-    downloadText('Offene_Aufgaben.csv', `﻿${[head.join(';'), ...lines].join('\n')}`);
+    downloadText('Offene_Aufgaben.csv', `${BOM}${[head.join(';'), ...lines].join('\n')}`);
     this.toasts.saved('Liste heruntergeladen');
   }
 }
