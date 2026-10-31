@@ -11,3 +11,25 @@ small {
 .table th {
   text-align: center;
 }
+
+.person-bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+
+  .for-person {
+    display: inline;
+    margin-right: 0.4rem;
+  }
+}
+
+/* Smaller action buttons than in the other tables, parents answer on the phone. */
+.icon-row .button {
+  font-size: 0.85rem;
+  height: 2.1rem;
+  min-width: 2.1rem;
+  padding: 0;
+}

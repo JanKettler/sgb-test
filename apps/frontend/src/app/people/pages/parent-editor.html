@@ -40,13 +40,11 @@
       </div>
     </div>
     <div>
-      <label class="label" for="e-mail">E-Mail</label>
-      <input
-        id="e-mail"
-        class="input"
-        type="email"
-        [value]="draft().email"
-        (change)="set('email', $event)"
+      <label class="label" for="e-birth">Geburtsdatum</label>
+      <app-date-field
+        inputId="e-birth"
+        [value]="draft().birthDate"
+        (valueChange)="setDate('birthDate', $event)"
       />
     </div>
     <div>
@@ -66,6 +64,94 @@
             : 'Kein Mitglied: ohne Beitrag, nur als Kontakt der Kinder.'
         }}
       </p>
+    </div>
+    @if (draft().memberNo) {
+      <div>
+        <label class="label" for="e-entry">Eintritt</label>
+        <app-date-field
+          inputId="e-entry"
+          [value]="draft().entry"
+          (valueChange)="setDate('entry', $event)"
+        />
+      </div>
+      <div>
+        <label class="label" for="e-exit">Austritt am</label>
+        <app-date-field
+          inputId="e-exit"
+          [value]="draft().exitDate"
+          (valueChange)="setDate('exitDate', $event)"
+        />
+      </div>
+    }
+  </div>
+</section>
+
+<section class="box">
+  <h3>Adresse und Kontakt</h3>
+  <div class="form-grid">
+    <div>
+      <label class="label" for="e-street">Straße</label>
+      <input
+        id="e-street"
+        class="input"
+        [value]="draft().street"
+        (change)="set('street', $event)"
+      />
+    </div>
+    <div>
+      <label class="label" for="e-house">Hausnummer</label>
+      <input
+        id="e-house"
+        class="input"
+        [value]="draft().houseNo"
+        (change)="set('houseNo', $event)"
+      />
+    </div>
+    <div>
+      <label class="label" for="e-zip">Postleitzahl</label>
+      <input id="e-zip" class="input" [value]="draft().zip" (change)="set('zip', $event)" />
+    </div>
+    <div>
+      <label class="label" for="e-city">Ort</label>
+      <input id="e-city" class="input" [value]="draft().city" (change)="set('city', $event)" />
+    </div>
+    <div>
+      <label class="label" for="e-mail">E-Mail 1</label>
+      <input
+        id="e-mail"
+        class="input"
+        type="email"
+        [value]="draft().email"
+        (change)="set('email', $event)"
+      />
+    </div>
+    <div>
+      <label class="label" for="e-mail2">E-Mail 2</label>
+      <input
+        id="e-mail2"
+        class="input"
+        type="email"
+        [value]="draft().email2"
+        (change)="set('email2', $event)"
+      />
+    </div>
+    <div>
+      <label class="label" for="e-phone1">Telefon 1</label>
+      <input
+        id="e-phone1"
+        class="input"
+        [value]="draft().phone1"
+        (change)="set('phone1', $event)"
+      />
+    </div>
+    <div>
+      <label class="label" for="e-phone2">Telefon 2</label>
+      <input
+        id="e-phone2"
+        class="input"
+        [value]="draft().phone2"
+        (change)="set('phone2', $event)"
+      />
     </div>
   </div>
 </section>

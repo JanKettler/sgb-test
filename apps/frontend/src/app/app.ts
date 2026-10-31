@@ -14,9 +14,10 @@ import { ThemeService } from './core/theme.service';
 import { DEMO_ROLES, DemoRole } from './training/training.models';
 import { TrainingStore } from './training/training.store';
 import { Icon } from './ui/icon';
+import { ToastHost } from './ui/toast';
 
 @Component({
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, Icon],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, Icon, ToastHost],
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './app.scss',

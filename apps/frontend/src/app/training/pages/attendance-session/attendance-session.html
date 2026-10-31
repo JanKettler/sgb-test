@@ -7,6 +7,9 @@
       <p class="subtitle is-6 mb-0">{{ subtitle() }}</p>
     </div>
     <div class="buttons">
+      <button type="button" class="button" (click)="adding.set(true)">
+        <app-icon name="plus" /> Person ohne Rückmeldung hinzufügen
+      </button>
       <a class="button" routerLink="/training/termine">
         <app-icon name="chevron-left" /> Zurück zu den Terminen
       </a>
@@ -74,10 +77,6 @@
         </tbody>
       </table>
     </div>
-
-    <button type="button" class="button mt-4" (click)="adding.set(true)">
-      <app-icon name="plus" /> Person ohne Anmeldung hinzufügen
-    </button>
   </section>
 
   @if (adding()) {

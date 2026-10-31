@@ -43,6 +43,8 @@ export interface ActionNeeded {
   streak: number;
   /** True when the person had registered for every missed session. */
   registered: boolean;
+  /** How many of the missed sessions had no answer at all. */
+  unanswered: number;
 }
 
 export interface Attendee {
@@ -575,19 +577,21 @@ export class TrainingStore {
   }
 
   /** Missed sessions in a row, counted from the most recent one. */
-  missingStreak(person: Person): { count: number; registered: boolean } {
+  missingStreak(person: Person): { count: number; registered: boolean; unanswered: number } {
     const sessions = this.personSessions(person);
     let count = 0;
     let registered = true;
+    let unanswered = 0;
     for (let index = sessions.length - 1; index >= 0; index--) {
       const session = sessions[index];
       if (this.stateOf(session, person.id, 'swimmer') !== 'missing') break;
       count++;
       if (this.responseOf(session.id, person.id, 'swimmer')?.status !== 'registered') {
         registered = false;
+        unanswered++;
       }
     }
-    return { count, registered };
+    return { count, registered, unanswered };
   }
 
   actionNeeded(): { inactive: ActionNeeded[]; info: ActionNeeded[] } {
@@ -598,8 +602,8 @@ export class TrainingStore {
     const visible = new Set(this.viewableGroups().map((group) => group.id));
     for (const person of this.swimmers()) {
       if (skip.has(person.id) || person.groupId === null || !visible.has(person.groupId)) continue;
-      const { count, registered } = this.missingStreak(person);
-      const entry = { person, streak: count, registered };
+      const { count, registered, unanswered } = this.missingStreak(person);
+      const entry = { person, streak: count, registered, unanswered };
       if (count >= settings.inactiveAfter) inactive.push(entry);
       else if (count >= settings.infoMailAfter) info.push(entry);
     }

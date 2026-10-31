@@ -66,17 +66,17 @@
             (change)="toggleAll($any($event.target).checked)"
           />
         </th>
-        <th scope="col">Person</th>
-        <th scope="col">Zahler</th>
-        <th scope="col">Beitragsart</th>
-        <th scope="col">Offen</th>
-        <th scope="col">Zahlart</th>
-        <th scope="col">Mahn.</th>
+        <th scope="col"><app-sort-button label="Person" column="person" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Zahler" column="payer" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Beitragsart" column="type" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Offen" column="amount" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Zahlart" column="method" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Mahn." column="dunning" [sort]="sort" /></th>
         <th scope="col">Verwendungszweck</th>
       </tr>
     </thead>
     <tbody>
-      @for (payment of rows(); track payment.id) {
+      @for (payment of pageRows(); track payment.id) {
         <tr>
           <td class="narrow">
             <input
@@ -90,7 +90,20 @@
             <strong>{{ payment.label }}</strong>
           </td>
           <td>{{ payment.payerName }}</td>
-          <td>{{ store.feeName(payment.feeTypeId) }}</td>
+          <td>
+            <div class="select is-small">
+              <select
+                [attr.aria-label]="'Beitragsart für ' + payment.label"
+                (change)="setType(payment, $event)"
+              >
+                @for (type of types(); track type.id) {
+                  <option [value]="type.id" [selected]="type.id === payment.feeTypeId">
+                    {{ type.name }}
+                  </option>
+                }
+              </select>
+            </div>
+          </td>
           <td>
             @if (payment.paid) {
               <span class="pill is-ok">bezahlt</span>
@@ -100,9 +113,7 @@
           </td>
           <td>{{ payment.method }}</td>
           <td>{{ payment.dunning }}</td>
-          <td>
-            <small>{{ store.purposeOf(payment) }}</small>
-          </td>
+          <td class="purpose">{{ store.purposeOf(payment) }}</td>
         </tr>
       } @empty {
         <tr>
@@ -112,6 +123,7 @@
     </tbody>
   </table>
 </div>
+<app-table-pager [total]="rows().length" [(page)]="page" [(size)]="size" />
 
 @if (toDelete()) {
   <app-modal-dialog heading="Zahlungen löschen?" accent="red" (closed)="toDelete.set(false)">

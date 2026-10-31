@@ -8,6 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { Toasts } from '../../../ui/toast';
 import { RouterLink } from '@angular/router';
 import { GroupChips } from '../../../ui/group-chips';
 import { DateField } from '../../../ui/date-field';
@@ -39,6 +40,7 @@ interface SessionRow {
   styleUrl: './sessions.scss',
 })
 export class Sessions {
+  protected readonly toasts = inject(Toasts);
   protected readonly store = inject(TrainingStore);
   protected readonly shortDay = shortDay;
 
@@ -51,7 +53,6 @@ export class Sessions {
   protected readonly toDelete = signal<TrainingSession | null>(null);
   protected readonly viewing = signal<TrainingSession | null>(null);
   protected readonly mailing = signal<TrainingSession | null>(null);
-  protected readonly message = signal(this.takeFlash());
 
   protected readonly rows = computed<SessionRow[]>(() => {
     return this.store
@@ -85,12 +86,6 @@ export class Sessions {
   protected readonly filtered = computed(
     () => this.group() !== '' || this.trainer() !== '' || this.from() !== '' || this.to() !== '',
   );
-
-  private takeFlash(): string {
-    const text = this.store.flash();
-    this.store.flash.set('');
-    return text;
-  }
 
   private matches(session: TrainingSession): boolean {
     if (this.from() && session.date < this.from()) return false;
@@ -136,7 +131,7 @@ export class Sessions {
     if (!session) return;
     this.store.deleteSession(session.id);
     this.toDelete.set(null);
-    this.message.set('Der Termin wurde gelöscht.');
+    this.toasts.saved('Der Termin wurde gelöscht');
   }
 
   protected deleteText(session: TrainingSession): string {

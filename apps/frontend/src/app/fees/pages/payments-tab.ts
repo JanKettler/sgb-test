@@ -7,6 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { Icon } from '../../ui/icon';
+import { SortButton, SortState } from '../../ui/sort';
+import { TablePager, pageOf } from '../../ui/table-pager';
 import { ModalDialog } from '../../ui/modal-dialog';
 import { downloadText } from '../../training/training-download';
 import { Payment, euro } from '../fees.models';
@@ -16,9 +18,15 @@ type StatusFilter = 'open' | 'paid' | 'all';
 
 @Component({
   selector: 'app-payments-tab',
-  imports: [Icon, ModalDialog],
+  imports: [Icon, ModalDialog, SortButton, TablePager],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './payments-tab.html',
+  styles: `
+    .purpose {
+      max-width: 22rem;
+      min-width: 12rem;
+    }
+  `,
 })
 export class PaymentsTab {
   protected readonly store = inject(FeesStore);
@@ -30,14 +38,48 @@ export class PaymentsTab {
   protected readonly selected = signal<ReadonlySet<string>>(new Set());
   protected readonly toDelete = signal(false);
 
-  protected readonly rows = computed(() =>
-    this.store.payments().filter((payment) => {
-      if (this.method() && payment.method !== this.method()) return false;
-      if (this.status() === 'open') return !payment.paid;
-      if (this.status() === 'paid') return payment.paid;
-      return true;
-    }),
-  );
+  protected readonly sort = new SortState('person');
+  protected readonly page = signal(0);
+  protected readonly size = signal(25);
+  protected readonly types = this.store.types;
+
+  protected readonly rows = computed(() => {
+    const key = this.sort.key();
+    const compare = (a: Payment, b: Payment): number => {
+      switch (key) {
+        case 'payer':
+          return a.payerName.localeCompare(b.payerName, 'de');
+        case 'type':
+          return this.store
+            .feeName(a.feeTypeId)
+            .localeCompare(this.store.feeName(b.feeTypeId), 'de');
+        case 'amount':
+          return a.amount - b.amount;
+        case 'method':
+          return a.method.localeCompare(b.method, 'de');
+        case 'dunning':
+          return a.dunning - b.dunning;
+        default:
+          return a.label.localeCompare(b.label, 'de');
+      }
+    };
+    return this.store
+      .payments()
+      .filter((payment) => {
+        if (this.method() && payment.method !== this.method()) return false;
+        if (this.status() === 'open') return !payment.paid;
+        if (this.status() === 'paid') return payment.paid;
+        return true;
+      })
+      .sort((a, b) => this.sort.apply(compare(a, b)));
+  });
+
+  protected readonly pageRows = computed(() => pageOf(this.rows(), this.page(), this.size()));
+
+  protected setType(payment: Payment, event: Event): void {
+    this.store.setFeeType(payment.id, this.value(event));
+    this.notice.emit(`${payment.label}: Beitragsart geändert`);
+  }
 
   protected value(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;

@@ -7,13 +7,6 @@
   </div>
 </header>
 
-@if (message()) {
-  <div class="notification is-link is-flex is-justify-content-space-between is-align-items-center">
-    <span>{{ message() }}</span>
-    <button type="button" class="button is-small" (click)="message.set('')">Schließen</button>
-  </div>
-}
-
 <section class="box">
   @if (hasAction()) {
     <div class="action-card">
@@ -27,14 +20,14 @@
           <div class="icon-row">
             <button
               type="button"
-              class="button"
+              class="button is-small"
               (click)="mailRequest.set({ kind: 'info', entry: entry })"
             >
               Mail senden
             </button>
             <button
               type="button"
-              class="button is-primary"
+              class="button is-small is-primary"
               (click)="mailRequest.set({ kind: 'inactive', entry: entry })"
             >
               Auf inaktiv setzen und informieren
@@ -50,7 +43,7 @@
           </div>
           <button
             type="button"
-            class="button is-primary"
+            class="button is-small is-primary"
             (click)="mailRequest.set({ kind: 'info', entry: entry })"
           >
             Info-Mail senden

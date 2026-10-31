@@ -11,61 +11,11 @@
     <app-board [limit]="6" />
   </div>
 
-  <div class="area-side">
-    @if (canSeeClub()) {
-      <section class="box">
-        <div class="level is-mobile mb-3">
-          <h3 class="title is-5 mb-0">
-            <app-icon name="tasks" class="has-text-success" />
-            {{ taskMode() === 'mine' || !canSeeAllTasks() ? 'Meine Aufgaben' : 'Offene Aufgaben' }}
-          </h3>
-          <span class="has-text-grey is-size-7">{{ tasks().length }} offen</span>
-        </div>
-        @if (canSeeAllTasks()) {
-          <div class="buttons has-addons mb-3">
-            <button
-              type="button"
-              class="button is-small"
-              [class.is-link]="taskMode() === 'mine'"
-              (click)="taskMode.set('mine')"
-            >
-              Meine ({{ data.myTasks().length }})
-            </button>
-            <button
-              type="button"
-              class="button is-small"
-              [class.is-link]="taskMode() === 'all'"
-              (click)="taskMode.set('all')"
-            >
-              Alle ({{ data.tasks().length }})
-            </button>
-          </div>
-        }
-        @for (task of tasks(); track task.id) {
-          <div class="task">
-            <span>
-              @if (task.high) {
-                <app-icon name="warning" class="has-text-danger" />
-              }
-              {{ task.title }}
-            </span>
-            @if (task.due) {
-              <span class="tag is-rounded" [class]="dueTone(task.due)">
-                {{ dueText(task.due) }}
-              </span>
-            }
-          </div>
-        } @empty {
-          <p class="has-text-grey">
-            {{
-              taskMode() === 'mine' || !canSeeAllTasks()
-                ? 'Dir ist nichts zugewiesen.'
-                : 'Alles erledigt.'
-            }}
-          </p>
-        }
-      </section>
-    }
+  <div class="area-calendar">
+    <app-home />
+  </div>
+
+  <div class="area-left">
     @if (canSeeClub()) {
       <section class="box">
         <h3 class="title is-5">
@@ -91,25 +41,6 @@
       </section>
     }
 
-    <section class="box">
-      <h3 class="title is-5">
-        <app-icon name="hourglass" class="has-text-warning" /> Fristen und Hinweise
-      </h3>
-      @for (notice of notices(); track notice.title) {
-        <a class="row-link" [routerLink]="notice.route">
-          <span class="notice-box" [class]="'is-' + notice.tone">
-            <app-icon [name]="noticeIcon[notice.tone]" />
-          </span>
-          <span class="row-text">
-            <b>{{ notice.title }}</b>
-            <i>{{ notice.text }}</i>
-          </span>
-        </a>
-      } @empty {
-        <p class="has-text-grey">Keine Fristen in Sicht.</p>
-      }
-    </section>
-
     @if (canSeeClub()) {
       <section class="box">
         <div class="level is-mobile mb-2">
@@ -119,9 +50,11 @@
         </div>
         @if (nextStarters(); as meet) {
           <p class="has-text-grey mb-3">
-            <strong>{{ meet.title }}</strong> · {{ fullDate(meet.date).slice(0, 6) }} ({{
-              countdown(data.daysTo(meet.date))
-            }}) · {{ meet.place }}
+            <a [routerLink]="'/wettkaempfe/' + meet.id"
+              ><strong>{{ meet.title }}</strong></a
+            >
+            · {{ fullDate(meet.date).slice(0, 6) }} ({{ countdown(data.daysTo(meet.date)) }}) ·
+            {{ meet.place }}
           </p>
           @if (meet.starters.length > 0) {
             <p class="has-text-grey mb-2">
@@ -145,7 +78,78 @@
     }
   </div>
 
-  <div class="area-calendar">
-    <app-home />
+  <div class="area-right">
+    @if (canSeeClub()) {
+      <section class="box">
+        <div class="level is-mobile mb-3">
+          <h3 class="title is-5 mb-0">
+            <app-icon name="tasks" class="has-text-success" />
+            {{ taskMode() === 'mine' || !canSeeAllTasks() ? 'Meine Aufgaben' : 'Offene Aufgaben' }}
+          </h3>
+          <a class="is-size-7" routerLink="/aufgaben">{{ tasks().length }} offen →</a>
+        </div>
+        @if (canSeeAllTasks()) {
+          <div class="buttons has-addons mb-3">
+            <button
+              type="button"
+              class="button is-small"
+              [class.is-link]="taskMode() === 'mine'"
+              (click)="taskMode.set('mine')"
+            >
+              Meine ({{ store.mine().length }})
+            </button>
+            <button
+              type="button"
+              class="button is-small"
+              [class.is-link]="taskMode() === 'all'"
+              (click)="taskMode.set('all')"
+            >
+              Alle ({{ store.open().length }})
+            </button>
+          </div>
+        }
+        @for (task of tasks(); track task.id) {
+          <a class="task" [routerLink]="'/aufgaben'" [queryParams]="{ aufgabe: task.id }">
+            <span>
+              @if (task.high) {
+                <app-icon name="warning" class="has-text-danger" />
+              }
+              {{ task.title }}
+            </span>
+            @if (task.due) {
+              <span class="tag is-rounded" [class]="dueTone(task.due)">
+                {{ dueText(task.due) }}
+              </span>
+            }
+          </a>
+        } @empty {
+          <p class="has-text-grey">
+            {{
+              taskMode() === 'mine' || !canSeeAllTasks()
+                ? 'Dir ist nichts zugewiesen.'
+                : 'Alles erledigt.'
+            }}
+          </p>
+        }
+      </section>
+    }
+    <section class="box">
+      <h3 class="title is-5">
+        <app-icon name="hourglass" class="has-text-warning" /> Fristen und Hinweise
+      </h3>
+      @for (notice of notices(); track notice.title) {
+        <a class="row-link" [routerLink]="notice.route">
+          <span class="notice-box" [class]="'is-' + notice.tone">
+            <app-icon [name]="noticeIcon[notice.tone]" />
+          </span>
+          <span class="row-text">
+            <b>{{ notice.title }}</b>
+            <i>{{ notice.text }}</i>
+          </span>
+        </a>
+      } @empty {
+        <p class="has-text-grey">Keine Fristen in Sicht.</p>
+      }
+    </section>
   </div>
 </div>

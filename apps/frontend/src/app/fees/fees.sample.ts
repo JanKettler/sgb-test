@@ -54,7 +54,7 @@ export const SAMPLE_SETTINGS: FeeSettings = {
   copyTo: '',
   remindDebit: true,
   remindTransfer: true,
-  purposeTemplate: '[NACHNAME] [MITGLIEDNR], [JAHR] [BEITRAGNAME]',
+  purposeTemplate: 'Beitrag [JAHR] [BEITRAGNAME], [VORNAME] [NACHNAME], Nr. [MITGLIEDNR]',
   accountHolder: 'Schwimmgemeinschaft Barnstorf',
   bank: 'Testbank',
   iban: '',

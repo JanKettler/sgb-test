@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { Icon } from '../../ui/icon';
+import { SortButton, SortState } from '../../ui/sort';
 import { downloadText } from '../../training/training-download';
 import { fullDate } from '../../training/training-dates';
 import { euro } from '../fees.models';
@@ -14,9 +15,31 @@ import { DunningRow, FeesStore } from '../fees.store';
 
 @Component({
   selector: 'app-dunning-tab',
-  imports: [Icon],
+  imports: [Icon, SortButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dunning-tab.html',
+  styles: `
+    .is-shown td {
+      background: var(--sgb-hover);
+    }
+
+    .mail-head {
+      border-bottom: 1px solid var(--sgb-line);
+      margin-bottom: 0.8rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .mail-subject {
+      background: var(--sgb-card);
+      border: 1px solid var(--sgb-line);
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+    }
+
+    .mail-preview {
+      max-width: 44rem;
+    }
+  `,
 })
 export class DunningTab {
   protected readonly store = inject(FeesStore);
@@ -28,7 +51,18 @@ export class DunningTab {
   private readonly off = signal<ReadonlySet<string>>(new Set());
   protected readonly preview = signal('');
 
-  protected readonly rows = this.store.dunningRows;
+  protected readonly sort = new SortState('payer');
+  protected readonly rows = computed(() => {
+    const key = this.sort.key();
+    const compare = (a: DunningRow, b: DunningRow): number => {
+      if (key === 'amount') return a.payment.amount - b.payment.amount;
+      if (key === 'total') return a.total - b.total;
+      if (key === 'level') return a.level - b.level;
+      if (key === 'since') return a.payment.dueDate.localeCompare(b.payment.dueDate);
+      return a.payment.payerName.localeCompare(b.payment.payerName, 'de');
+    };
+    return [...this.store.dunningRows()].sort((a, b) => this.sort.apply(compare(a, b)));
+  });
   protected readonly chosen = computed(() =>
     this.rows().filter((row) => !this.off().has(row.payment.id)),
   );

@@ -144,7 +144,15 @@ export function emptyAccount(): PayAccount {
   };
 }
 
-export type Relation = 'Mutter' | 'Vater' | 'Erziehungsberechtigte';
+export type Relation =
+  | 'Mutter'
+  | 'Vater'
+  | 'Großmutter'
+  | 'Großvater'
+  | 'Pflegemutter'
+  | 'Pflegevater'
+  | 'Erziehungsberechtigte'
+  | 'Andere Person';
 
 /** Parents get their own login and register their children. */
 export interface Parent {
@@ -154,6 +162,19 @@ export interface Parent {
   email: string;
   /** Parents with a member number are club members; without one they are not. */
   memberNo: number | null;
+  /** ISO date; empty while unknown. */
+  birthDate: string;
+  /** ISO date of joining the club (members only). */
+  entry: string;
+  /** ISO date of leaving the club. */
+  exitDate: string;
+  street: string;
+  houseNo: string;
+  zip: string;
+  city: string;
+  email2: string;
+  phone1: string;
+  phone2: string;
   access: 'active' | 'invited';
   trainingRegistration: boolean;
   competitionRegistration: boolean;

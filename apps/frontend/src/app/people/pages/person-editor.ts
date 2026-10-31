@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Toasts } from '../../ui/toast';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
@@ -73,6 +74,7 @@ type GroupKey = 'swimmerGroupIds' | 'trainerGroupIds';
   styleUrl: './person-editor.scss',
 })
 export class PersonEditor {
+  protected readonly toasts = inject(Toasts);
   private readonly store = inject(PeopleStore);
   private readonly router = inject(Router);
   protected readonly fees = inject(FeesStore);
@@ -237,6 +239,7 @@ export class PersonEditor {
 
   protected cancel(): void {
     this.store.parents.set(this.parentsBefore);
+    this.toasts.cancelled();
     void this.router.navigate(['/personen']);
   }
 
@@ -244,11 +247,12 @@ export class PersonEditor {
     const member = this.draft();
     if (!member.firstName.trim() || !member.lastName.trim()) {
       this.tab.set('master');
+      this.toasts.failed('Bitte Vor- und Nachname eintragen');
       return;
     }
     this.store.save(member);
     this.fees.generate();
-    this.store.flash.set(`${fullName(member)} wurde gespeichert.`);
+    this.toasts.saved(`${fullName(member)} gespeichert`);
     void this.router.navigate(['/personen']);
   }
 }

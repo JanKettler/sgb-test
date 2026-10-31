@@ -17,24 +17,30 @@
   </div>
 </div>
 
-<h3>Wer wird gemahnt</h3>
-<p class="sub">{{ chosen().length }} von {{ rows().length }} markiert</p>
+<h3 class="title is-5 mb-1">Wer wird gemahnt</h3>
+<p class="sub mb-2">
+  {{ chosen().length }} von {{ rows().length }} markiert. Ein Klick auf eine Zeile zeigt die Mail.
+</p>
 
 <div class="table-container">
   <table class="table is-fullwidth is-hoverable">
     <thead>
       <tr>
         <th scope="col" class="narrow"><span class="is-sr-only">Auswahl</span></th>
-        <th scope="col">Zahler</th>
-        <th scope="col">Offen</th>
+        <th scope="col"><app-sort-button label="Zahler" column="payer" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Offen" column="amount" [sort]="sort" /></th>
         <th scope="col">Gebühr</th>
-        <th scope="col">Gesamt</th>
-        <th scope="col">Stufe</th>
+        <th scope="col"><app-sort-button label="Gesamt" column="total" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Stufe" column="level" [sort]="sort" /></th>
       </tr>
     </thead>
     <tbody>
       @for (row of rows(); track row.payment.id) {
-        <tr (click)="preview.set(row.payment.id)">
+        <tr
+          class="is-clickable"
+          [class.is-shown]="shown()?.payment?.id === row.payment.id"
+          (click)="preview.set(row.payment.id)"
+        >
           <td class="narrow">
             <input
               type="checkbox"
@@ -54,7 +60,9 @@
           <td>{{ euro(row.fee) }}</td>
           <td>{{ euro(row.total) }}</td>
           <td>
-            <span [class]="row.level >= 2 ? 'pill is-bad' : 'pill is-warn'">{{ row.level }}</span>
+            <span [class]="row.level >= 2 ? 'pill is-bad' : 'pill is-warn'">
+              {{ row.level }}. Mahnung
+            </span>
           </td>
         </tr>
       } @empty {
@@ -80,11 +88,13 @@
 @if (shown(); as row) {
   @if (mail(); as text) {
     <div class="mail-preview mt-4">
-      <h3>E-Mail an {{ row.payment.payerName }}</h3>
-      <p class="sub">Vorschau</p>
-      <p>
-        <strong>Betreff</strong><br />
-        {{ text.subject }}
+      <div class="mail-head">
+        <h3 class="title is-5 mb-1">E-Mail an {{ row.payment.payerName }}</h3>
+        <p class="sub">Vorschau, so sieht die Mail aus</p>
+      </div>
+      <p class="mail-subject">
+        <span class="sub">Betreff</span>
+        <strong>{{ text.subject }}</strong>
       </p>
       @for (line of text.lines; track line) {
         <p>{{ line }}</p>

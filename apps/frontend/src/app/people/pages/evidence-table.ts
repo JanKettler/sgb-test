@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Toasts } from '../../ui/toast';
 import { RouterLink } from '@angular/router';
 import { DateField } from '../../ui/date-field';
 import { Icon } from '../../ui/icon';
+import { SortButton, SortState } from '../../ui/sort';
+import { TablePager, pageOf } from '../../ui/table-pager';
 import { MailDialog } from '../../training/dialogs/mail-dialog';
 import { addDays, fullDate } from '../../training/training-dates';
 import {
@@ -19,11 +22,13 @@ type Period = 'all' | 'overdue' | '30' | 'range';
 
 @Component({
   selector: 'app-evidence-table',
-  imports: [RouterLink, Icon, MailDialog, DateField],
+  imports: [RouterLink, Icon, MailDialog, DateField, SortButton, TablePager],
+  styleUrl: './evidence-table.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './evidence-table.html',
 })
 export class EvidenceTable {
+  protected readonly toasts = inject(Toasts);
   protected readonly store = inject(PeopleStore);
   protected readonly categories = Object.entries(EVIDENCE_CATEGORIES) as [
     EvidenceCategory,
@@ -41,7 +46,6 @@ export class EvidenceTable {
   protected readonly forAll = signal(false);
   protected readonly selected = signal<ReadonlySet<string>>(new Set());
   protected readonly mailing = signal(false);
-  protected readonly message = signal('');
 
   private readonly due = this.store.dueEvidence;
 
@@ -63,17 +67,39 @@ export class EvidenceTable {
     ];
   });
 
+  protected readonly sort = new SortState('rest');
+  protected readonly page = signal(0);
+  protected readonly size = signal(25);
+
   protected readonly rows = computed(() => {
     const period = this.period();
     const kind = this.kind();
-    return this.inCategory().filter((row) => {
-      if (kind && row.kind !== kind) return false;
-      if (period === 'overdue') return this.isOverdue(row);
-      if (period === '30') return this.within(row, 30);
-      if (period === 'range') return !!row.date && row.date >= this.from() && row.date <= this.to();
-      return true;
-    });
+    const key = this.sort.key();
+    const compare = (a: EvidenceRow, b: EvidenceRow): number => {
+      if (key === 'person') {
+        return (
+          a.member.lastName.localeCompare(b.member.lastName, 'de') ||
+          a.member.firstName.localeCompare(b.member.firstName, 'de')
+        );
+      }
+      if (key === 'kind') return a.label.localeCompare(b.label, 'de');
+      if (key === 'role') return a.role.localeCompare(b.role, 'de');
+      if (key === 'date') return (a.date || '0000').localeCompare(b.date || '0000');
+      return (a.days ?? -9999) - (b.days ?? -9999);
+    };
+    return this.inCategory()
+      .filter((row) => {
+        if (kind && row.kind !== kind) return false;
+        if (period === 'overdue') return this.isOverdue(row);
+        if (period === '30') return this.within(row, 30);
+        if (period === 'range')
+          return !!row.date && row.date >= this.from() && row.date <= this.to();
+        return true;
+      })
+      .sort((a, b) => this.sort.apply(compare(a, b)));
   });
+
+  protected readonly pageRows = computed(() => pageOf(this.rows(), this.page(), this.size()));
 
   protected readonly recipients = computed(() => {
     const ids = this.selected();
@@ -83,7 +109,22 @@ export class EvidenceTable {
     return [...new Set(names)];
   });
 
+  protected value(event: Event): string {
+    return (event.target as HTMLSelectElement).value;
+  }
+
+  protected setPeriod(value: string): void {
+    this.period.set(value as Period);
+    this.page.set(0);
+  }
+
+  protected setKind(value: string): void {
+    this.kind.set(value as EvidenceKind | '');
+    this.page.set(0);
+  }
+
   protected selectCategory(category: EvidenceCategory): void {
+    this.page.set(0);
     this.category.set(category);
     this.kind.set('');
     this.selected.set(new Set());
@@ -115,7 +156,7 @@ export class EvidenceTable {
   protected sent(): void {
     this.mailing.set(false);
     this.selected.set(new Set());
-    this.message.set('Demo: Die Erinnerung wurde vorbereitet, aber nicht versendet.');
+    this.toasts.show('Demo: Die Erinnerung wurde vorbereitet, aber nicht versendet', 'info');
   }
 
   protected readonly isOverdue = (row: EvidenceRow): boolean =>

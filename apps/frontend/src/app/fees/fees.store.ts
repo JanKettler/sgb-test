@@ -66,6 +66,17 @@ export class FeesStore {
       });
   });
 
+  /** Gives a payment another fee type by hand, e.g. "Passiv"; the amount follows the type. */
+  setFeeType(paymentId: string, typeId: string): void {
+    const amount = this.feeType(typeId)?.amount;
+    if (amount === undefined) return;
+    this.payments.update((all) =>
+      all.map((payment) =>
+        payment.id === paymentId ? { ...payment, feeTypeId: typeId, amount } : payment,
+      ),
+    );
+  }
+
   feeType(id: string): FeeType | undefined {
     return this.types().find((type) => type.id === id);
   }

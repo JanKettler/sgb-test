@@ -1,8 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { GroupChips } from '../../ui/group-chips';
 import { Icon } from '../../ui/icon';
 import { ModalDialog } from '../../ui/modal-dialog';
+import { SortButton, SortState } from '../../ui/sort';
+import { TablePager, pageOf } from '../../ui/table-pager';
+import { Toasts } from '../../ui/toast';
 import { downloadText } from '../../training/training-download';
 import { GROUPS, GroupId } from '../../training/training.models';
 import { birthYear, fullName, Member, ROLES, RoleKey } from '../people.models';
@@ -12,19 +15,27 @@ import { ParentsTable } from './parents-table';
 
 type Tab = 'members' | 'parents' | 'evidence';
 type StatusFilter = 'active' | 'all' | 'inactive';
-type SortKey = 'name' | 'memberNo';
-
-const PAGE_SIZE = 25;
 
 @Component({
   selector: 'app-people-list',
-  imports: [RouterLink, Icon, GroupChips, ModalDialog, ParentsTable, EvidenceTable],
+  imports: [
+    RouterLink,
+    Icon,
+    GroupChips,
+    ModalDialog,
+    ParentsTable,
+    EvidenceTable,
+    SortButton,
+    TablePager,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './people-list.html',
   styleUrl: './people-list.scss',
 })
 export class PeopleList {
   protected readonly store = inject(PeopleStore);
+  private readonly toasts = inject(Toasts);
+  private readonly router = inject(Router);
   protected readonly roles = ROLES;
   protected readonly groups = GROUPS;
 
@@ -33,10 +44,9 @@ export class PeopleList {
   protected readonly role = signal<RoleKey | ''>('');
   protected readonly group = signal<GroupId | ''>('');
   protected readonly status = signal<StatusFilter>('active');
-  protected readonly message = signal(this.takeFlash());
-  protected readonly sortKey = signal<SortKey>('name');
-  protected readonly sortDesc = signal(false);
+  protected readonly sort = new SortState('name');
   protected readonly page = signal(0);
+  protected readonly size = signal(25);
   protected readonly toDelete = signal<Member | null>(null);
   protected readonly year = birthYear;
   protected readonly rolesLabel = (chip: { label: string }): string => chip.label;
@@ -63,12 +73,16 @@ export class PeopleList {
         );
       })
       .sort((a, b) => {
+        const byName =
+          a.lastName.localeCompare(b.lastName, 'de') ||
+          a.firstName.localeCompare(b.firstName, 'de');
         const order =
-          this.sortKey() === 'memberNo'
+          this.sort.key() === 'memberNo'
             ? a.memberNo - b.memberNo
-            : a.lastName.localeCompare(b.lastName, 'de') ||
-              a.firstName.localeCompare(b.firstName, 'de');
-        return this.sortDesc() ? -order : order;
+            : this.sort.key() === 'year'
+              ? a.birthDate.localeCompare(b.birthDate)
+              : byName;
+        return this.sort.apply(order);
       })
       .map((member) => ({
         member,
@@ -78,13 +92,7 @@ export class PeopleList {
       }));
   });
 
-  protected readonly pageCount = computed(() =>
-    Math.max(1, Math.ceil(this.rows().length / PAGE_SIZE)),
-  );
-  protected readonly pageRows = computed(() => {
-    const start = Math.min(this.page(), this.pageCount() - 1) * PAGE_SIZE;
-    return this.rows().slice(start, start + PAGE_SIZE);
-  });
+  protected readonly pageRows = computed(() => pageOf(this.rows(), this.page(), this.size()));
 
   protected readonly tabs = computed(() => [
     {
@@ -102,22 +110,6 @@ export class PeopleList {
     },
   ]);
 
-  protected sortBy(key: SortKey): void {
-    if (this.sortKey() === key) this.sortDesc.update((desc) => !desc);
-    else {
-      this.sortKey.set(key);
-      this.sortDesc.set(false);
-    }
-  }
-
-  protected sortMark(key: SortKey): string {
-    return this.sortKey() !== key ? '' : this.sortDesc() ? '▼' : '▲';
-  }
-
-  protected goto(page: number): void {
-    this.page.set(Math.max(0, Math.min(page, this.pageCount() - 1)));
-  }
-
   protected resetPage(): void {
     this.page.set(0);
   }
@@ -130,7 +122,7 @@ export class PeopleList {
     const member = this.toDelete();
     if (!member) return;
     this.store.deleteMember(member.id);
-    this.message.set(`${fullName(member)} wurde gelöscht.`);
+    this.toasts.saved(`${fullName(member)} wurde gelöscht`);
     this.toDelete.set(null);
   }
 
@@ -143,16 +135,17 @@ export class PeopleList {
   }
 
   protected importDemo(): void {
-    this.message.set('Demo: Der Import aus WebClub ist im Testportal nicht aktiv.');
+    this.toasts.show('Demo: Der Import aus WebClub ist im Testportal nicht aktiv', 'info');
   }
 
   protected exportCsv(): void {
     downloadText('Mitglieder.csv', this.store.membersCsv(this.rows().map((row) => row.member)));
   }
 
-  private takeFlash(): string {
-    const text = this.store.flash();
-    this.store.flash.set('');
-    return text;
+  protected duplicate(member: Member): void {
+    const copy = this.store.duplicateMember(member.id);
+    if (!copy) return;
+    this.toasts.saved(`Kopie von ${fullName(member)} angelegt`);
+    void this.router.navigate(['/personen', copy.id]);
   }
 }

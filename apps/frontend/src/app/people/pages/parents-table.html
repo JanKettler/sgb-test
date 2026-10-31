@@ -2,17 +2,17 @@
   <table class="table is-fullwidth is-hoverable">
     <thead>
       <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Beziehung</th>
-        <th scope="col">E-Mail</th>
+        <th scope="col"><app-sort-button label="Name" column="name" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Beziehung" column="relation" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="E-Mail" column="email" [sort]="sort" /></th>
         <th scope="col">Kinder im Verein</th>
-        <th scope="col">Mitglied</th>
-        <th scope="col">Zugang</th>
+        <th scope="col"><app-sort-button label="Mitglied" column="member" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Zugang" column="access" [sort]="sort" /></th>
         <th scope="col"><span class="is-sr-only">Aktionen</span></th>
       </tr>
     </thead>
     <tbody>
-      @for (row of rows(); track row.parent.id) {
+      @for (row of pageRows(); track row.parent.id) {
         <tr>
           <td>
             <strong>{{ row.parent.name }}</strong>
@@ -40,23 +40,25 @@
             </span>
           </td>
           <td class="has-text-right is-nowrap">
-            <a
-              class="button is-warning"
-              [routerLink]="['/personen/eltern', row.parent.id]"
-              [attr.aria-label]="row.parent.name + ' bearbeiten'"
-              title="Bearbeiten"
-            >
-              <app-icon name="pencil" />
-            </a>
-            <button
-              type="button"
-              class="button is-danger"
-              [attr.aria-label]="row.parent.name + ' löschen'"
-              title="Löschen"
-              (click)="toDelete.set(row.parent)"
-            >
-              <app-icon name="trash" />
-            </button>
+            <span class="icon-row">
+              <a
+                class="button is-warning"
+                [routerLink]="['/personen/eltern', row.parent.id]"
+                [attr.aria-label]="row.parent.name + ' bearbeiten'"
+                title="Bearbeiten"
+              >
+                <app-icon name="pencil" />
+              </a>
+              <button
+                type="button"
+                class="button is-danger"
+                [attr.aria-label]="row.parent.name + ' löschen'"
+                title="Löschen"
+                (click)="toDelete.set(row.parent)"
+              >
+                <app-icon name="trash" />
+              </button>
+            </span>
           </td>
         </tr>
       } @empty {
@@ -67,6 +69,7 @@
     </tbody>
   </table>
 </div>
+<app-table-pager [total]="rows().length" [(page)]="page" [(size)]="size" />
 
 @if (toDelete(); as parent) {
   <app-modal-dialog heading="Eltern löschen?" accent="red" (closed)="toDelete.set(null)">
