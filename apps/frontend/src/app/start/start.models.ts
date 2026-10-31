@@ -20,16 +20,6 @@ export interface ClubEvent {
   icon: 'tree' | 'calendar';
 }
 
-export interface ClubTask {
-  id: string;
-  title: string;
-  /** ISO date; empty = no due date */
-  due: string;
-  high: boolean;
-  /** First names of the people the task is assigned to */
-  who: string[];
-}
-
 export type Tone = 'bad' | 'warn' | 'info';
 
 /** One line of "Fristen und Hinweise". */

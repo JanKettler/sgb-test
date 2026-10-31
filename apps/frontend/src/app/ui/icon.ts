@@ -49,7 +49,11 @@ export type IconName =
   | 'bolt'
   | 'arrow-right'
   | 'swim'
-  | 'restore';
+  | 'restore'
+  | 'columns'
+  | 'sort'
+  | 'sort-up'
+  | 'sort-down';
 
 const FONT_AWESOME: Record<IconName, string> = {
   check: 'fa-check',
@@ -101,6 +105,10 @@ const FONT_AWESOME: Record<IconName, string> = {
   'arrow-right': 'fa-arrow-right',
   swim: 'fa-person-swimming',
   restore: 'fa-rotate-left',
+  columns: 'fa-table-columns',
+  sort: 'fa-sort',
+  'sort-up': 'fa-sort-up',
+  'sort-down': 'fa-sort-down',
 };
 
 /**

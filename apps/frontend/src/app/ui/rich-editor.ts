@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { ColorField, MARK_COLORS, TEXT_COLORS } from './color-field';
 import { Icon } from './icon';
-import { INTERNAL_PAGES } from './internal-pages';
+import { LinkPicker } from './link-picker';
 import { cleanHtml } from './rich-text';
 
 type Menu = 'color' | 'mark' | 'link' | null;
@@ -25,7 +25,7 @@ const PRESET_SIZES = [12, 16, 22, 30];
  */
 @Component({
   selector: 'app-rich-editor',
-  imports: [Icon, ColorField],
+  imports: [Icon, ColorField, LinkPicker],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './rich-editor.html',
   styleUrl: './rich-editor.scss',
@@ -44,7 +44,6 @@ export class RichEditor {
   protected readonly textColors = TEXT_COLORS;
   protected readonly markColors = MARK_COLORS;
   protected readonly presets = PRESET_SIZES;
-  protected readonly pages = INTERNAL_PAGES;
   protected readonly minPx = MIN_PX;
   protected readonly maxPx = MAX_PX;
   protected readonly link = signal('https://');
@@ -162,8 +161,7 @@ export class RichEditor {
     this.changed();
   }
 
-  protected pageTyped(event: Event): void {
-    const path = (event.target as HTMLSelectElement).value;
+  protected pageTyped(path: string): void {
     if (path) this.setLink(path);
   }
 

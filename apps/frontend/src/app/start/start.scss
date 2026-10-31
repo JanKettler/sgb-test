@@ -96,6 +96,7 @@
 
 .task {
   align-items: center;
+  color: inherit;
   border-top: 1px solid var(--sgb-line);
   display: flex;
   gap: 0.6rem;
@@ -107,15 +108,15 @@
   }
 }
 
-/* One grid, one gap: the board and the week on the left, everything else on the right. */
+/* Board and week use the full width; below them two columns of the same width. */
 .start-grid {
   display: grid;
   gap: 1rem;
   grid-template-areas:
-    'board side'
-    'calendar side';
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  grid-template-rows: auto 1fr;
+    'board board'
+    'calendar calendar'
+    'left right';
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 
   > div > :not(:last-child) {
     margin-bottom: 1rem;
@@ -130,18 +131,23 @@
   grid-area: calendar;
 }
 
-.area-side {
+.area-left {
   align-self: start;
-  grid-area: side;
+  grid-area: left;
 }
 
-@media (width <= 1024px) {
+.area-right {
+  align-self: start;
+  grid-area: right;
+}
+
+@media (width <= 900px) {
   .start-grid {
     grid-template-areas:
       'board'
-      'side'
-      'calendar';
+      'calendar'
+      'right'
+      'left';
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto;
   }
 }

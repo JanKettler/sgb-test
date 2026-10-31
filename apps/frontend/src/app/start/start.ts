@@ -8,6 +8,7 @@ import { fullDate, parseIsoDate, weekdayShort } from '../training/training-dates
 import { TrainingStore } from '../training/training.store';
 import { Icon, IconName } from '../ui/icon';
 import { Notice, Tone } from './start.models';
+import { TasksStore } from '../tasks/tasks.store';
 import { StartStore } from './start.store';
 
 const NOTICE_ICON: Record<Tone, IconName> = { bad: 'warning', warn: 'hourglass', info: 'info' };
@@ -39,6 +40,7 @@ export class Start {
   private readonly people = inject(PeopleStore);
   private readonly fees = inject(FeesStore);
   protected readonly data = inject(StartStore);
+  protected readonly store = inject(TasksStore);
 
   protected readonly fullDate = fullDate;
   protected readonly noticeIcon = NOTICE_ICON;
@@ -73,7 +75,7 @@ export class Start {
         icon: 'flag',
         title: competition.title,
         text: `${weekdayShort(competition.date)}, ${fullDate(competition.date)} · ${competition.place}`,
-        route: '/training/anmeldung',
+        route: `/wettkaempfe/${competition.id}`,
         days: this.data.daysTo(competition.date),
       });
     }
@@ -108,7 +110,7 @@ export class Start {
           title: `${deadline.label} ${competition.title}`,
           text: `${days === 0 ? 'heute' : `in ${days} Tagen`} · ${fullDate(deadline.date).slice(0, 5)}`,
           tone: days <= PRESSING_DAYS ? 'bad' : 'warn',
-          route: '/',
+          route: `/wettkaempfe/${competition.id}`,
           days,
         });
       }
@@ -145,7 +147,7 @@ export class Start {
 
   protected readonly tasks = computed(() => {
     const all = this.canSeeAllTasks() && this.taskMode() === 'all';
-    const list = all ? this.data.tasks() : this.data.myTasks();
+    const list = all ? this.store.open() : this.store.mine();
     return [...list].sort(
       (a, b) => Number(b.high) - Number(a.high) || (a.due || '9999').localeCompare(b.due || '9999'),
     );

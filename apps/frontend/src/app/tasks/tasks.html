@@ -1,0 +1,344 @@
+<header
+  class="is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
+  <div>
+    <h2 class="title is-4 mb-1">Aufgaben</h2>
+    <p class="subtitle is-6 mb-0">Wer macht was bis wann</p>
+  </div>
+  <div class="buttons">
+    <button type="button" class="button" (click)="exportList()">
+      <app-icon name="sheet" /> Excel
+    </button>
+    @if (store.canEdit()) {
+      <button type="button" class="button is-primary" (click)="add()">
+        <app-icon name="plus" /> Neue Aufgabe
+      </button>
+    }
+  </div>
+</header>
+
+<section class="box">
+  <div class="bar">
+    <div class="buttons has-addons mb-0">
+      <button
+        type="button"
+        class="button is-small"
+        [class.is-link]="layout() === 'list'"
+        (click)="layout.set('list')"
+      >
+        <app-icon name="list" /> Liste
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        [class.is-link]="layout() === 'columns'"
+        (click)="layout.set('columns')"
+      >
+        <app-icon name="columns" /> Spalten
+      </button>
+    </div>
+    <input
+      class="input search"
+      type="search"
+      placeholder="Aufgabe oder Person suchen …"
+      aria-label="Suche"
+      [value]="query()"
+      (input)="query.set(value($event))"
+    />
+  </div>
+
+  <div class="chips mb-4">
+    @for (chip of chips(); track chip.key) {
+      <button
+        type="button"
+        class="chip"
+        [class.is-on]="filter() === chip.key"
+        [class.is-bad]="chip.bad && chip.count > 0 && filter() !== chip.key"
+        (click)="filter.set(chip.key)"
+      >
+        {{ chip.label }} ({{ chip.count }})
+      </button>
+    }
+  </div>
+
+  @if (visible().length === 0) {
+    <p class="has-text-grey">Hier ist nichts offen.</p>
+  } @else if (layout() === 'columns') {
+    <div class="columns-grid">
+      @for (column of columns(); track column.status) {
+        <div class="column-box">
+          <h4>{{ column.label }} ({{ column.tasks.length }})</h4>
+          @for (task of column.tasks; track task.id) {
+            <ng-container *ngTemplateOutlet="card; context: { $implicit: task, compact: true }" />
+          }
+        </div>
+      }
+    </div>
+  } @else if (filter() === 'done') {
+    @for (task of visible(); track task.id) {
+      <ng-container *ngTemplateOutlet="card; context: { $implicit: task, compact: false }" />
+    }
+  } @else {
+    @for (section of sections(); track section.key) {
+      <h4 class="section-title" [class]="'section-title ' + section.tone">
+        {{ section.label }} ({{ section.tasks.length }})
+      </h4>
+      @for (task of section.tasks; track task.id) {
+        <ng-container *ngTemplateOutlet="card; context: { $implicit: task, compact: false }" />
+      }
+    }
+  }
+</section>
+
+<ng-template #card let-task let-compact="compact">
+  <article
+    class="task"
+    [class.is-done]="task.status === 'done'"
+    [class.is-picked]="opened() === task.id"
+  >
+    <div
+      class="task-head"
+      role="button"
+      tabindex="0"
+      (click)="toggleOpen(task)"
+      (keydown.enter)="toggleOpen(task)"
+    >
+      <button
+        type="button"
+        class="box-tick"
+        [class.is-on]="task.status === 'done'"
+        [disabled]="!store.canTick(task)"
+        aria-label="Erledigt"
+        (click)="tick(task, $event)"
+      >
+        @if (task.status === 'done') {
+          <app-icon name="check" />
+        }
+      </button>
+      <div class="task-main">
+        <div class="task-title">
+          {{ task.title }}
+          @if (task.high) {
+            <span class="tag is-danger is-light is-rounded">wichtig</span>
+          }
+          @if (task.status === 'working') {
+            <span class="tag is-info is-light is-rounded">in Arbeit</span>
+          }
+        </div>
+        <div class="task-meta">
+          @if (task.due) {
+            <span [class.is-over]="isOver(task)">{{ dueText(task) }}</span>
+          }
+          @if (task.subs.length > 0) {
+            <span>{{ subsDone(task) }}/{{ task.subs.length }} Schritte</span>
+          }
+          @if (task.repeat) {
+            <span>{{ repeatLabel[task.repeat] }}</span>
+          }
+          @if (task.status === 'done' && task.doneBy) {
+            <span>erledigt von {{ task.doneBy }}, {{ fullDate(task.doneOn).slice(0, 6) }}</span>
+          }
+        </div>
+      </div>
+      @if (task.who.length > 0) {
+        <span class="who">
+          @for (name of task.who; track name) {
+            <span class="avatar" [title]="name">{{ name.slice(0, 2) }}</span>
+          }
+        </span>
+      }
+    </div>
+    @if (opened() === task.id && !compact) {
+      <div class="task-body">
+        @if (task.text) {
+          <p>{{ task.text }}</p>
+        }
+        @if (task.link) {
+          <p>
+            <app-icon name="link" />
+            <a
+              [routerLink]="linkRoute(task.link).path"
+              [queryParams]="linkRoute(task.link).query"
+              >{{ linkLabel(task) }}</a
+            >
+          </p>
+        }
+        @if (task.subs.length > 0) {
+          <h5>Unteraufgaben</h5>
+          @for (sub of task.subs; track $index) {
+            <label class="sub">
+              <input
+                type="checkbox"
+                [checked]="sub.done"
+                [disabled]="!store.canTick(task)"
+                (change)="tickSub(task, $index)"
+              />
+              <span [class.is-struck]="sub.done">{{ sub.text }}</span>
+            </label>
+          }
+        }
+        @if (task.comments.length > 0) {
+          <h5>Kommentare</h5>
+          @for (item of task.comments; track $index) {
+            <p class="comment">
+              <b>{{ item.text }}</b> ({{ item.author }}, {{ fullDate(item.on).slice(0, 6) }})
+            </p>
+          }
+        }
+        <div class="icon-row mt-3">
+          @if (store.canTick(task) && task.status !== 'done') {
+            <button type="button" class="button is-small" (click)="store.toggleWorking(task.id)">
+              {{ task.status === 'working' ? 'Wieder offen' : 'In Arbeit' }}
+            </button>
+          }
+          @if (store.canTick(task)) {
+            <button type="button" class="button is-small" (click)="commenting.set(task)">
+              Kommentar
+            </button>
+          }
+          @if (store.canEdit()) {
+            <button type="button" class="button is-small is-warning" (click)="edit(task)">
+              <app-icon name="pencil" /> Bearbeiten
+            </button>
+            <button type="button" class="button is-small is-danger" (click)="toDelete.set(task)">
+              <app-icon name="trash" /> Löschen
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </article>
+</ng-template>
+
+@if (editing(); as task) {
+  <app-modal-dialog
+    [heading]="task.id ? 'Aufgabe bearbeiten' : 'Neue Aufgabe'"
+    accent="green"
+    (closed)="cancel()"
+  >
+    <div class="field">
+      <label class="label" for="task-title">Aufgabe</label>
+      <input
+        id="task-title"
+        class="input"
+        [class.is-danger]="invalid() && !task.title.trim()"
+        placeholder="Was ist zu tun?"
+        [value]="task.title"
+        (input)="change({ title: value($event) })"
+      />
+    </div>
+    <div class="field">
+      <label class="label" for="task-text">Beschreibung</label>
+      <textarea
+        id="task-text"
+        class="textarea"
+        rows="3"
+        [value]="task.text"
+        (input)="change({ text: value($event) })"
+      ></textarea>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="label" for="task-who">Zuständig</label>
+        <input
+          id="task-who"
+          class="input"
+          placeholder="Namen mit Komma trennen"
+          [value]="whoText()"
+          (input)="whoText.set(value($event))"
+        />
+      </div>
+      <div class="field">
+        <label class="label" for="task-due">Bis</label>
+        <app-date-field
+          inputId="task-due"
+          [value]="task.due"
+          (valueChange)="change({ due: $event })"
+        />
+      </div>
+      <div class="field">
+        <label class="label" for="task-status">Status</label>
+        <div class="select is-fullwidth">
+          <select id="task-status" (change)="change({ status: $any(value($event)) })">
+            @for (item of statuses; track item[0]) {
+              <option [value]="item[0]" [selected]="item[0] === task.status">{{ item[1] }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label" for="task-repeat">Wiederholen</label>
+        <div class="select is-fullwidth">
+          <select id="task-repeat" (change)="change({ repeat: $any(value($event)) })">
+            @for (item of repeats; track item[0]) {
+              <option [value]="item[0]" [selected]="item[0] === task.repeat">{{ item[1] }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+    <label class="checkbox mb-3">
+      <input type="checkbox" [checked]="task.high" (change)="change({ high: !task.high })" />
+      Wichtig
+    </label>
+    <div class="field">
+      <label class="label" for="task-subs">Unteraufgaben</label>
+      <textarea
+        id="task-subs"
+        class="textarea"
+        rows="3"
+        placeholder="Pro Zeile eine Unteraufgabe"
+        [value]="subText()"
+        (input)="subText.set(value($event))"
+      ></textarea>
+    </div>
+    <div class="field">
+      <span class="label">Verknüpft mit</span>
+      <app-link-picker
+        placeholder="Nichts verknüpft"
+        [value]="task.link"
+        (picked)="change({ link: $event })"
+      />
+    </div>
+    <ng-container dialogActions>
+      <button type="button" class="button" (click)="cancel()">Abbrechen</button>
+      <button type="button" class="button is-primary" (click)="save()">Speichern</button>
+    </ng-container>
+  </app-modal-dialog>
+}
+
+@if (toDelete(); as task) {
+  <app-modal-dialog
+    heading="Aufgabe löschen?"
+    [subtitle]="task.title"
+    accent="red"
+    (closed)="toDelete.set(null)"
+  >
+    <p>Die Aufgabe wird endgültig entfernt.</p>
+    <ng-container dialogActions>
+      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
+      <button type="button" class="button is-danger" (click)="confirmDelete()">Löschen</button>
+    </ng-container>
+  </app-modal-dialog>
+}
+
+@if (commenting(); as task) {
+  <app-modal-dialog
+    heading="Kommentar"
+    [subtitle]="task.title"
+    accent="navy"
+    (closed)="commenting.set(null)"
+  >
+    <input
+      class="input"
+      placeholder="Kurz und knapp, z. B. Halle angefragt"
+      aria-label="Kommentar"
+      [value]="commentText()"
+      (input)="commentText.set(value($event))"
+    />
+    <ng-container dialogActions>
+      <button type="button" class="button" (click)="commenting.set(null)">Abbrechen</button>
+      <button type="button" class="button is-primary" (click)="sendComment()">Speichern</button>
+    </ng-container>
+  </app-modal-dialog>
+}

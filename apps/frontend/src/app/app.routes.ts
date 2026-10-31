@@ -94,6 +94,16 @@ export const routes: Routes = [
     loadComponent: () => import('./board/pages/board-page').then((module) => module.BoardPage),
   },
   {
+    path: 'aufgaben',
+    title: 'Aufgaben – SGB Portal',
+    loadComponent: () => import('./tasks/tasks').then((module) => module.Tasks),
+  },
+  {
+    path: 'wettkaempfe/:id',
+    title: 'Wettkampf – SGB Portal',
+    loadComponent: () => import('./start/competition').then((module) => module.CompetitionPage),
+  },
+  {
     path: 'beitraege',
     title: 'Beiträge – SGB Portal',
     loadComponent: () => import('./fees/pages/fees').then((module) => module.Fees),
