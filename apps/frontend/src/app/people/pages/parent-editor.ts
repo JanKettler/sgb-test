@@ -10,6 +10,17 @@ import { FeesStore } from '../../fees/fees.store';
 import { PeopleStore } from '../people.store';
 import { PayAccountForm } from './pay-account';
 
+type TextField =
+  | 'name'
+  | 'email'
+  | 'email2'
+  | 'street'
+  | 'houseNo'
+  | 'zip'
+  | 'city'
+  | 'phone1'
+  | 'phone2';
+
 const RELATIONS: readonly Relation[] = [
   'Mutter',
   'Vater',
@@ -81,18 +92,7 @@ export class ParentEditor {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
-  protected set<
-    K extends
-      | 'name'
-      | 'email'
-      | 'email2'
-      | 'street'
-      | 'houseNo'
-      | 'zip'
-      | 'city'
-      | 'phone1'
-      | 'phone2',
-  >(key: K, event: Event): void {
+  protected set(key: TextField, event: Event): void {
     this.draft.update((parent) => ({ ...parent, [key]: this.value(event) }));
   }
 
