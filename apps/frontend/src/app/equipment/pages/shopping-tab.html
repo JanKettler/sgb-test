@@ -1,0 +1,53 @@
+<div class="toolbar">
+  <p class="item-sub mb-0">
+    Hier steht alles, was unter dem Mindestbestand ist oder von Hand auf die Liste gesetzt wurde.
+  </p>
+  <app-action kind="excel" withText label="Excel „Einkaufsliste“" (pressed)="exportExcel()" />
+</div>
+
+@if (store.shopping().length === 0) {
+  <p class="empty">Nichts nachzukaufen.</p>
+} @else {
+  <div class="item-list">
+    @for (item of store.shopping(); track item.id) {
+      <article class="item is-warn">
+        <div class="item-main">
+          <div class="item-title">
+            {{ item.title }}
+            @if (isLow(item)) {
+              <span class="pill is-bad">unter Mindestbestand</span>
+            } @else {
+              <span class="pill is-warn">von Hand eingetragen</span>
+            }
+          </div>
+          <div class="item-sub">
+            @if (item.place) {
+              {{ item.place }} ·
+            }
+            verfügbar {{ availableOf(item) }}
+            @if (missingOf(item) > 0) {
+              · fehlt <b>{{ missingOf(item) }} {{ item.unit }}</b>
+            }
+          </div>
+        </div>
+        @if (store.canEdit()) {
+          <div class="item-actions">
+            <app-action kind="done" withText label="Gekauft" (pressed)="bought.set(item)" />
+          </div>
+        }
+      </article>
+    }
+  </div>
+}
+
+@if (bought(); as item) {
+  <app-confirm-dialog
+    heading="Gekauft?"
+    [subtitle]="item.title"
+    [text]="confirmText(item)"
+    confirmLabel="Gekauft"
+    confirmKind="done"
+    (confirmed)="confirmBought()"
+    (closed)="bought.set(null)"
+  />
+}

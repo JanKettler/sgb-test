@@ -1,0 +1,33 @@
+@for (item of items(); track $index) {
+  @if (item.kind === 'table') {
+    <div class="table-container">
+      <table class="table is-narrow is-bordered">
+        <thead>
+          <tr>
+            @for (cell of item.rows[0]; track $index) {
+              <th>{{ cell }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of item.rows.slice(1); track $index) {
+            <tr>
+              @for (cell of row; track $index) {
+                <td>{{ cell }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p class="point keep-lines" [style.margin-left.rem]="item.level * 1.4">
+      @if (item.label) {
+        <b class="label-text">{{ item.label }}</b>
+      }
+      @for (part of segmentsOf(item.text); track $index) {
+        <span [class.mark]="part.mark">{{ part.text }}</span>
+      }
+    </p>
+  }
+}

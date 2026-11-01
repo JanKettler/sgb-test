@@ -1,0 +1,212 @@
+<div class="toolbar">
+  <app-search-field placeholder="Name oder Nr. suchen …" [(value)]="query" />
+  <app-action kind="excel" withText label="Excel „Offene Abzeichen“" (pressed)="exportExcel()" />
+  @if (store.canEdit()) {
+    <app-action kind="add" withText label="Abzeichen eintragen" (pressed)="add('')" />
+  }
+</div>
+<div class="chip-row">
+  <button
+    type="button"
+    class="chip"
+    [class.is-on]="filter() === 'laufend'"
+    [attr.aria-pressed]="filter() === 'laufend'"
+    (click)="filter.set(filter() === 'laufend' ? '' : 'laufend')"
+  >
+    In Arbeit <span class="count">{{ store.workingCount() }}</span>
+  </button>
+  <button
+    type="button"
+    class="chip"
+    [class.is-on]="filter() === 'bestanden'"
+    [attr.aria-pressed]="filter() === 'bestanden'"
+    (click)="filter.set(filter() === 'bestanden' ? '' : 'bestanden')"
+  >
+    Zahlung offen <span class="count">{{ store.dueRecords().length }}</span>
+  </button>
+  @if (store.dueRecords().length > 0) {
+    <span class="is-late is-align-self-center">{{ euro(store.dueSum()) }} offen</span>
+  }
+</div>
+
+@if (visible().length === 0) {
+  <p class="empty">Noch keine Abzeichen eingetragen.</p>
+} @else {
+  <div class="item-list">
+    @for (person of visible(); track person.key) {
+      <article class="item">
+        <div class="item-main">
+          <div class="item-title">
+            {{ person.name }}
+            @if (person.memberNo) {
+              <span class="item-sub">Nr. {{ person.memberNo }}</span>
+            }
+            @for (record of store.visibleOf(person); track record.id) {
+              <span
+                class="pill"
+                [class.is-ok]="record.state === 'bezahlt'"
+                [class.is-warn]="record.state === 'bestanden'"
+                [class.is-info]="record.state === 'laufend'"
+                >{{ pillText(record) }}</span
+              >
+            }
+          </div>
+
+          @if (isOpen(person.key)) {
+            @for (record of sortedRecords(person); track record.id) {
+              <section class="mt-3">
+                <div class="item-heading">
+                  {{ record.badge }}
+                  <span
+                    class="pill"
+                    [class.is-ok]="record.state === 'bezahlt'"
+                    [class.is-warn]="record.state === 'bestanden'"
+                    [class.is-info]="record.state === 'laufend'"
+                    >{{ stateLabel[record.state] }}</span
+                  >
+                </div>
+                <div class="item-sub">{{ detail(record) }}</div>
+                @if (store.kindOf(record.badge).requirements.length > 0) {
+                  <div class="chip-row mt-2">
+                    @for (
+                      requirement of store.kindOf(record.badge).requirements;
+                      track requirement;
+                      let index = $index
+                    ) {
+                      <button
+                        type="button"
+                        class="chip"
+                        [class.is-on]="record.done.includes(index)"
+                        [attr.aria-pressed]="record.done.includes(index)"
+                        [disabled]="!store.canEdit()"
+                        (click)="store.toggleRequirement(record.id, index)"
+                      >
+                        {{ record.done.includes(index) ? '✓ ' : '' }}{{ requirement }}
+                      </button>
+                    }
+                  </div>
+                } @else {
+                  <p class="item-sub">
+                    Für dieses Abzeichen sind noch keine Anforderungen hinterlegt (Reiter „Preise“).
+                  </p>
+                }
+                @if (record.note) {
+                  <p class="item-sub">{{ record.note }}</p>
+                }
+                @if (store.canEdit()) {
+                  <div class="sub-actions mt-2">
+                    @if (record.state === 'laufend') {
+                      <app-action
+                        kind="done"
+                        small
+                        withText
+                        label="Bestanden"
+                        (pressed)="toPass.set(record)"
+                      />
+                    }
+                    @if (record.state === 'bestanden') {
+                      <app-action
+                        kind="done"
+                        small
+                        withText
+                        [label]="'Bezahlt (' + euro(store.priceOf(record)) + ')'"
+                        (pressed)="toPay.set(record)"
+                      />
+                    }
+                    <app-action
+                      kind="edit"
+                      small
+                      [label]="record.badge + ' von ' + record.name + ' bearbeiten'"
+                      (pressed)="editing.set(record)"
+                    />
+                    <app-action
+                      kind="delete"
+                      small
+                      [label]="record.badge + ' von ' + record.name + ' löschen'"
+                      (pressed)="toDelete.set(record)"
+                    />
+                  </div>
+                }
+              </section>
+            }
+          }
+        </div>
+        <div class="item-actions">
+          @if (store.canEdit()) {
+            <app-action
+              kind="add"
+              [label]="'Abzeichen für ' + person.name + ' eintragen'"
+              (pressed)="add(person.name)"
+            />
+          }
+          @if (isOpen(person.key)) {
+            <app-action
+              kind="collapse"
+              [label]="person.name + ' zuklappen'"
+              (pressed)="toggleOpen(person.key)"
+            />
+          } @else {
+            <app-action
+              kind="expand"
+              [label]="person.name + ' aufklappen'"
+              (pressed)="toggleOpen(person.key)"
+            />
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (editing(); as current) {
+  <app-form-dialog
+    [heading]="current.id ? 'Eintrag ändern' : 'Abzeichen eintragen'"
+    [fields]="fields()"
+    [values]="current"
+    [check]="check"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (toPass(); as record) {
+  <app-confirm-dialog
+    heading="Als bestanden eintragen?"
+    [subtitle]="record.badge + ' · ' + record.name"
+    [text]="
+      missing(record) > 0
+        ? missing(record) +
+          ' Anforderung(en) sind noch nicht abgehakt. Trotzdem als bestanden eintragen?'
+        : 'Alle Anforderungen sind abgehakt.'
+    "
+    confirmKind="done"
+    confirmLabel="Bestanden"
+    (confirmed)="confirmPassed()"
+    (closed)="toPass.set(null)"
+  />
+}
+
+@if (toPay(); as record) {
+  <app-confirm-dialog
+    heading="Bezahlt?"
+    [subtitle]="record.badge + ' · ' + record.name"
+    [text]="
+      euro(store.priceOf(record)) +
+      ' wurden bar bezahlt. Der Betrag wird in die Jugendkasse gebucht und ein Abzeichen weniger im Bestand geführt.'
+    "
+    confirmKind="done"
+    confirmLabel="Bezahlt"
+    (confirmed)="confirmPaid()"
+    (closed)="toPay.set(null)"
+  />
+}
+
+@if (toDelete(); as record) {
+  <app-confirm-dialog
+    heading="Eintrag löschen?"
+    [subtitle]="record.badge + ' · ' + record.name"
+    text="Der Eintrag verschwindet. Eine schon gebuchte Zahlung bleibt in der Jugendkasse stehen."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

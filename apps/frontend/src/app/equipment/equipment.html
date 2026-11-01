@@ -1,0 +1,26 @@
+<header
+  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
+  <div>
+    <h2 class="title is-4 mb-1">Material</h2>
+    <p class="subtitle is-6 mb-0">Gegenstände, Verleih, Einkaufsliste und Abzeichen</p>
+  </div>
+</header>
+
+<section class="box">
+  <app-tabs [tabs]="tabs()" [(active)]="tab" />
+  @switch (tab()) {
+    @case ('items') {
+      <app-equipment-items />
+    }
+    @case ('loans') {
+      <app-equipment-loans />
+    }
+    @case ('shopping') {
+      <app-equipment-shopping />
+    }
+    @case ('badges') {
+      <app-equipment-badges />
+    }
+  }
+</section>

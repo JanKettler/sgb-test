@@ -21,6 +21,11 @@ import {
   isActive,
 } from './people.models';
 
+/** Names match when they are the same apart from case and spaces at the ends. */
+function sameName(a: string, b: string): boolean {
+  return a.trim().toLocaleLowerCase('de') === b.trim().toLocaleLowerCase('de');
+}
+
 /** Byte order mark, so that Excel opens the file as UTF-8. */
 const BOM = String.fromCharCode(0xfeff);
 
@@ -71,8 +76,37 @@ export class PeopleStore {
     this.evidence().filter((item) => item.missing || (item.days !== null && item.days <= 90)),
   );
 
+  /** Names of the active members, for suggestion lists. */
+  readonly memberNames = computed(() =>
+    this.activeMembers()
+      .map((member) => fullName(member))
+      .sort((a, b) => a.localeCompare(b, 'de')),
+  );
+
   member(id: string): Member | undefined {
     return this.memberById().get(id);
+  }
+
+  /**
+   * The name as it is written in the member list, for a typed name or a member number; null when
+   * nobody matches. `keep` is a name that stays valid, e.g. of an entry that exists already.
+   */
+  resolveName(typed: string, keep = ''): string | null {
+    const text = typed.trim();
+    if (!text) return null;
+    if (keep && sameName(keep, text)) return keep;
+    const members = this.activeMembers();
+    const byNumber = /^\d+$/.test(text)
+      ? members.find((member) => String(member.memberNo) === text)
+      : undefined;
+    const member = byNumber ?? members.find((entry) => sameName(fullName(entry), text));
+    return member ? fullName(member) : null;
+  }
+
+  /** The member number of a name as text; empty when the name is not in the list. */
+  memberNoOf(name: string): string {
+    const member = this.activeMembers().find((entry) => sameName(fullName(entry), name));
+    return member ? String(member.memberNo) : '';
   }
 
   parentsOf(member: Member): Parent[] {

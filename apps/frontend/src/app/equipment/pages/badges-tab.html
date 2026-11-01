@@ -1,0 +1,60 @@
+<div class="toolbar">
+  <p class="item-sub mb-0">
+    @if (store.lowBadges().length > 0) {
+      <b>Nachbestellen:</b>
+      @for (badge of store.lowBadges(); track badge.name; let last = $last) {
+        {{ badge.name }} ({{ badge.stock }}){{ last ? '' : ',' }}
+      }
+    } @else {
+      Bei allen Abzeichen reicht der Bestand. Beim Bezahlen in der Jugend wird automatisch ein Stück
+      abgezogen.
+    }
+  </p>
+  <a class="button is-link" routerLink="/jugend">
+    <app-icon name="award" /> <span>Preise &amp; Vergabe (Jugend)</span>
+  </a>
+</div>
+
+<div class="tile-grid">
+  @for (badge of store.badges(); track badge.name) {
+    <article class="tile" [class.is-bad]="isLow(badge)">
+      <div class="tile-name">{{ badge.name }}</div>
+      <div class="tile-number">
+        {{ badge.stock ?? '–' }}
+        <small>{{ badge.stock === null ? 'nicht geführt' : 'Stück' }}</small>
+      </div>
+      <progress
+        class="progress is-small"
+        [class.is-danger]="isLow(badge)"
+        [class.is-link]="!isLow(badge)"
+        [value]="badge.stock ?? 0"
+        [max]="top()"
+        [attr.aria-label]="'Bestand ' + badge.name"
+      ></progress>
+      <div class="tile-foot">
+        <span class="item-sub">
+          {{ badge.minimum === null ? 'kein Minimum' : 'ab ' + badge.minimum + ' nachbestellen' }}
+        </span>
+        @if (store.canLend()) {
+          <app-action
+            kind="edit"
+            small
+            [label]="'Bestand von ' + badge.name + ' ändern'"
+            (pressed)="editing.set(badge)"
+          />
+        }
+      </div>
+    </article>
+  }
+</div>
+
+@if (editing(); as badge) {
+  <app-form-dialog
+    heading="Bestand ändern"
+    [subtitle]="badge.name"
+    [fields]="fields"
+    [values]="badge"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}

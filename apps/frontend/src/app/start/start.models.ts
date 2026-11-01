@@ -17,6 +17,8 @@ export interface ClubEvent {
   date: string;
   info: string;
   icon: 'tree' | 'calendar';
+  /** Portal page of the event. */
+  route: string;
 }
 
 export type Tone = 'bad' | 'warn' | 'info';

@@ -1,0 +1,285 @@
+<div class="toolbar">
+  <input
+    class="input search"
+    type="search"
+    placeholder="Name, Ort oder Beschreibung suchen …"
+    aria-label="Suche"
+    [value]="query()"
+    (input)="query.set(value($event))"
+  />
+  @if (store.canEdit()) {
+    <app-action kind="add" withText label="Neue Veranstaltung" (pressed)="add()" />
+  }
+</div>
+<p class="item-sub mb-3">
+  Eigene Veranstaltungen mit Checkliste (Zuständig, Frist, Phase) und Helfern. Die Checkliste kann
+  jeder mit Recht abhaken.
+</p>
+
+@if (visible().length === 0) {
+  <p class="empty">Keine Veranstaltungen gefunden.</p>
+} @else {
+  <div class="item-list">
+    @for (plan of visible(); track plan.id) {
+      @let progress = progressOf(plan.checklist);
+      <article class="item" [class.is-done]="plan.state === 'Abgeschlossen'">
+        <div class="item-main">
+          <div class="item-title">
+            {{ plan.title }}
+            <span
+              class="pill"
+              [class.is-ok]="plan.state === 'Abgeschlossen'"
+              [class.is-warn]="plan.state === 'Läuft'"
+              [class.is-info]="plan.state === 'Geplant'"
+              >{{ plan.state }}</span
+            >
+            @if (progress.total > 0) {
+              <span class="pill" [class.is-ok]="progress.done === progress.total"
+                >{{ progress.done }}/{{ progress.total }}</span
+              >
+            }
+          </div>
+          <div class="item-sub">{{ when(plan) }}</div>
+          @if (progress.total > 0) {
+            <progress
+              class="progress is-small is-success my-1"
+              [value]="progress.done"
+              [max]="progress.total"
+              [attr.aria-label]="'Fortschritt der Checkliste von ' + plan.title"
+            ></progress>
+          }
+
+          @if (isOpen(plan.id)) {
+            @if (plan.description) {
+              <p class="mt-2 keep-lines">{{ plan.description }}</p>
+            }
+            @if (plan.material) {
+              <div class="item-sub">Material: {{ plan.material }}</div>
+            }
+
+            @for (category of categoriesOf(plan.checklist); track category) {
+              <div class="item-heading">
+                {{ category }} ({{ doneIn(plan, category) }}/{{ pointsIn(plan, category).length }})
+              </div>
+              @for (point of pointsIn(plan, category); track point.id) {
+                <div class="sub-row">
+                  <div>
+                    <label class="checkbox">
+                      <input
+                        type="checkbox"
+                        [checked]="point.done"
+                        [disabled]="!store.canTick()"
+                        (change)="toggle(plan, point)"
+                      />
+                      <span [class.is-struck]="point.done">{{ point.text }}</span>
+                    </label>
+                    <div class="item-sub point-info">
+                      @if (point.due) {
+                        <span [class.is-late]="late(point)">
+                          @if (late(point)) {
+                            überfällig,
+                          }
+                          {{ dueText(point) }}
+                        </span>
+                      }
+                      @if (point.who.length > 0) {
+                        · {{ point.who.join(', ') }}
+                      }
+                      @if (point.done && point.doneBy) {
+                        · erledigt von {{ point.doneBy }}
+                      }
+                    </div>
+                  </div>
+                  @if (store.canEdit()) {
+                    <span class="sub-actions">
+                      <app-action
+                        kind="edit"
+                        small
+                        [label]="point.text + ' bearbeiten'"
+                        (pressed)="pointEdit.set({ plan, point })"
+                      />
+                      <app-action
+                        kind="delete"
+                        small
+                        [label]="point.text + ' löschen'"
+                        (pressed)="pointDelete.set({ plan, point })"
+                      />
+                    </span>
+                  }
+                </div>
+              }
+            }
+
+            <div class="item-heading">Helfer ({{ plan.helpers.length }})</div>
+            @for (helper of plan.helpers; track helper.id) {
+              <div class="sub-row">
+                <span
+                  ><b>{{ helper.name }}</b
+                  >{{ helper.task ? ' · ' + helper.task : '' }}</span
+                >
+                @if (canRemoveHelper(helper.name)) {
+                  <app-action
+                    kind="delete"
+                    small
+                    [label]="helper.name + ' als Helfer entfernen'"
+                    (pressed)="removeHelper(plan, helper.id)"
+                  />
+                }
+              </div>
+            } @empty {
+              <div class="item-sub">Noch niemand eingetragen.</div>
+            }
+
+            <div class="buttons mt-3">
+              @if (store.canTick()) {
+                <app-action
+                  kind="add"
+                  small
+                  withText
+                  label="Ich helfe"
+                  (pressed)="helperFor.set(plan)"
+                />
+              }
+              @if (store.canEdit()) {
+                <app-action
+                  kind="add"
+                  small
+                  withText
+                  label="Punkt hinzufügen"
+                  (pressed)="addPoint(plan)"
+                />
+                <app-action
+                  kind="copy"
+                  small
+                  withText
+                  label="Vorlage anwenden"
+                  [disabled]="store.templates().length === 0"
+                  (pressed)="templateFor.set(plan)"
+                />
+                <app-action
+                  kind="add"
+                  small
+                  withText
+                  label="Offene Punkte als Aufgaben"
+                  [disabled]="progress.done === progress.total"
+                  (pressed)="tasksFor.set(plan)"
+                />
+              }
+              <app-action
+                kind="excel"
+                small
+                withText
+                [label]="'Excel „' + plan.title + '“'"
+                (pressed)="exportExcel(plan)"
+              />
+            </div>
+          }
+        </div>
+        <div class="item-actions">
+          @if (isOpen(plan.id)) {
+            <app-action
+              kind="collapse"
+              [label]="plan.title + ' zuklappen'"
+              (pressed)="toggleOpen(plan.id)"
+            />
+          } @else {
+            <app-action
+              kind="expand"
+              [label]="plan.title + ' aufklappen'"
+              (pressed)="toggleOpen(plan.id)"
+            />
+          }
+          @if (store.canEdit()) {
+            <app-action
+              kind="edit"
+              [label]="plan.title + ' bearbeiten'"
+              (pressed)="editing.set(plan)"
+            />
+            <app-action
+              kind="delete"
+              [label]="plan.title + ' löschen'"
+              (pressed)="toDelete.set(plan)"
+            />
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (editing(); as current) {
+  <app-form-dialog
+    [heading]="current.id ? 'Veranstaltung bearbeiten' : 'Neue Veranstaltung'"
+    [fields]="eventFields()"
+    [values]="current"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (pointEdit(); as edit) {
+  <app-form-dialog
+    [heading]="edit.point.id ? 'Punkt bearbeiten' : 'Neuer Punkt'"
+    [subtitle]="edit.plan.title"
+    [fields]="pointFields()"
+    [values]="edit.point"
+    (saved)="savePoint($event)"
+    (closed)="pointEdit.set(null)"
+  />
+}
+
+@if (helperFor(); as plan) {
+  <app-form-dialog
+    heading="Helfer eintragen"
+    [subtitle]="plan.title"
+    saveLabel="Eintragen"
+    [fields]="helperFields()"
+    [values]="helperValues()"
+    [check]="helperCheck"
+    (saved)="addHelper($event)"
+    (closed)="helperFor.set(null)"
+  />
+}
+
+@if (templateFor(); as plan) {
+  <app-form-dialog
+    heading="Vorlage anwenden"
+    [subtitle]="plan.title"
+    saveLabel="Punkte ergänzen"
+    [fields]="templateFields()"
+    (saved)="applyTemplate($event)"
+    (closed)="templateFor.set(null)"
+  />
+}
+
+@if (tasksFor(); as plan) {
+  <app-confirm-dialog
+    heading="Aufgaben anlegen?"
+    [subtitle]="plan.title"
+    [text]="openPoints().length + ' offene Punkte werden zu Aufgaben im Aufgabenbrett.'"
+    confirmLabel="Anlegen"
+    confirmKind="add"
+    (confirmed)="createTasks()"
+    (closed)="tasksFor.set(null)"
+  />
+}
+
+@if (pointDelete(); as target) {
+  <app-confirm-dialog
+    heading="Punkt löschen?"
+    [subtitle]="target.point.text"
+    text="Der Punkt verschwindet aus der Checkliste."
+    (confirmed)="confirmPointDelete()"
+    (closed)="pointDelete.set(null)"
+  />
+}
+
+@if (toDelete(); as plan) {
+  <app-confirm-dialog
+    heading="Veranstaltung löschen?"
+    [subtitle]="plan.title"
+    text="Die Veranstaltung verschwindet mit Checkliste und Helfern."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

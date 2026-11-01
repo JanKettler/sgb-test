@@ -25,7 +25,7 @@ import { SOON_PAGES } from './navigation';
 })
 export class SoonPage {
   private readonly key = toSignal(
-    inject(ActivatedRoute).paramMap.pipe(map((params) => params.get('seite') ?? '')),
+    inject(ActivatedRoute).data.pipe(map((data) => String(data['seite'] ?? ''))),
     { initialValue: '' },
   );
   protected readonly page = computed(

@@ -99,9 +99,40 @@ export const routes: Routes = [
     loadComponent: () => import('./tasks/tasks').then((module) => module.Tasks),
   },
   {
-    path: 'bald/:seite',
-    title: 'In Planung – SGB Portal',
-    loadComponent: () => import('./core/soon-page').then((module) => module.SoonPage),
+    path: 'jugend',
+    loadChildren: () => import('./youth/youth.routes').then((module) => module.YOUTH_ROUTES),
+  },
+  {
+    path: 'vorstand',
+    loadChildren: () =>
+      import('./executive-board/executive-board.routes').then(
+        (module) => module.EXECUTIVE_BOARD_ROUTES,
+      ),
+  },
+  {
+    path: 'dokumente',
+    loadChildren: () =>
+      import('./documents/documents.routes').then((module) => module.DOCUMENTS_ROUTES),
+  },
+  {
+    path: 'abrechnung',
+    loadChildren: () => import('./billing/billing.routes').then((module) => module.BILLING_ROUTES),
+  },
+  {
+    path: 'material',
+    loadChildren: () =>
+      import('./equipment/equipment.routes').then((module) => module.EQUIPMENT_ROUTES),
+  },
+  {
+    path: 'veranstaltungen',
+    loadChildren: () => import('./events/events.routes').then((module) => module.EVENTS_ROUTES),
+  },
+  {
+    path: 'weihnachtsmarkt',
+    loadChildren: () =>
+      import('./christmas-market/christmas-market.routes').then(
+        (module) => module.CHRISTMAS_MARKET_ROUTES,
+      ),
   },
   {
     path: 'wettkaempfe/:id',

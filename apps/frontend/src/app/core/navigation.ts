@@ -21,17 +21,6 @@ export interface NavSection {
   items: NavItem[];
 }
 
-/** Page that is announced in the menu but not built yet. */
-function soon(
-  label: string,
-  key: string,
-  icon: IconName,
-  tone: string,
-  access: NavAccess = 'manage',
-): NavItem {
-  return { label, path: `/bald/${key}`, icon, tone, access };
-}
-
 export const NAVIGATION: readonly NavSection[] = [
   {
     key: 'top',
@@ -116,9 +105,9 @@ export const NAVIGATION: readonly NavSection[] = [
     items: [
       { label: 'Personen', path: '/personen', icon: 'users', tone: 'rose', access: 'manage' },
       { label: 'Beiträge', path: '/beitraege', icon: 'coins', tone: 'green', access: 'manage' },
-      soon('Jugend', 'jugend', 'swim', 'blue'),
-      soon('Vorstand', 'vorstand', 'users', 'violet'),
-      soon('Dokumente', 'dokumente', 'sheet', 'amber'),
+      { label: 'Jugend', path: '/jugend', icon: 'swim', tone: 'blue', access: 'manage' },
+      { label: 'Vorstand', path: '/vorstand', icon: 'users', tone: 'violet', access: 'admin' },
+      { label: 'Dokumente', path: '/dokumente', icon: 'sheet', tone: 'amber', access: 'manage' },
     ],
   },
   {
@@ -128,8 +117,8 @@ export const NAVIGATION: readonly NavSection[] = [
     icon: 'tasks',
     items: [
       { label: 'Aufgaben', path: '/aufgaben', icon: 'tasks', tone: 'green', access: 'manage' },
-      soon('Abrechnung', 'abrechnung', 'coins', 'green'),
-      soon('Material', 'material', 'list', 'amber'),
+      { label: 'Abrechnung', path: '/abrechnung', icon: 'coins', tone: 'green', access: 'manage' },
+      { label: 'Material', path: '/material', icon: 'list', tone: 'amber', access: 'manage' },
     ],
   },
   {
@@ -138,8 +127,20 @@ export const NAVIGATION: readonly NavSection[] = [
     tone: 'amber',
     icon: 'bolt',
     items: [
-      soon('Veranstaltungen', 'veranstaltungen', 'calendar', 'teal', 'all'),
-      soon('Weihnachtsmarkt', 'weihnachtsmarkt', 'tree', 'green'),
+      {
+        label: 'Veranstaltungen',
+        path: '/veranstaltungen',
+        icon: 'calendar',
+        tone: 'teal',
+        access: 'all',
+      },
+      {
+        label: 'Weihnachtsmarkt',
+        path: '/weihnachtsmarkt',
+        icon: 'tree',
+        tone: 'green',
+        access: 'manage',
+      },
     ],
   },
   {
@@ -162,15 +163,6 @@ export const NAVIGATION: readonly NavSection[] = [
 
 /** Short descriptions on the pages that are not built yet (taken from the old Intranet). */
 export const SOON_PAGES: Record<string, { title: string; text: string }> = {
-  jugend: { title: 'Jugend', text: 'Jugendwarte, Jugendordnung und Jugendveranstaltungen.' },
-  vorstand: { title: 'Vorstand', text: 'Vorstandssitzungen, Beschlüsse und Zuständigkeiten.' },
-  dokumente: { title: 'Dokumente', text: 'Satzung, Formulare und Vorlagen des Vereins.' },
-  abrechnung: { title: 'Abrechnung', text: 'Fahrtkosten, Auslagen und Erstattungen.' },
-  material: { title: 'Material', text: 'Ausleihe und Bestand von Vereinsmaterial.' },
-  veranstaltungen: {
-    title: 'Veranstaltungen',
-    text: 'Vereinsfeiern, Helferlisten und Termine. Mitglieder können sich anmelden, sobald die Veranstaltung dafür freigegeben ist.',
-  },
   weihnachtsmarkt: {
     title: 'Weihnachtsmarkt',
     text: 'Planung und Helferplan für den Weihnachtsmarkt.',

@@ -1,0 +1,127 @@
+<div class="chip-row">
+  @for (name of periods; track name; let index = $index) {
+    <button
+      type="button"
+      class="chip"
+      [class.is-on]="period() === index"
+      [attr.aria-pressed]="period() === index"
+      (click)="period.set(index)"
+    >
+      {{ name }}
+    </button>
+  }
+  <app-action kind="back" small label="Vorheriges Jahr" (pressed)="yearShift(-1)" />
+  <b class="is-align-self-center">{{ year() }}</b>
+  <app-action kind="next" small label="Nächstes Jahr" (pressed)="yearShift(1)" />
+</div>
+
+<p class="box-note my-3">
+  Für jede Fahrt zum Wettkampftraining gibt es {{ euro(store.rates().driveFee) }}. Für Fahrten zu
+  Wettkämpfen wird nichts gezahlt. Offen in diesem Zeitraum:
+  <b>{{ open().length }} {{ periodWord(open().length) }} = {{ euro(openSum()) }}</b
+  >. Zum Abrechnen die Excel-Datei erstellen, ausdrucken, unterschreiben und abgeben.
+</p>
+
+<div class="toolbar">
+  @for (page of pages(); track page) {
+    <app-action
+      kind="excel"
+      withText
+      [label]="pageLabel(page)"
+      [disabled]="open().length === 0"
+      (pressed)="exportExcel(page)"
+    />
+  }
+  <app-action kind="print" withText [disabled]="open().length === 0" (pressed)="print()" />
+  <app-action kind="download" withText label="Aus Trainingsterminen" (pressed)="pickDays()" />
+  <app-action kind="add" withText label="Fahrt hinzufügen" (pressed)="editing.set(newDrive())" />
+</div>
+
+@if (list().length === 0) {
+  <p class="empty">Keine Fahrt in diesem Zeitraum.</p>
+} @else {
+  <div class="item-list">
+    @for (drive of list(); track drive.id) {
+      <article class="item" [class.is-ok]="drive.state === 'settled'">
+        <div class="item-main">
+          <div class="item-title">
+            {{ fullDate(drive.date) }}
+            <span
+              class="pill"
+              [class.is-ok]="drive.state === 'settled'"
+              [class.is-info]="drive.state === 'submitted'"
+              [class.is-warn]="drive.state === 'open'"
+              >{{ label[drive.state] }}</span
+            >
+          </div>
+          <div class="item-sub">{{ drive.note || '–' }}</div>
+        </div>
+        <div class="item-actions">
+          <b>{{ euro(drive.amount) }}</b>
+          @if (store.canEditDrive(drive)) {
+            <app-action
+              kind="edit"
+              [label]="'Fahrt ' + fullDate(drive.date) + ' bearbeiten'"
+              (pressed)="editing.set(drive)"
+            />
+            <app-action
+              kind="delete"
+              [label]="'Fahrt ' + fullDate(drive.date) + ' löschen'"
+              (pressed)="toDelete.set(drive)"
+            />
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (editing(); as current) {
+  <app-form-dialog
+    [heading]="current.id ? 'Fahrt ändern' : 'Fahrt eintragen'"
+    [subtitle]="current.owner"
+    [fields]="fields"
+    [values]="current"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (candidates()) {
+  <app-form-dialog
+    heading="Aus Trainingsterminen"
+    subtitle="Bei welchen Terminen des Wettkampftrainings bist du gefahren?"
+    saveLabel="Übernehmen"
+    [fields]="pickFields()"
+    [values]="pickValues()"
+    (saved)="takeDays($event)"
+    (closed)="candidates.set(null)"
+  />
+}
+
+@if (toDelete(); as drive) {
+  <app-confirm-dialog
+    heading="Fahrt löschen?"
+    [subtitle]="fullDate(drive.date)"
+    text="Die Fahrt verschwindet aus der Liste."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}
+
+@if (toSubmit(); as chunk) {
+  <app-confirm-dialog
+    heading="Als eingereicht markieren?"
+    [text]="
+      'Diese ' +
+      chunk.length +
+      ' ' +
+      periodWord(chunk.length) +
+      ' stehen jetzt in der Excel-Datei. Nach dem Abgeben des Formulars sind sie eingereicht.'
+    "
+    confirmKind="done"
+    confirmLabel="Als eingereicht markieren"
+    (confirmed)="confirmSubmit()"
+    (closed)="toSubmit.set(null)"
+  />
+}

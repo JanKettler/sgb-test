@@ -1,0 +1,129 @@
+<p class="item-sub mb-3">
+  Ein abgeschlossener Monat ist gesperrt: Buchungen darin lassen sich nicht mehr ändern. Abschließen
+  geht erst, wenn alle Buchungen des Monats bestätigt sind.
+</p>
+
+<div class="item-list">
+  @for (month of months(); track month.key) {
+    <article class="item" [class.is-ok]="store.closingOf(month.key)">
+      <div class="item-main">
+        <div class="item-title">
+          {{ monthLabel(month.key) }}
+          @if (store.closingOf(month.key)) {
+            <span class="pill is-info">abgeschlossen</span>
+          }
+        </div>
+        <div class="item-sub">
+          {{ month.bookings }} Buchungen
+          @if (month.unconfirmed > 0) {
+            · <span class="is-late">{{ month.unconfirmed }} unbestätigt</span>
+          }
+          @if (store.closingOf(month.key); as closing) {
+            · Saldo {{ euro(closing.balance) }} · abgeschlossen von {{ closing.by }}
+          }
+        </div>
+      </div>
+      @if (store.canAdminister()) {
+        <div class="item-actions">
+          @if (store.closingOf(month.key)) {
+            <app-action
+              kind="unlock"
+              withText
+              [label]="monthLabel(month.key) + ' öffnen'"
+              (pressed)="toOpen.set(month.key)"
+            />
+          } @else if (month.past) {
+            <app-action
+              kind="lock"
+              withText
+              [label]="monthLabel(month.key) + ' abschließen'"
+              [disabled]="!month.closable"
+              (pressed)="toClose.set(month.key)"
+            />
+          }
+        </div>
+      }
+    </article>
+  }
+</div>
+
+<div class="toolbar mt-5">
+  <h3 class="title is-5 mb-0">Kassenstürze</h3>
+  @if (store.canBook()) {
+    <app-action kind="add" withText label="Kassensturz" (pressed)="counting.set(true)" />
+  }
+</div>
+@if (counts().length === 0) {
+  <p class="empty">Noch kein Kassensturz.</p>
+} @else {
+  <div class="item-list">
+    @for (count of counts(); track count.id) {
+      <article
+        class="item"
+        [class.is-bad]="count.difference !== 0"
+        [class.is-ok]="count.difference === 0"
+      >
+        <div class="item-main">
+          <div class="item-title">
+            {{ fullDate(count.date) }}
+            @if (count.difference === 0) {
+              <span class="pill is-ok">stimmt</span>
+            } @else {
+              <span class="pill is-bad">Differenz {{ euro(count.difference) }}</span>
+            }
+          </div>
+          <div class="item-sub">
+            gezählt {{ euro(count.counted) }} · Soll {{ euro(count.expected) }}
+            @if (count.by) {
+              · {{ count.by }}
+            }
+            @if (count.note) {
+              · {{ count.note }}
+            }
+          </div>
+          @if (piecesText(count.pieces)) {
+            <div class="item-sub">{{ piecesText(count.pieces) }}</div>
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (counting()) {
+  <app-count-dialog
+    [expected]="store.balance()"
+    [today]="store.today"
+    [start]="lastPieces()"
+    (saved)="saveCount($event)"
+    (closed)="counting.set(false)"
+  />
+}
+
+@if (toClose(); as month) {
+  <app-confirm-dialog
+    heading="Monat abschließen?"
+    [subtitle]="monthLabel(month)"
+    [text]="
+      'Saldo am Monatsende: ' +
+      euro(balanceAtEnd(month)) +
+      '. Danach lassen sich die Buchungen nicht mehr ändern.'
+    "
+    confirmKind="lock"
+    confirmLabel="Abschließen"
+    (confirmed)="confirmClose()"
+    (closed)="toClose.set(null)"
+  />
+}
+
+@if (toOpen(); as month) {
+  <app-confirm-dialog
+    heading="Monat wieder öffnen?"
+    [subtitle]="monthLabel(month)"
+    text="Die Buchungen des Monats lassen sich danach wieder ändern."
+    confirmKind="unlock"
+    confirmLabel="Öffnen"
+    (confirmed)="confirmOpen()"
+    (closed)="toOpen.set(null)"
+  />
+}
