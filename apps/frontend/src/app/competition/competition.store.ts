@@ -9,6 +9,13 @@ import {
   Decline,
   Entry,
   RelayEntry,
+  emptyPlan,
+  emptySchedule,
+  sameName,
+  startKey,
+  FeeStatus,
+  Participation,
+  PHASES,
   dateOf,
   euro,
   eventLabel,
@@ -24,6 +31,7 @@ import {
   parseDsv7,
 } from './dsv7';
 import { createZip } from './zip';
+import { ParsedResults, ParsedSchedule } from './wk-parse';
 
 /** The club as it appears in the entry file; editable in the settings later. */
 const CLUB: FileClub = {
@@ -142,6 +150,8 @@ function sampleMeet(
     sent: false,
     officials: [],
     coaches: [],
+    plan: emptyPlan(),
+    schedule: emptySchedule(),
     sections: [
       {
         no: 1,
@@ -582,6 +592,207 @@ export class CompetitionStore {
 
   private treasurer() {
     return this.people.members().find((item) => item.appRoles.includes('treasurer') && item.email1);
+  }
+
+  // ---- Checklist -------------------------------------------------------------------------
+
+  private patchPlan(id: string, change: (plan: Competition['plan']) => Competition['plan']): void {
+    this.competitions.update((all) =>
+      all.map((item) => (item.id === id ? { ...item, plan: change(item.plan) } : item)),
+    );
+  }
+
+  private userName(): string {
+    const person = this.actors()[0];
+    return person ? this.nameOf(person.id) : 'Du';
+  }
+
+  isStepDone(competition: Competition, step: string): boolean {
+    return !!competition.plan.done[step] || (step === 'sent' && competition.sent);
+  }
+
+  /** Ticks or unticks a step; "Meldungen versendet" also locks the registration. */
+  toggleStep(id: string, step: string): void {
+    const item = this.competition(id);
+    if (!item) return;
+    const on = this.isStepDone(item, step);
+    this.patchPlan(id, (plan) => {
+      const done = { ...plan.done };
+      if (on) delete done[step];
+      else done[step] = { by: this.userName(), at: this.today };
+      return { ...plan, done };
+    });
+    if (step === 'sent') this.save({ ...this.competition(id)!, sent: !on });
+  }
+
+  setFeeStatus(id: string, fee: FeeStatus): void {
+    this.patchPlan(id, (plan) => ({ ...plan, fee }));
+  }
+
+  setParticipation(id: string, participation: Participation): void {
+    this.patchPlan(id, (plan) => ({ ...plan, participation }));
+  }
+
+  setJudges(id: string, section: number, count: number | null): void {
+    this.patchPlan(id, (plan) => ({ ...plan, judges: { ...plan.judges, [section]: count } }));
+  }
+
+  /** Steps done of all steps (the fee counts as one when paid). */
+  progress(competition: Competition): { done: number; total: number } {
+    const steps = PHASES.flatMap((phase) => phase.items.map((item) => item[0]));
+    const done = steps.filter((step) => this.isStepDone(competition, step)).length;
+    return {
+      done: done + (competition.plan.fee === 'paid' ? 1 : 0),
+      total: steps.length + 1,
+    };
+  }
+
+  daysTo(iso: string): number {
+    return Math.round(
+      (Date.parse(`${iso}T12:00:00`) - Date.parse(`${this.today}T12:00:00`)) / 864e5,
+    );
+  }
+
+  /** Slots of the host's judge panel nobody is named for yet. */
+  openDuties(competition: Competition): number {
+    return competition.schedule.duties.filter((duty) => !duty.name || /^N\s?N$/i.test(duty.name))
+      .length;
+  }
+
+  /** What needs attention soon: deadlines and open judge slots. */
+  warnings(competition: Competition): { tone: 'bad' | 'warn'; text: string }[] {
+    const out: { tone: 'bad' | 'warn'; text: string }[] = [];
+    if (dateOf(competition) < this.today) return out;
+    const sent = this.isStepDone(competition, 'sent');
+    const date = (iso: string) => iso.split('-').reverse().join('.');
+    const when = (days: number) =>
+      days === 0 ? 'heute' : days === 1 ? 'morgen' : `in ${days} Tagen`;
+    if (competition.deadline && !sent) {
+      const days = this.daysTo(competition.deadline);
+      if (days < 0)
+        out.push({ tone: 'bad', text: `Meldeschluss vorbei (${date(competition.deadline)})` });
+      else if (days <= 7)
+        out.push({ tone: days <= 2 ? 'bad' : 'warn', text: `Meldeschluss ${when(days)}` });
+    }
+    if (competition.internalDeadline && !sent && !this.isStepDone(competition, 'checked')) {
+      const days = this.daysTo(competition.internalDeadline);
+      if (days < 0) out.push({ tone: 'bad', text: 'Interner Meldeschluss überschritten' });
+      else if (days <= 3) out.push({ tone: 'warn', text: `Interner Meldeschluss ${when(days)}` });
+    }
+    const open = this.openDuties(competition);
+    if (open > 0) {
+      out.push({
+        tone: 'warn',
+        text: `${open} Kampfgericht-${open > 1 ? 'Plätze' : 'Platz'} offen`,
+      });
+    }
+    return out;
+  }
+
+  // ---- Meldeergebnis and results ---------------------------------------------------------
+
+  private patchSchedule(
+    id: string,
+    change: (schedule: Competition['schedule']) => Competition['schedule'],
+  ): void {
+    this.competitions.update((all) =>
+      all.map((item) => (item.id === id ? { ...item, schedule: change(item.schedule) } : item)),
+    );
+  }
+
+  /** Takes starts, judge slots and event names from a Meldeergebnis; names already given stay. */
+  importSchedule(id: string, parsed: ParsedSchedule): void {
+    this.patchSchedule(id, (old) => ({
+      ...old,
+      starts: parsed.starts,
+      duties: parsed.duties.map((duty) => {
+        const before = old.duties.find(
+          (item) => item.a === duty.a && item.pos === duty.pos && item.g === duty.g,
+        );
+        return before?.name && /^N\s?N$/i.test(duty.name) ? { ...duty, name: before.name } : duty;
+      }),
+      eventNames: parsed.eventNames,
+      stand: parsed.stand,
+    }));
+  }
+
+  assignDuty(id: string, index: number, name: string): void {
+    this.patchSchedule(id, (old) => ({
+      ...old,
+      duties: old.duties.map((duty, at) => (at === index ? { ...duty, name } : duty)),
+    }));
+  }
+
+  /** Enters the results of a DSV7 result list; returns how many starts matched and were added. */
+  importResults(
+    id: string,
+    parsed: ParsedResults,
+    overwrite: boolean,
+  ): { matched: number; added: number } {
+    let matched = 0;
+    let added = 0;
+    this.patchSchedule(id, (old) => {
+      const starts = [...old.starts];
+      const results = { ...old.results };
+      const lane = new Map<number, number>();
+      for (const start of starts) lane.set(start.e, Math.max(lane.get(start.e) ?? 0, start.b));
+      for (const found of parsed.found) {
+        let start = starts.find((item) => item.e === found.e && sameName(item.n, found.swimmer));
+        if (start) matched++;
+        else {
+          lane.set(found.e, (lane.get(found.e) ?? 0) + 1);
+          start = {
+            e: found.e,
+            l: 1,
+            lt: 1,
+            t: '',
+            b: lane.get(found.e) ?? 1,
+            n: found.swimmer,
+            s: '',
+            j: found.year,
+            m: '',
+          };
+          starts.push(start);
+          added++;
+        }
+        const key = startKey(start);
+        if (results[key] && (results[key].t || results[key].status) && !overwrite) continue;
+        results[key] = {
+          t: found.time,
+          sp: found.splits,
+          status: found.status,
+          place: found.place,
+          ageGroup: found.ageGroup,
+        };
+      }
+      const names = { ...old.eventNames };
+      for (const found of parsed.found) names[found.e] ??= found.name;
+      const sections = new Set(parsed.judges.map((judge) => judge.section));
+      const duties = [
+        ...old.duties.filter((duty) => !sections.has(duty.a)),
+        ...parsed.judges.map((judge) => ({
+          a: judge.section,
+          g: 'laut Protokoll',
+          pos: judge.role,
+          name: judge.name,
+        })),
+      ].sort((a, b) => a.a - b.a);
+      return { ...old, starts, results, eventNames: names, duties, relayResults: parsed.relays };
+    });
+    const counts = new Map<number, Set<string>>();
+    for (const judge of parsed.judges) {
+      counts.set(judge.section, (counts.get(judge.section) ?? new Set()).add(judge.name));
+    }
+    for (const [section, names] of counts) this.setJudges(id, section, names.size);
+    return { matched, added };
+  }
+
+  /** Name of an event: from the Meldeergebnis, else from the event list. */
+  eventName(competition: Competition, no: number): string {
+    const fromFile = competition.schedule.eventNames[no];
+    if (fromFile) return fromFile;
+    const event = competition.events.find((item) => item.no === no);
+    return event ? eventLabel(event) : `Wettkampf ${no}`;
   }
 
   /** Keeps the mail in the outbox. A real mail server comes with the backend. */

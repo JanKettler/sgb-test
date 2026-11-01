@@ -61,6 +61,21 @@
             <td>
               <strong>{{ row.competition.title || 'Ohne Namen' }}</strong>
               <small class="is-block has-text-grey">{{ row.competition.place }}</small>
+              @if (!row.past) {
+                <small class="is-block has-text-grey">
+                  {{ store.progress(row.competition).done }} von
+                  {{ store.progress(row.competition).total }} Schritten erledigt
+                </small>
+                @for (warning of store.warnings(row.competition); track warning.text) {
+                  <span
+                    class="pill mr-1"
+                    [class.is-warn]="warning.tone === 'warn'"
+                    [class.is-bad]="warning.tone === 'bad'"
+                  >
+                    {{ warning.text }}
+                  </span>
+                }
+              }
             </td>
             <td class="has-text-centered">
               {{ fullDate(row.competition.deadline) }}

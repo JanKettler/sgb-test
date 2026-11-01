@@ -598,6 +598,14 @@
         >
           <app-icon name="download" /> Herunterladen
         </button>
+        <button
+          type="button"
+          class="button"
+          (click)="printEntryList()"
+          [disabled]="starters().length === 0 && relays().length === 0"
+        >
+          <app-icon name="download" /> Meldeliste drucken
+        </button>
         @if (!isNew) {
           <button type="button" class="button" [class.is-success]="item.sent" (click)="markSent()">
             <app-icon name="check" /> {{ item.sent ? 'Gesendet' : 'Als gesendet markieren' }}
@@ -748,6 +756,18 @@
       } @else if (!canRelays()) {
         <p class="help">Staffeln stellen die Trainer auf.</p>
       }
+    }
+
+    @case ('check') {
+      <app-meet-checklist [id]="item.id" />
+    }
+
+    @case ('schedule') {
+      <app-meet-schedule [id]="item.id" />
+    }
+
+    @case ('results') {
+      <app-meet-results [id]="item.id" />
     }
 
     @case ('staff') {

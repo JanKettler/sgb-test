@@ -70,4 +70,59 @@ describe('CompetitionStore', () => {
     expect(store.relayIssues(meet, { ...team, memberIds: ['p-mats'] })[0]).toContain('4 Schwimmer');
     expect(store.canEditRelays()).toBe(store.canManage());
   });
+
+  it('ticks the checklist, locks the entries and imports results', () => {
+    const store = TestBed.inject(CompetitionStore);
+    const meet = store.competition('c-2')!;
+    expect(store.progress(meet).done).toBe(0);
+    store.toggleStep('c-2', 'sent');
+    expect(store.competition('c-2')!.sent).toBe(true);
+    expect(store.progress(store.competition('c-2')!).done).toBe(1);
+    store.setFeeStatus('c-2', 'paid');
+    expect(store.progress(store.competition('c-2')!).done).toBe(2);
+
+    store.importSchedule('c-1', {
+      title: '',
+      date: '',
+      place: '',
+      stand: '2026-11-20 18:30',
+      starts: [
+        { e: 1, l: 1, lt: 1, t: '10:05', b: 3, n: 'Muster, Anna', s: 'W', j: '2012', m: '' },
+      ],
+      duties: [{ a: 1, g: 'Zeitnehmer', pos: 'Zeitnehmer 1', name: 'N N' }],
+      eventNames: { 1: '50 m Freistil weiblich' },
+      clubs: {},
+      warnings: [],
+    });
+    expect(store.openDuties(store.competition('c-1')!)).toBe(1);
+    const outcome = store.importResults(
+      'c-1',
+      {
+        title: '',
+        place: '',
+        found: [
+          {
+            e: 1,
+            name: '',
+            swimmer: 'Anna Muster',
+            year: '2012',
+            time: '00:40,00',
+            splits: [],
+            status: '',
+            place: 2,
+            ageGroup: '',
+          },
+        ],
+        judges: [{ section: 1, name: 'Sabrina Landwehr', role: 'Zeitnehmer:in' }],
+        relays: [],
+        warnings: [],
+      },
+      false,
+    );
+    expect(outcome).toEqual({ matched: 1, added: 0 });
+    const after = store.competition('c-1')!;
+    expect(after.schedule.results['1-1-3'].place).toBe(2);
+    expect(store.openDuties(after)).toBe(0);
+    expect(after.plan.judges[1]).toBe(1);
+  });
 });

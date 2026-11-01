@@ -20,12 +20,15 @@ import {
   euro,
 } from '../../competition.models';
 import { CompetitionStore, MailDraft } from '../../competition.store';
-import { downloadBytes } from '../../competition-download';
+import { downloadBytes, escapeHtml, printHtml } from '../../competition-download';
 import { EntryForm } from '../entry-form/entry-form';
+import { MeetChecklist } from '../meet-checklist/meet-checklist';
+import { MeetResults } from '../meet-results/meet-results';
+import { MeetSchedule } from '../meet-schedule/meet-schedule';
 import { MailDialog } from '../mail-dialog/mail-dialog';
 import { RelayForm } from '../relay-form/relay-form';
 
-type Tab = 'base' | 'sections' | 'events' | 'entries' | 'staff';
+type Tab = 'base' | 'sections' | 'events' | 'entries' | 'check' | 'schedule' | 'results' | 'staff';
 type Staff = 'officials' | 'coaches';
 type TextKey =
   | 'title'
@@ -45,7 +48,17 @@ type MoneyKey = 'flatFee' | 'perSwimmerFee' | 'discount';
 
 @Component({
   selector: 'app-competition-editor',
-  imports: [Icon, DateField, ModalDialog, EntryForm, MailDialog, RelayForm],
+  imports: [
+    Icon,
+    DateField,
+    ModalDialog,
+    EntryForm,
+    MailDialog,
+    RelayForm,
+    MeetChecklist,
+    MeetSchedule,
+    MeetResults,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './competition-editor.html',
   styleUrl: './competition-editor.scss',
@@ -65,13 +78,20 @@ export class CompetitionEditor {
   protected readonly eventLabel = eventLabel;
   protected readonly fullDate = fullDate;
 
-  protected readonly tabs: readonly { id: Tab; label: string }[] = [
+  private readonly allTabs: readonly { id: Tab; label: string; saved?: true }[] = [
     { id: 'base', label: 'Basisdaten' },
     { id: 'sections', label: 'Abschnitte' },
     { id: 'events', label: 'Wettkampffolge' },
     { id: 'entries', label: 'Meldungen' },
+    { id: 'check', label: 'Checkliste', saved: true },
+    { id: 'schedule', label: 'Ablauf', saved: true },
+    { id: 'results', label: 'Ergebnisse', saved: true },
     { id: 'staff', label: 'Kampfrichter & Trainer' },
   ];
+  /** Checklist, schedule and results need a saved meet. */
+  protected readonly tabs = this.allTabs.filter(
+    (tab) => !tab.saved || !!this.store.competition(this.id),
+  );
   protected readonly tab = signal<Tab>('base');
   protected readonly isNew = !this.store.competition(this.id);
   protected readonly draft = signal<Competition>(
@@ -245,6 +265,31 @@ export class CompetitionEditor {
     downloadBytes(name, bytes, type);
     this.exporting.set(false);
     this.toasts.show('Datei erstellt', 'info');
+  }
+
+  /** Print list of everything the club has entered. */
+  protected printEntryList(): void {
+    const item = this.draft();
+    const rows = this.store.starters(item).map((row) => {
+      const member = this.people.member(row.personId);
+      const starts = row.entries
+        .map(
+          (entry) =>
+            `Wk ${entry.eventNo} ${escapeHtml(this.store.eventName(item, entry.eventNo))} ${entry.time || 'ohne Zeit'}`,
+        )
+        .join('<br>');
+      return `<tr><td><b>${escapeHtml(row.name)}</b></td><td>${member?.birthDate.slice(0, 4) ?? ''}</td><td>${escapeHtml(member?.dsvId ?? '')}</td><td>${starts}</td><td>${euro(row.fee)}</td></tr>`;
+    });
+    const relays = this.relays().map((relay) => {
+      const names = relay.memberIds.map((id) => escapeHtml(this.store.nameOf(id))).join(', ');
+      return `<tr><td><b>${this.relayName(relay)}</b></td><td>${relay.year}</td><td></td><td>${escapeHtml(this.relayEvent(relay))} ${relay.time || 'ohne Zeit'}<br>${names}</td><td></td></tr>`;
+    });
+    printHtml(
+      `Meldeliste ${item.title}`,
+      `<h1>Meldeliste ${escapeHtml(this.store.club.name)}</h1><div class="sub"><b>${escapeHtml(item.title)}</b> · ${escapeHtml(item.place)}</div>` +
+        `<table><tr><th>Schwimmer</th><th>Jg.</th><th>DSV-Id</th><th>Starts</th><th>Meldegeld</th></tr>${[...rows, ...relays].join('')}</table>` +
+        `<p>Meldegeld gesamt: <b>${euro(this.total())}</b></p>`,
+    );
   }
 
   protected sendMail(draft: MailDraft): void {

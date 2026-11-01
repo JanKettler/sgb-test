@@ -101,6 +101,8 @@ export interface Competition {
   officials: string[];
   /** Persons of the club who coach at the meet. */
   coaches: string[];
+  plan: Plan;
+  schedule: Schedule;
 }
 
 /** One start of one swimmer. `time` is the entry time as "mm:ss,hh", empty without one. */
@@ -110,6 +112,102 @@ export interface Entry {
   eventNo: number;
   time: string;
 }
+
+/** One start in the Meldeergebnis: event, heat, lane, time of day and swimmer. */
+export interface RunStart {
+  e: number;
+  l: number;
+  lt: number;
+  /** Time of day, "10:35". */
+  t: string;
+  b: number;
+  /** "Lastname, Firstname" as printed in the file. */
+  n: string;
+  s: string;
+  j: string;
+  /** Entry time as "mm:ss,hh". */
+  m: string;
+}
+
+/** A slot in the host's judge panel that the club has to fill. */
+export interface Duty {
+  a: number;
+  g: string;
+  pos: string;
+  name: string;
+}
+
+/** Result of one start; `status` is "DQ", "nicht angetreten" or "abgemeldet". */
+export interface RunResult {
+  t: string;
+  sp: string[];
+  status: string;
+  place: number;
+  ageGroup: string;
+}
+
+/** What the Meldeergebnis and the result list tell about the club at the meet. */
+export interface Schedule {
+  starts: RunStart[];
+  duties: Duty[];
+  eventNames: Record<number, string>;
+  /** Result per "event-heat-lane". */
+  results: Record<string, RunResult>;
+  stand: string;
+  relayResults: { e: number; place: number; time: string; status: string }[];
+}
+
+export type FeeStatus = '' | 'mail' | 'paid';
+export type Participation = '' | 'yes' | 'no';
+
+/** Checklist of the meet: ticked steps with who and when, plus the open questions. */
+export interface Plan {
+  done: Record<string, { by: string; at: string }>;
+  fee: FeeStatus;
+  participation: Participation;
+  /** Number of judges the club sends, per section. */
+  judges: Record<number, number | null>;
+}
+
+export const PHASES: readonly { id: string; label: string; items: readonly [string, string][] }[] =
+  [
+    {
+      id: 'plan',
+      label: 'Planung',
+      items: [
+        ['created', 'Wettkampf im Portal angelegt'],
+        ['judgesAsked', 'Kampfrichter abgefragt'],
+        ['announced', 'Bekanntgabe in WhatsApp'],
+      ],
+    },
+    {
+      id: 'entry',
+      label: 'Meldung',
+      items: [
+        ['licences', 'DSV-Lizenzen geprüft'],
+        ['checked', 'Meldungen geprüft'],
+        ['sent', 'Meldungen versendet'],
+        ['confirmed', 'Meldebestätigung erhalten'],
+      ],
+    },
+    {
+      id: 'after',
+      label: 'Nach dem Meldeergebnis',
+      items: [
+        ['group', 'WhatsApp-Gruppe angelegt'],
+        ['scheduleShared', 'Meldeergebnis in WhatsApp'],
+      ],
+    },
+    {
+      id: 'after-meet',
+      label: 'Nachbereitung',
+      items: [
+        ['certPrinted', 'Urkunden gedruckt'],
+        ['certGiven', 'Urkunden verteilt'],
+        ['article', 'Artikel für die Homepage'],
+      ],
+    },
+  ];
 
 /** A relay team: four swimmers, one entry time and the age class (birth year) of the team. */
 export interface RelayEntry {
@@ -184,4 +282,24 @@ export function normalizeTime(value: string): string | null {
 
 export function euro(amount: number): string {
   return `${amount.toFixed(2).replace('.', ',')} €`;
+}
+
+export function emptyPlan(): Plan {
+  return { done: {}, fee: '', participation: '', judges: {} };
+}
+
+export function emptySchedule(): Schedule {
+  return { starts: [], duties: [], eventNames: {}, results: {}, stand: '', relayResults: [] };
+}
+
+/** Key of a start in `Schedule.results`. */
+export function startKey(start: Pick<RunStart, 'e' | 'l' | 'b'>): string {
+  return `${start.e}-${start.l}-${start.b}`;
+}
+
+/** "Mustermann, Max" and "Max Mustermann" compare equal. */
+export function sameName(a: string, b: string): boolean {
+  const norm = (text: string) =>
+    text.toLowerCase().replaceAll(',', ' ').split(/\s+/).filter(Boolean).sort().join(' ');
+  return norm(a) === norm(b);
 }

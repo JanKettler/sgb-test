@@ -5,6 +5,8 @@ import {
   Competition,
   Entry,
   RelayEntry,
+  emptyPlan,
+  emptySchedule,
   Sex,
   Stroke,
   Style,
@@ -71,6 +73,8 @@ function emptyMeet(): Omit<Competition, 'id'> {
     events: [],
     officials: [],
     coaches: [],
+    plan: emptyPlan(),
+    schedule: emptySchedule(),
   };
 }
 
