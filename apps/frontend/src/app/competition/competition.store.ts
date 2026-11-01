@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { PeopleStore } from '../people/people.store';
 import { addDays } from '../training/training-dates';
 import { GroupId } from '../training/training.models';
