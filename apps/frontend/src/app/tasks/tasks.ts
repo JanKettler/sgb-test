@@ -6,6 +6,8 @@ import { Icon } from '../ui/icon';
 import { LinkPicker } from '../ui/link-picker';
 import { LinkTargets } from '../ui/link-targets';
 import { ModalDialog } from '../ui/modal-dialog';
+import { RichEditor } from '../ui/rich-editor';
+import { RichText } from '../ui/rich-text';
 import { Toasts } from '../ui/toast';
 import { addDays, fullDate, weekdayIndex } from '../training/training-dates';
 import { downloadText } from '../training/training-download';
@@ -30,6 +32,14 @@ interface Section {
   tasks: Task[];
 }
 
+/** Formatted text without its tags, for search and export. */
+function plain(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const BOM = String.fromCharCode(0xfeff);
 const REPEATS = Object.entries(REPEAT_LABEL) as [TaskRepeat, string][];
 const STATUSES = Object.entries(STATUS_LABEL) as [TaskStatus, string][];
@@ -37,7 +47,16 @@ const STATUSES = Object.entries(STATUS_LABEL) as [TaskStatus, string][];
 /** Task list of the club, built after the task page of the old Intranet. */
 @Component({
   selector: 'app-tasks',
-  imports: [NgTemplateOutlet, RouterLink, Icon, ModalDialog, DateField, LinkPicker],
+  imports: [
+    NgTemplateOutlet,
+    RouterLink,
+    Icon,
+    ModalDialog,
+    DateField,
+    LinkPicker,
+    RichEditor,
+    RichText,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tasks.html',
   styleUrl: './tasks.scss',
@@ -93,7 +112,8 @@ export class Tasks {
       .tasks()
       .filter(
         (task) =>
-          (!q || `${task.title} ${task.text} ${task.who.join(' ')}`.toLowerCase().includes(q)) &&
+          (!q ||
+            `${task.title} ${plain(task.text)} ${task.who.join(' ')}`.toLowerCase().includes(q)) &&
           (!person || task.who.includes(person)) &&
           (!high || task.high),
       )
@@ -383,7 +403,7 @@ export class Tasks {
       .map((task) =>
         [
           task.title,
-          task.text,
+          plain(task.text),
           task.who.join(', '),
           task.due ? fullDate(task.due) : '',
           STATUS_LABEL[task.status],

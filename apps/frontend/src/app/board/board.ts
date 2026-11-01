@@ -80,13 +80,6 @@ export class Board {
     return post.bg ? readableOn(post.bg) : null;
   }
 
-  /** The arrows only work between messages of the same importance. */
-  protected canMove(post: BoardPost, step: -1 | 1): boolean {
-    const list = this.store.live();
-    const other = list[list.findIndex((item) => item.id === post.id) + step];
-    return !!other && other.important === post.important;
-  }
-
   protected add(): void {
     this.invalid.set(false);
     this.draft.set(this.store.newPost());

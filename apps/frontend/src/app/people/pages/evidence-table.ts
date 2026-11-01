@@ -3,7 +3,6 @@ import { Toasts } from '../../ui/toast';
 import { RouterLink } from '@angular/router';
 import { DateField } from '../../ui/date-field';
 import { Icon } from '../../ui/icon';
-import { ModalDialog } from '../../ui/modal-dialog';
 import { SortButton, SortState } from '../../ui/sort';
 import { TablePager, pageOf } from '../../ui/table-pager';
 import { MailDialog } from '../../training/dialogs/mail-dialog';
@@ -24,7 +23,7 @@ type Period = 'all' | 'overdue' | '30' | 'range';
 
 @Component({
   selector: 'app-evidence-table',
-  imports: [RouterLink, Icon, MailDialog, DateField, SortButton, TablePager, ModalDialog],
+  imports: [RouterLink, Icon, MailDialog, DateField, SortButton, TablePager],
   styleUrl: './evidence-table.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './evidence-table.html',
@@ -44,9 +43,6 @@ export class EvidenceTable {
   protected readonly from = signal(this.store.today);
   protected readonly to = signal(addDays(this.store.today, 90));
   protected readonly kind = signal<EvidenceKind | ''>('');
-  /** The row whose date is being entered. */
-  protected readonly entering = signal<EvidenceRow | null>(null);
-  protected readonly enteredDate = signal('');
   protected readonly selected = signal<ReadonlySet<string>>(new Set());
   protected readonly mailing = signal(false);
 
@@ -143,20 +139,10 @@ export class EvidenceTable {
     this.store.setHideMissing(kind, !on);
   }
 
-  protected startEntering(row: EvidenceRow): void {
-    this.entering.set(row);
-    this.enteredDate.set(row.date || this.store.today);
-  }
-
-  protected saveEntered(): void {
-    const row = this.entering();
-    const date = this.enteredDate();
-    if (!row || !date) {
-      this.toasts.failed('Bitte ein Datum eintragen');
-      return;
-    }
+  /** Enters the date right in the row. */
+  protected setDate(row: EvidenceRow, date: string): void {
+    if (!date || date === row.date) return;
     this.store.save({ ...row.member, [EVIDENCE_FIELDS[row.kind]]: date });
-    this.entering.set(null);
     this.toasts.saved(`${row.label} von ${fullName(row.member)} eingetragen`);
   }
 

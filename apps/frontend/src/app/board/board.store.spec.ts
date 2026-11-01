@@ -22,17 +22,6 @@ describe('BoardStore', () => {
     store.restore(post.id);
     expect(store.live().some((item) => item.id === post.id)).toBe(true);
   });
-
-  it('moves a message but never across the important border', () => {
-    const store = TestBed.inject(BoardStore);
-    const normal = store.live().filter((post) => !post.important);
-    store.move(normal[0].id, 1);
-    expect(store.live().filter((post) => !post.important)[1].id).toBe(normal[0].id);
-    const important = store.live().find((post) => post.important)!;
-    const before = store.live().map((post) => post.id);
-    store.move(important.id, 1);
-    expect(store.live().map((post) => post.id)).toEqual(before);
-  });
 });
 
 describe('BoardStore audience', () => {

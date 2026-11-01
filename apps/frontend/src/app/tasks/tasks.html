@@ -183,7 +183,7 @@
     @if (opened() === task.id && !compact) {
       <div class="task-body">
         @if (task.text) {
-          <p>{{ task.text }}</p>
+          <div class="content-text" [appRichText]="task.text"></div>
         }
         @if (task.link) {
           <p>
@@ -261,14 +261,8 @@
       />
     </div>
     <div class="field">
-      <label class="label" for="task-text">Beschreibung</label>
-      <textarea
-        id="task-text"
-        class="textarea"
-        rows="3"
-        [value]="task.text"
-        (input)="change({ text: value($event) })"
-      ></textarea>
+      <span class="label">Beschreibung</span>
+      <app-rich-editor [html]="task.text" (htmlChange)="change({ text: $event })" />
     </div>
     <div class="field">
       <span class="label">Zuständig</span>

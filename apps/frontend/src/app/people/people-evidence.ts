@@ -93,11 +93,6 @@ function row(
   return { ...base, days, missing: false, tone, text };
 }
 
-/** Swimmers in a competition group (WK or Masters) take part in competitions. */
-export function competes(member: Member): boolean {
-  return member.swimmerGroupIds.some((id) => id === 'WK' || id === 'MA');
-}
-
 /** The member field that holds the date of each kind of evidence. */
 export const EVIDENCE_FIELDS: Record<
   EvidenceKind,
@@ -122,7 +117,7 @@ export const EVIDENCE_FIELDS: Record<
 export function evidenceOf(member: Member, today: string): EvidenceRow[] {
   const rows: EvidenceRow[] = [];
   // The medical certificate is only needed for competitions, not for normal training.
-  if (member.swimmer && (competes(member) || member.attestUntil)) {
+  if (member.swimmer && (member.competes || member.attestUntil)) {
     rows.push(row(member, 'attest', 'Wettkampf', member.attestUntil, today));
   }
   if (member.trainer) {

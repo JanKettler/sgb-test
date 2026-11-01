@@ -113,7 +113,13 @@
           </td>
           <td>{{ row.label }}</td>
           <td>{{ row.role }}</td>
-          <td>{{ row.date ? fullDate(row.date) : 'nicht hinterlegt' }}</td>
+          <td class="date-cell">
+            <app-date-field
+              [inputId]="'ev-' + key(row)"
+              [value]="row.date"
+              (valueChange)="setDate(row, $event)"
+            />
+          </td>
           <td>
             <span
               class="pill"
@@ -126,15 +132,6 @@
           </td>
           <td class="has-text-right is-nowrap">
             <span class="icon-row">
-              <button
-                type="button"
-                class="button is-success"
-                [attr.aria-label]="row.label + ' von ' + row.member.firstName + ' eintragen'"
-                title="Datum eintragen"
-                (click)="startEntering(row)"
-              >
-                <app-icon name="check" />
-              </button>
               <button
                 type="button"
                 class="button"
@@ -159,26 +156,4 @@
 
 @if (mailing()) {
   <app-mail-dialog [recipients]="recipients()" (closed)="mailing.set(false)" (sent)="sent()" />
-}
-
-@if (entering(); as current) {
-  <app-modal-dialog
-    [heading]="current.label + ' eintragen'"
-    [subtitle]="current.member.firstName + ' ' + current.member.lastName"
-    accent="green"
-    (closed)="entering.set(null)"
-  >
-    <label class="label" for="ev-enter">
-      {{
-        current.kind === 'criminalRecord' || current.kind === 'codeOfConduct'
-          ? 'Datum'
-          : 'Gültig bis'
-      }}
-    </label>
-    <app-date-field inputId="ev-enter" [(value)]="enteredDate" />
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="entering.set(null)">Abbrechen</button>
-      <button type="button" class="button is-success" (click)="saveEntered()">Speichern</button>
-    </ng-container>
-  </app-modal-dialog>
 }

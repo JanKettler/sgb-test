@@ -6,22 +6,22 @@ const TODAY = '2027-03-10';
 
 describe('evidence', () => {
   it('asks swimmers for a medical certificate', () => {
-    const member = { ...emptyMember('m1', 1, TODAY), swimmerGroupIds: ['WK' as const] };
+    const member = { ...emptyMember('m1', 1, TODAY), competes: true };
     expect(statusOf(evidenceOf(member, TODAY))).toEqual({
       tone: 'bad',
       text: 'Sportgesundheit fehlt',
     });
   });
 
-  it('does not ask training swimmers for the certificate', () => {
-    const member = { ...emptyMember('m1', 1, TODAY), swimmerGroupIds: ['G1' as const] };
+  it('does not ask swimmers who do not start at competitions for the certificate', () => {
+    const member = { ...emptyMember('m1', 1, TODAY), swimmerGroupIds: ['WK' as const] };
     expect(evidenceOf(member, TODAY)).toHaveLength(0);
   });
 
   it('warns shortly before something expires and when it is over', () => {
     const member = {
       ...emptyMember('m1', 1, TODAY),
-      swimmerGroupIds: ['WK' as const],
+      competes: true,
       attestUntil: addDays(TODAY, 21),
     };
     expect(statusOf(evidenceOf(member, TODAY))).toEqual({

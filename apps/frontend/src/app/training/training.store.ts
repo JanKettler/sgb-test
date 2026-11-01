@@ -565,7 +565,10 @@ export class TrainingStore {
       .sort(byName);
     const rows = members.map((person): MatrixRow => {
       const cells = sessions.map((session) => {
-        const role = this.roleIn(session, person);
+        // A trainer of the group counts for every session of that group, named or not.
+        const role =
+          this.roleIn(session, person) ??
+          (person.trainerGroupIds.some((id) => session.groupIds.includes(id)) ? 'trainer' : null);
         return role ? this.stateOf(session, person.id, role) : null;
       });
       const swimsHere = person.groupId !== null && groupIds.includes(person.groupId);

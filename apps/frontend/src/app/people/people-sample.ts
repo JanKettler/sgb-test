@@ -52,6 +52,10 @@ function buildMember(person: Person, index: number, today: string): Member {
     person.groupId && person.trainerGroupIds.length === 0
       ? BASE_BIRTH[person.groupId] - (index % 3)
       : 1990 - index * 3;
+  // Competition swimmers are not only the ones in the WK group.
+  const starts =
+    person.groupId !== null &&
+    (person.groupId === 'WK' || person.groupId === 'MA' || index % 5 === 0);
   Object.assign(member, {
     firstName,
     lastName: rest.join(' '),
@@ -60,7 +64,8 @@ function buildMember(person: Person, index: number, today: string): Member {
     swimmer: person.groupId !== null,
     swimmerGroupIds: person.groupId ? [person.groupId] : [],
     dsvId: person.groupId ? String(377000 + index * 13) : '',
-    attestUntil: person.groupId ? inDays(today, ATTEST_DAYS[index % ATTEST_DAYS.length]) : '',
+    competes: starts,
+    attestUntil: starts ? inDays(today, ATTEST_DAYS[index % ATTEST_DAYS.length]) : '',
   } satisfies Partial<Member>);
   if (trainerNo >= 0) {
     Object.assign(member, {

@@ -71,7 +71,7 @@ export class FeesStore {
     const payment = this.payments().find((item) => item.id === paymentId);
     if (!payment) return;
     const members = payment.memberIds
-      .map((id) => this.people.memberById().get(id))
+      .map((id) => this.people.member(id))
       .filter((member): member is Member => !!member);
     const typeId = passive
       ? 'passive'
