@@ -1,0 +1,27 @@
+name: debug-ci
+on:
+  push:
+    branches: [debug/round6]
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+      - run: npm ci --ignore-scripts
+      - run: npx prettier --write apps/frontend/src
+      - name: Run checks and report output as annotations
+        run: |
+          set +e
+          report() {
+            body=$(tail -c 3500 "$2" | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')
+            echo "::error title=$1::$body"
+          }
+          npm run lint --workspace=apps/frontend > /tmp/lint.txt 2>&1 || report lint /tmp/lint.txt
+          npm run build --workspace=apps/frontend > /tmp/build.txt 2>&1 || report build /tmp/build.txt
+          npm run test --workspace=apps/frontend -- --watch=false > /tmp/test.txt 2>&1 || report test /tmp/test.txt
+          git status --porcelain > /tmp/fmt.txt
+          if [ -s /tmp/fmt.txt ]; then report format /tmp/fmt.txt; fi
+          exit 0
