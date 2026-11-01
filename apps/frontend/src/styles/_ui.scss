@@ -425,7 +425,17 @@ td .button:has(app-icon:only-child),
   color: var(--sgb-ink);
 }
 
-.table th {
+/* Bulma's own rule is more specific, so the :not() keeps all column headings centred. */
+.table thead th:not([align]) {
+  text-align: center;
+}
+
+.table thead th.is-left:not([align]) {
+  text-align: left;
+}
+
+/* Centred date and name cells while a board message is edited. */
+.board-table .editing app-date-field .input {
   text-align: center;
 }
 
@@ -473,4 +483,17 @@ td .button:has(app-icon:only-child),
 
 .button app-icon:not(:only-child) {
   margin-right: 0.4rem;
+}
+
+/* Page-level actions above a tab's content: one tidy row with room between the buttons. */
+.fees-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+
+  .button {
+    margin: 0;
+  }
 }

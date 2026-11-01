@@ -41,12 +41,12 @@
     <div class="card-head">
       <h3>{{ type.name || 'Neue Beitragsart' }}</h3>
       <div class="icon-row">
-        <button type="button" class="button" (click)="draft.set(null)">
-          <app-icon name="x" /> Abbrechen
-        </button>
-        <button type="button" class="button is-primary" (click)="save()">
-          <app-icon name="save" /> Speichern
-        </button>
+<button type="button" class="button is-danger" aria-label="Abbrechen" title="Abbrechen" (click)="draft.set(null)">
+<app-icon name="x" />
+</button>
+<button type="button" class="button is-success" aria-label="Speichern" title="Speichern" (click)="save()">
+<app-icon name="save" />
+</button>
       </div>
     </div>
     <div class="form-grid">

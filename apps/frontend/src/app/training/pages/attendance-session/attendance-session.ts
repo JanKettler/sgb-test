@@ -78,7 +78,7 @@ export class AttendanceSession {
       { label: 'Angemeldet', value: count((row) => row.registration === 'registered'), tone: '' },
       { label: 'Anwesend', value: count((row) => row.state === 'present'), tone: 'ok' },
       {
-        label: 'Angemeldet, nicht gekommen',
+        label: 'Fehlt',
         value: count((row) => row.registration === 'registered' && row.state === 'missing'),
         tone: 'bad',
       },

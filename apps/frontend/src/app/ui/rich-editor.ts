@@ -17,7 +17,6 @@ type Menu = 'color' | 'mark' | 'link' | null;
 
 const MIN_PX = 8;
 const MAX_PX = 64;
-const PRESET_SIZES = [12, 16, 22, 30];
 
 /**
  * Small editor for formatted message text: alignment, free font size, bold/italic/underline, text
@@ -41,10 +40,8 @@ export class RichEditor {
   protected readonly area = viewChild<ElementRef<HTMLElement>>('area');
   protected readonly menu = signal<Menu>(null);
   protected readonly hint = signal('');
-  protected readonly source = signal(false);
   protected readonly textColors = TEXT_COLORS;
   protected readonly markColors = MARK_COLORS;
-  protected readonly presets = PRESET_SIZES;
   protected readonly minPx = MIN_PX;
   protected readonly maxPx = MAX_PX;
   protected readonly link = signal('https://');
@@ -148,10 +145,6 @@ export class RichEditor {
 
   protected sizeTyped(event: Event): void {
     this.setSize(Number((event.target as HTMLInputElement).value));
-  }
-
-  protected sourceTyped(event: Event): void {
-    this.html.set(cleanHtml((event.target as HTMLTextAreaElement).value));
   }
 
   protected pasteFromClipboard(): void {

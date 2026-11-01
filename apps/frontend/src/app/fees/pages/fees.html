@@ -26,7 +26,10 @@
           </a>
         </li>
       }
-      <li class="ml-auto buttons">
+    </ul>
+  </div>
+
+<div class="fees-actions">
         @switch (tab()) {
           @case ('payments') {
             <button type="button" class="button" (click)="payments()?.exportCsv()">
@@ -53,9 +56,7 @@
             </button>
           }
         }
-      </li>
-    </ul>
-  </div>
+</div>
 
   @switch (tab()) {
     @case ('payments') {

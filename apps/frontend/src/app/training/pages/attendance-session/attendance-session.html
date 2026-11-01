@@ -6,7 +6,7 @@
       <h2 class="title is-4 mb-1">Anwesenheit</h2>
       <p class="subtitle is-6 mb-0">{{ subtitle() }}</p>
     </div>
-    <div class="buttons">
+    <div class="icon-row">
       <button
         type="button"
         class="button is-success"
@@ -16,19 +16,19 @@
       >
         <app-icon name="plus" />
       </button>
-      <button type="button" class="button" [disabled]="pending().size === 0" (click)="cancel()">
-        <app-icon name="x" /> Abbrechen
-      </button>
-      <button
-        type="button"
-        class="button is-primary"
-        [disabled]="pending().size === 0"
-        (click)="save()"
+<button type="button" class="button is-danger" aria-label="Abbrechen" title="Abbrechen" [disabled]="pending().size === 0" (click)="cancel()">
+<app-icon name="x" />
+</button>
+<button type="button" class="button is-success" aria-label="Speichern" title="Speichern" [disabled]="pending().size === 0" (click)="save()">
+<app-icon name="save" />
+</button>
+      <a
+        class="button"
+        routerLink="/training/termine"
+        aria-label="Zurück zu den Terminen"
+        title="Zurück zu den Terminen"
       >
-        <app-icon name="save" /> Speichern
-      </button>
-      <a class="button" routerLink="/training/termine">
-        <app-icon name="chevron-left" /> Zurück zu den Terminen
+        <app-icon name="chevron-left" />
       </a>
     </div>
   </header>

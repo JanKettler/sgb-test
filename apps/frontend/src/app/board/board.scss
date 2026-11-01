@@ -123,3 +123,28 @@
     width: 1%;
   }
 }
+
+.board-table {
+  /* Narrow, centred Von/Datum cells while editing leave the width to the toolbar. */
+  .editing .meta.edit-cell {
+    text-align: center;
+    width: 1%;
+
+    .input {
+      min-width: 7rem;
+      text-align: center;
+      width: 7.5rem;
+    }
+  }
+
+  .editing .actions .icon-row {
+    justify-content: center;
+  }
+
+  .audience-pop {
+    background: var(--sgb-card);
+    border: 1px solid var(--sgb-line);
+    border-top: 0;
+    padding: 0.7rem;
+  }
+}

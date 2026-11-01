@@ -229,7 +229,51 @@
       [background]="post.bg"
       [textColor]="ink(post) ?? ''"
       (htmlChange)="patch({ html: $event })"
-    />
+    >
+    <button
+      barExtra
+      type="button"
+      class="button is-small"
+      title="Nur für bestimmte Gruppen oder Rollen"
+      aria-label="Nur für bestimmte Gruppen oder Rollen"
+      [class.is-link]="audienceOpen() || post.groups.length + post.roles.length > 0"
+      (click)="audienceOpen.set(!audienceOpen())"
+    >
+      <app-icon name="lock" />
+    </button>
+    <div popExtra class="audience-pop" [class.is-hidden]="!audienceOpen()">
+      <p class="label is-small mb-1">
+        Nur sichtbar für
+        <span class="has-text-weight-normal has-text-grey">(nichts angehakt = alle)</span>
+      </p>
+      <p class="label is-small mb-1">Gruppen</p>
+      <div class="mb-2">
+        @for (group of groups; track group.id) {
+          <label class="checkbox mr-3">
+            <input
+              type="checkbox"
+              [checked]="post.groups.includes(group.id)"
+              (change)="toggleGroup(group.id)"
+            />
+            {{ group.name }}
+          </label>
+        }
+      </div>
+      <p class="label is-small mb-1">Rollen</p>
+      <div>
+        @for (role of roles; track role.id) {
+          <label class="checkbox mr-3">
+            <input
+              type="checkbox"
+              [checked]="post.roles.includes(role.id)"
+              (change)="toggleRole(role.id)"
+            />
+            {{ role.label }}
+          </label>
+        }
+      </div>
+    </div>
+    </app-rich-editor>
     @if (invalid() && !post.html) {
       <p class="help is-danger">Bitte einen Text eingeben.</p>
     }
@@ -261,61 +305,15 @@
         Wichtig (steht ganz oben)
       </label>
     </div>
-    <details [open]="post.groups.length + post.roles.length > 0">
-      <summary class="has-text-weight-bold is-clickable">
-        <app-icon name="lock" /> Nur für bestimmte Gruppen oder Rollen
-        <span class="has-text-weight-normal has-text-grey">(nichts angehakt = alle)</span>
-      </summary>
-      <div class="mt-3">
-        <p class="label is-small mb-1">Gruppen</p>
-        <div class="buttons mb-2">
-          @for (group of groups; track group.id) {
-            <label class="checkbox mr-3">
-              <input
-                type="checkbox"
-                [checked]="post.groups.includes(group.id)"
-                (change)="toggleGroup(group.id)"
-              />
-              {{ group.name }}
-            </label>
-          }
-        </div>
-        <p class="label is-small mb-1">Rollen</p>
-        <div class="buttons">
-          @for (role of roles; track role.id) {
-            <label class="checkbox mr-3">
-              <input
-                type="checkbox"
-                [checked]="post.roles.includes(role.id)"
-                (change)="toggleRole(role.id)"
-              />
-              {{ role.label }}
-            </label>
-          }
-        </div>
-      </div>
-    </details>
   </td>
   <td class="actions edit-cell">
     <div class="icon-row">
-      <button
-        type="button"
-        class="button is-primary"
-        aria-label="Speichern"
-        title="Speichern"
-        (click)="save()"
-      >
-        <app-icon name="save" />
-      </button>
-      <button
-        type="button"
-        class="button"
-        aria-label="Abbrechen"
-        title="Abbrechen"
-        (click)="cancel()"
-      >
-        <app-icon name="x" />
-      </button>
+<button type="button" class="button is-danger" aria-label="Abbrechen" title="Abbrechen" (click)="cancel()">
+<app-icon name="x" />
+</button>
+<button type="button" class="button is-success" aria-label="Speichern" title="Speichern" (click)="save()">
+<app-icon name="save" />
+</button>
     </div>
   </td>
 </ng-template>

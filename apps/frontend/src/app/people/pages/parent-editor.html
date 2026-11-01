@@ -6,10 +6,12 @@
     <p class="subtitle is-6 mb-0">Eltern bzw. Erziehungsberechtigte</p>
   </div>
   <div class="icon-row">
-    <button type="button" class="button" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
-    <button type="button" class="button is-primary" (click)="save()">
-      <app-icon name="save" /> Speichern
-    </button>
+<button type="button" class="button is-danger" aria-label="Abbrechen" title="Abbrechen" (click)="cancel()">
+<app-icon name="x" />
+</button>
+<button type="button" class="button is-success" aria-label="Speichern" title="Speichern" (click)="save()">
+<app-icon name="save" />
+</button>
   </div>
 </header>
 

@@ -56,6 +56,7 @@ export class Board {
   });
   protected readonly more = computed(() => this.store.live().length - this.shown().length);
 
+  protected readonly audienceOpen = signal(false);
   protected readonly draft = signal<BoardPost | null>(null);
   protected readonly creating = computed(
     () => !this.store.posts().some((post) => post.id === this.draft()?.id),

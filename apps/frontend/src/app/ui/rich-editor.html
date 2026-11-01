@@ -4,15 +4,6 @@
       <button
         type="button"
         class="button is-small"
-        title="Quellcode"
-        aria-label="Quellcode"
-        (click)="source.set(!source())"
-      >
-        <app-icon name="code" />
-      </button>
-      <button
-        type="button"
-        class="button is-small"
         title="Ausschneiden"
         aria-label="Ausschneiden"
         (click)="command('cut')"
@@ -91,17 +82,6 @@
     </div>
 
     <div class="buttons has-addons mb-0">
-      @for (px of presets; track px) {
-        <button
-          type="button"
-          class="button is-small"
-          [title]="px + ' px'"
-          [attr.aria-label]="'Schriftgröße ' + px"
-          (click)="setSize(px)"
-        >
-          <span [style.font-size.px]="px > 22 ? 18 : px > 14 ? 15 : 12">A</span>
-        </button>
-      }
       <input
         type="number"
         class="input is-small size"
@@ -152,24 +132,6 @@
         (click)="command('strikeThrough')"
       >
         <app-icon name="strikethrough" />
-      </button>
-      <button
-        type="button"
-        class="button is-small"
-        title="Tiefgestellt"
-        aria-label="Tiefgestellt"
-        (click)="command('subscript')"
-      >
-        <app-icon name="subscript" />
-      </button>
-      <button
-        type="button"
-        class="button is-small"
-        title="Hochgestellt"
-        aria-label="Hochgestellt"
-        (click)="command('superscript')"
-      >
-        <app-icon name="superscript" />
       </button>
     </div>
 
@@ -270,6 +232,7 @@
       >
         <app-icon name="eraser" />
       </button>
+      <ng-content select="[barExtra]" />
     </div>
   </div>
 
@@ -324,15 +287,8 @@
     <p class="help is-danger mt-1">{{ hint() }}</p>
   }
 
-  @if (source()) {
-    <textarea
-      class="textarea source"
-      aria-label="Quellcode"
-      [value]="html()"
-      (change)="sourceTyped($event)"
-    ></textarea>
-    <p class="help">Nur einfache Formatierung bleibt erhalten, alles andere wird entfernt.</p>
-  } @else {
+  <ng-content select="[popExtra]" />
+
     <div
       #area
       class="area"
@@ -347,5 +303,4 @@
       (input)="changed()"
       (paste)="paste($event)"
     ></div>
-  }
 </div>

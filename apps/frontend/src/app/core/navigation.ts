@@ -49,8 +49,8 @@ export const NAVIGATION: readonly NavSection[] = [
     tone: 'blue',
     icon: 'flag',
     items: [
-      soon('Wettkämpfe', 'wettkaempfe', 'flag', 'blue'),
       soon('Anmeldung', 'wk-anmeldung', 'check', 'green', 'all'),
+      soon('Wettkämpfe', 'wettkaempfe', 'flag', 'blue'),
       soon('Auswertung', 'auswertung', 'sheet', 'teal'),
     ],
   },
