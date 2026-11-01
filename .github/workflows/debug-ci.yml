@@ -1,0 +1,35 @@
+name: debug-ci
+on:
+  push:
+    branches: [debug/ci]
+permissions:
+  contents: read
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24.19.0'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm install --global npm@11.13.0
+      - run: npm ci
+      - name: prettier diff
+        run: |
+          npx prettier --version
+          npx prettier --check . || true
+          npx prettier --write apps/frontend/src > /dev/null || true
+          git --no-pager diff --stat
+          git --no-pager diff -U2 | head -400
+          git checkout -- .
+      - name: lint
+        run: npm run lint --workspace=apps/frontend 2>&1 | tail -120 || true
+      - name: test
+        run: npm run test --workspace=apps/frontend -- --watch=false 2>&1 | tail -150 || true
+      - name: build
+        run: npm run build --workspace=apps/frontend 2>&1 | tail -80 || true
