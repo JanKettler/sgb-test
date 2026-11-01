@@ -25,13 +25,14 @@ describe('Events', () => {
 
   it('lists the events, the open ones first, with the progress of the checklist', () => {
     const element = root(create());
+    // Angular drops the white space between the pills, so the texts are compared without it.
     const titles = Array.from(element.querySelectorAll('article.item .item-title')).map((title) =>
-      title.textContent?.replace(/\s+/g, ' ').trim(),
+      title.textContent?.replace(/\s+/g, ''),
     );
     expect(titles).toEqual([
-      'Weihnachtsmarkt Geplant 3/21',
-      'Jahreshauptversammlung Geplant 0/10',
-      'Vereinsschwimmfest Abgeschlossen 13/13',
+      'WeihnachtsmarktGeplant3/21',
+      'JahreshauptversammlungGeplant0/10',
+      'VereinsschwimmfestAbgeschlossen13/13',
     ]);
     expect(element.querySelectorAll('input[type="checkbox"]')).toHaveLength(0);
   });
