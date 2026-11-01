@@ -10,8 +10,8 @@
       <button
         type="button"
         class="button is-success"
-        aria-label="Person ohne Rückmeldung hinzufügen"
-        title="Person ohne Rückmeldung hinzufügen"
+        aria-label="Personen hinzufügen"
+        title="Personen hinzufügen"
         (click)="adding.set(true)"
       >
         <app-icon name="plus" />
@@ -109,7 +109,8 @@
 
   @if (adding()) {
     <app-person-picker-dialog
-      heading="Person hinzufügen"
+      heading="Personen hinzufügen"
+      hint="Wer nicht angemeldet war, wird als anwesend eingetragen."
       [candidates]="addable()"
       (picked)="add($event)"
       (closed)="adding.set(false)"

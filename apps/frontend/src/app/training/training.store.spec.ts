@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { TrainingStore } from './training.store';
-import { addDays } from './training-dates';
+import { addDays, weekdayIndex } from './training-dates';
 
 describe('TrainingStore', () => {
   let store: TrainingStore;
@@ -76,6 +76,53 @@ describe('TrainingStore', () => {
     const created = store.saveSession(base, { rhythm: 'weekly', until: base.date, weekdays: [] });
     expect(created).toBe(1);
     expect(store.sessions().length).toBe(before + 1);
+  });
+
+  it('proposes the next week without the session for a copy and keeps the deadline distance', () => {
+    const source = upcoming();
+    const copy = store.copyOf(source);
+    expect(copy.id).toBe('');
+    expect(weekdayIndex(copy.date)).toBe(weekdayIndex(source.date));
+    expect(store.hasSession(copy.date, copy.time, copy.groupIds)).toBe(false);
+    // Every week in between already has the session, so the copy skips them.
+    for (let date = addDays(source.date, 7); date < copy.date; date = addDays(date, 7)) {
+      expect(store.hasSession(date, source.time, source.groupIds)).toBe(true);
+    }
+    const days = (from: string, to: string) => (Date.parse(to) - Date.parse(from)) / 86_400_000;
+    expect(days(copy.date, copy.deadlineDate)).toBe(days(source.date, source.deadlineDate));
+  });
+
+  it('leaves people who were added for one session out of the copy', () => {
+    const source = upcoming();
+    const regular = store.trainersForGroups(source.groupIds).map((trainer) => trainer.id);
+    const guest = store.people().find((person) => !regular.includes(person.id))!.id;
+    const copy = store.copyOf({
+      ...source,
+      trainerIds: [...regular, guest],
+      extraSwimmerIds: [guest],
+    });
+    expect(copy.trainerIds).toEqual(regular);
+    expect(copy.extraSwimmerIds).toEqual([]);
+  });
+
+  it('does not create a session twice', () => {
+    const copy = store.copyOf(upcoming());
+    const first = store.addSessions(copy, null);
+    expect(first.ids.length).toBe(1);
+    expect(first.existing).toBe(0);
+    expect(store.addSessions(copy, null)).toEqual({ ids: [], existing: 1 });
+  });
+
+  it('creates only the missing dates of a series', () => {
+    const source = upcoming();
+    const free = store.copyOf(source).date;
+    const result = store.addSessions(
+      { ...source, id: '' },
+      { rhythm: 'weekly', until: free, weekdays: [weekdayIndex(source.date)] },
+    );
+    expect(result.ids.length).toBe(1);
+    expect(result.existing).toBeGreaterThan(0);
+    expect(store.findSession(result.ids[0])?.date).toBe(free);
   });
 
   it('reports a swimmer who missed the latest sessions in a row', () => {

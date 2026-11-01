@@ -3,7 +3,7 @@
   class="is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
 >
   <div>
-    <h2 class="title is-4 mb-1">{{ isNew() ? 'Neuer Termin' : 'Termin bearbeiten' }}</h2>
+    <h2 class="title is-4 mb-1">{{ heading() }}</h2>
     <p class="subtitle is-6 mb-0">{{ title() }}</p>
   </div>
   <div class="icon-row">
@@ -39,6 +39,13 @@
 @if (invalid()) {
   <p class="notification is-danger is-flex is-justify-content-space-between is-align-items-center">
     Bitte Datum, Uhrzeit und mindestens eine Gruppe angeben.
+  </p>
+}
+
+@if (clash()) {
+  <p class="notification is-warning">
+    An diesem Tag gibt es um diese Uhrzeit für diese Gruppen schon einen Termin. Er wird beim
+    Speichern nicht noch einmal angelegt.
   </p>
 }
 
@@ -283,6 +290,7 @@
 @if (picker(); as kind) {
   <app-person-picker-dialog
     [heading]="kind === 'trainer' ? 'Trainer hinzufügen' : 'Schwimmer hinzufügen'"
+    hint="Die Personen gelten nur für diesen Termin."
     [candidates]="pickerCandidates()"
     (picked)="pick($event)"
     (closed)="picker.set(null)"

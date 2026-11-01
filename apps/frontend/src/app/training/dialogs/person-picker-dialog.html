@@ -1,19 +1,76 @@
-<app-modal-dialog [heading]="heading()" (closed)="closed.emit()">
+<app-modal-dialog [heading]="heading()" [subtitle]="hint()" (closed)="closed.emit()">
   <label class="label" for="picker-search">Suchen</label>
-  <input id="picker-search" class="input mb-3" type="search" (input)="setQuery($event)" />
-  <ul class="picker-list">
-    @for (match of matches(); track match.person.id) {
-      <li>
-        <button type="button" class="picker-item" (click)="picked.emit(match.person)">
-          <span>{{ match.person.name }}</span>
-          <span class="picker-detail">{{ match.detail }}</span>
+  <input
+    id="picker-search"
+    class="input"
+    type="search"
+    placeholder="Name eingeben"
+    autocomplete="off"
+    (input)="setQuery($event)"
+  />
+  @if (filters().length > 2) {
+    <div class="filters" role="group" aria-label="Nach Gruppe filtern">
+      @for (chip of filters(); track chip.id) {
+        <button
+          type="button"
+          class="chip"
+          [class.is-on]="filter() === chip.id"
+          [attr.aria-pressed]="filter() === chip.id"
+          (click)="filter.set(chip.id)"
+        >
+          {{ chip.label }} <span class="count">{{ chip.count }}</span>
         </button>
+      }
+    </div>
+  }
+  <ul class="picker-list">
+    @for (section of sections(); track section.key) {
+      <li class="picker-head">
+        @if (section.groupId) {
+          <span class="group-chip" [class]="'group-chip grp-' + section.groupId">
+            {{ section.label }}
+          </span>
+        } @else {
+          <span class="pill is-ok">{{ section.label }}</span>
+        }
+        <span class="count">{{ section.entries.length }}</span>
       </li>
+      @for (entry of section.entries; track entry.person.id) {
+        <li>
+          <button
+            type="button"
+            class="picker-item"
+            [class.is-on]="entry.chosen"
+            [attr.aria-pressed]="entry.chosen"
+            (click)="toggle(entry.person)"
+          >
+            <span class="mark">
+              @if (entry.chosen) {
+                <app-icon name="check" />
+              }
+            </span>
+            <span class="picker-name">{{ entry.person.name }}</span>
+            @if (entry.trainer) {
+              <span class="pill is-ok">Trainer</span>
+            }
+          </button>
+        </li>
+      }
     } @empty {
-      <li class="empty">Niemand gefunden</li>
+      <li class="empty">
+        {{ candidates().length === 0 ? 'Es sind schon alle eingetragen.' : 'Niemand gefunden' }}
+      </li>
     }
   </ul>
   <ng-container dialogActions>
     <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
+    <button
+      type="button"
+      class="button is-success"
+      [disabled]="chosen().size === 0"
+      (click)="confirm()"
+    >
+      {{ confirmLabel() }}
+    </button>
   </ng-container>
 </app-modal-dialog>
