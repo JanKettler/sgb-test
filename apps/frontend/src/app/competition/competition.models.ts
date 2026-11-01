@@ -97,10 +97,10 @@ export interface Competition {
   sent: boolean;
   sections: CompSection[];
   events: CompEvent[];
-  /** Persons of the club who act as judges at the meet. */
-  officials: string[];
-  /** Persons of the club who coach at the meet. */
-  coaches: string[];
+  /** Persons of the club who act as judges, per section number. */
+  officials: Record<number, string[]>;
+  /** Persons of the club who coach, per section number. */
+  coaches: Record<number, string[]>;
   plan: Plan;
   schedule: Schedule;
 }
@@ -144,6 +144,8 @@ export interface RunResult {
   status: string;
   place: number;
   ageGroup: string;
+  /** Ticked as done on the pool deck. */
+  ok?: boolean;
 }
 
 /** What the Meldeergebnis and the result list tell about the club at the meet. */
@@ -155,6 +157,8 @@ export interface Schedule {
   results: Record<string, RunResult>;
   stand: string;
   relayResults: { e: number; place: number; time: string; status: string }[];
+  /** Notes typed on the pool deck. */
+  note: string;
 }
 
 export type FeeStatus = '' | 'mail' | 'paid';
@@ -241,8 +245,21 @@ export function eventLabel(event: CompEvent): string {
   return `${relay}${event.distance}m ${strokeName(event)}`;
 }
 
+/** Name of an event: from the Meldeergebnis, else from the event list. */
+export function eventTitle(competition: Competition, no: number): string {
+  const fromFile = competition.schedule.eventNames[no];
+  if (fromFile) return fromFile;
+  const event = competition.events.find((item) => item.no === no);
+  return event ? eventLabel(event) : `Wettkampf ${no}`;
+}
+
 export function sexLabel(sex: Sex): string {
   return sex === 'M' ? 'männlich' : sex === 'W' ? 'weiblich' : 'mixed';
+}
+
+/** Number of assignments in a per-section list: a person in two sections counts twice. */
+export function staffCount(lists: Record<number, string[]>): number {
+  return Object.values(lists).reduce((sum, ids) => sum + ids.length, 0);
 }
 
 /** The first day of the meet. */
@@ -280,6 +297,58 @@ export function normalizeTime(value: string): string | null {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')},${hundredths}`;
 }
 
+/** An entry time of zero: "no time known". */
+export const NO_TIME = '00:00,00';
+
+/**
+ * Digits typed into a time field become "mm:ss,hh" from the right, like on a calculator:
+ * "13852" gives "01:38,52" and "000000" gives "00:00,00".
+ */
+export function maskTime(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(-6).padStart(6, '0');
+  return `${digits.slice(0, 2)}:${digits.slice(2, 4)},${digits.slice(4)}`;
+}
+
+/** True for "" and for "mm:ss,hh" with fewer than 60 seconds. */
+export function isValidTime(time: string): boolean {
+  if (!time) return true;
+  const match = /^(\d{2}):(\d{2}),(\d{2})$/.exec(time);
+  return !!match && Number(match[2]) < 60;
+}
+
+/** Milliseconds of "mm:ss,hh", "m:ss,hh" or "ss,hh"; null when it is no time. */
+export function timeMs(time: string): number | null {
+  const match = /^(?:(\d{1,2}):)?(\d{1,2}),(\d{2})$/.exec(time.trim());
+  if (!match) return null;
+  return (Number(match[1] ?? 0) * 60 + Number(match[2])) * 1000 + Number(match[3]) * 10;
+}
+
+/** "mm:ss,hh" for a number of milliseconds, cut to hundredths: 98520 gives "01:38,52". */
+export function msToTime(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 10));
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${pad(Math.floor(total / 6000))}:${pad(Math.floor(total / 100) % 60)},${pad(total % 100)}`;
+}
+
+/** Difference of two times for the pool deck: "−0,52" when faster, "+1,07" when slower. */
+export function diffText(ms: number): string {
+  const text = showTime(msToTime(Math.abs(ms))) || '0,00';
+  return `${ms < 0 ? '−' : '+'}${text}`;
+}
+
+/** "01:57,66" is shown as "1:57,66" and "00:39,80" as "39,80", like in the result lists. */
+export function showTime(time: string): string {
+  const ms = timeMs(time);
+  if (ms === null || ms === 0) return '';
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  const hundredths = Math.round((ms % 1000) / 10);
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return minutes > 0
+    ? `${minutes}:${pad(seconds)},${pad(hundredths)}`
+    : `${seconds},${pad(hundredths)}`;
+}
+
 export function euro(amount: number): string {
   return `${amount.toFixed(2).replace('.', ',')} €`;
 }
@@ -289,7 +358,37 @@ export function emptyPlan(): Plan {
 }
 
 export function emptySchedule(): Schedule {
-  return { starts: [], duties: [], eventNames: {}, results: {}, stand: '', relayResults: [] };
+  return {
+    starts: [],
+    duties: [],
+    eventNames: {},
+    results: {},
+    stand: '',
+    relayResults: [],
+    note: '',
+  };
+}
+
+export function emptyResult(): RunResult {
+  return { t: '', sp: [], status: '', place: 0, ageGroup: '' };
+}
+
+/** Relay teams are listed as "1. Mannschaft" and carry "Staffel" in the year column. */
+export function isRelayStart(start: Pick<RunStart, 'j'>): boolean {
+  return start.j === 'Staffel';
+}
+
+/**
+ * Number of intermediate times asked for at a distance: one per 100 m before the finish, from
+ * 200 m on. Relays have none.
+ */
+export function splitCount(distance: number, relay: boolean): number {
+  return !relay && distance >= 200 ? Math.floor((distance - 1) / 100) : 0;
+}
+
+/** "Anna Muster" for "Muster, Anna". */
+export function displayName(name: string): string {
+  return name.replace(/^([^,]+),\s*(.+)$/, '$2 $1');
 }
 
 /** Key of a start in `Schedule.results`. */

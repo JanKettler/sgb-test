@@ -1,0 +1,129 @@
+@let item = block();
+@if (item.type === 'title') {
+  @if (item.level === 1) {
+    <h3 class="big">{{ item.text }}</h3>
+  } @else {
+    <h4 class="head">{{ item.text }}</h4>
+  }
+} @else if (item.type === 'table') {
+  <div class="scroll">
+    <table [class]="'xt ' + item.style">
+      <tbody>
+        @for (row of item.rows; track $index) {
+          <tr
+            [class.total]="row.kind === 'total'"
+            [class.group]="row.kind === 'group'"
+            [class.dim]="row.dim"
+          >
+            @for (cell of row.cells; track $index) {
+              @if (cell.head) {
+                <th scope="col" [class.screen]="cell.screen" [attr.colspan]="cell.span">
+                  {{ cell.v }}
+                </th>
+              } @else {
+                <td
+                  [class.l]="cell.align === 'l'"
+                  [class.r]="cell.align === 'r'"
+                  [class.screen]="cell.screen"
+                  [attr.colspan]="cell.span"
+                >
+                  @if (cell.action; as action) {
+                    @if (action.type === 'fee') {
+                      <span class="actions">
+                        @if (editing() === action.id) {
+                          <input
+                            class="input is-small money"
+                            type="text"
+                            inputmode="decimal"
+                            placeholder="€"
+                            aria-label="Meldegeld in Euro"
+                            [value]="draft()"
+                            (input)="typed($event)"
+                            (keydown.enter)="save(action.id)"
+                          />
+                          <button
+                            type="button"
+                            class="button is-small is-success"
+                            aria-label="Speichern"
+                            title="Speichern"
+                            (click)="save(action.id)"
+                          >
+                            <app-icon name="save" />
+                          </button>
+                          <button
+                            type="button"
+                            class="button is-small"
+                            aria-label="Abbrechen"
+                            title="Abbrechen"
+                            (click)="editing.set(null)"
+                          >
+                            <app-icon name="x" />
+                          </button>
+                        } @else {
+                          <button
+                            type="button"
+                            class="button is-small"
+                            aria-label="Meldegeld ändern"
+                            title="Meldegeld ändern"
+                            (click)="edit(action.id, action.value)"
+                          >
+                            <app-icon name="pencil" />
+                          </button>
+                          @if (action.manual) {
+                            <button
+                              type="button"
+                              class="button is-small"
+                              aria-label="Zurück auf die Summe der Meldungen"
+                              title="Zurück auf die Summe der Meldungen"
+                              (click)="reset(action.id)"
+                            >
+                              <app-icon name="restore" />
+                            </button>
+                          }
+                        }
+                      </span>
+                    } @else {
+                      <button
+                        type="button"
+                        class="button is-small"
+                        [attr.aria-pressed]="!action.excluded"
+                        [title]="
+                          action.excluded
+                            ? 'Zählt nicht: antippen zum Mitzählen'
+                            : 'Zählt: antippen zum Ausnehmen'
+                        "
+                        (click)="toggleJudge(action.name)"
+                      >
+                        <app-icon [name]="action.excluded ? 'x' : 'check'" />
+                        {{ action.excluded ? 'nein' : 'ja' }}
+                      </button>
+                    }
+                  } @else if (cell.bold) {
+                    <b>{{ cell.v }}</b>
+                  } @else {
+                    {{ cell.v }}
+                  }
+                </td>
+              }
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else if (item.type === 'sum') {
+  <div class="sum" [class.small]="item.small">
+    @if (item.labelBold) {
+      <span class="label-bold">{{ item.label }}</span>
+    } @else {
+      <span>{{ item.label }}</span>
+    }
+    @if (item.valueBold) {
+      <b>{{ item.value }}</b>
+    } @else {
+      <i>{{ item.value }}</i>
+    }
+  </div>
+} @else if (item.type === 'note') {
+  <p class="note screen">{{ item.text }}</p>
+}

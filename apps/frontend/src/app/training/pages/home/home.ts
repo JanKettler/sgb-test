@@ -1,10 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Icon } from '../../../ui/icon';
+import { dateOf } from '../../../competition/competition.models';
+import { CompetitionStore } from '../../../competition/competition.store';
+import { StartStore } from '../../../start/start.store';
+import { Icon, IconName } from '../../../ui/icon';
 import { addDays, endTime, minutesOfDay, parseIsoDate, weekdayShort } from '../../training-dates';
 import { TrainingStore } from '../../training.store';
 
 const HOUR_HEIGHT = 40;
+/** Height of one line in the all-day strip, in rem. */
+const ALLDAY_LINE_REM = 1.5;
 const FALLBACK_HOURS = [17, 21] as const;
 
 interface CalendarEvent {
@@ -12,9 +17,17 @@ interface CalendarEvent {
   groupClass: string;
   title: string;
   time: string;
-  detail: string;
   top: number;
   height: number;
+}
+
+/** A meet or club event that lasts the whole day; shown in a strip below the day header. */
+interface AllDayItem {
+  key: string;
+  title: string;
+  icon: IconName;
+  kind: 'meet' | 'event';
+  route: string;
 }
 
 interface CalendarDay {
@@ -23,6 +36,7 @@ interface CalendarDay {
   label: string;
   isToday: boolean;
   events: CalendarEvent[];
+  allDay: AllDayItem[];
 }
 
 /** Start page: the current week. The hour range follows the sessions that are shown. */
@@ -35,8 +49,11 @@ interface CalendarDay {
 })
 export class Home {
   private readonly store = inject(TrainingStore);
+  private readonly meets = inject(CompetitionStore);
+  private readonly start = inject(StartStore);
   protected readonly role = this.store.role;
   protected readonly hourHeight = HOUR_HEIGHT;
+  protected readonly lineRem = ALLDAY_LINE_REM;
 
   /** 0 = current week, -1 = last week, 1 = next week, ... */
   protected readonly weekOffset = signal(0);
@@ -76,6 +93,40 @@ export class Home {
 
   protected readonly bodyHeight = computed(() => this.hours().length * HOUR_HEIGHT);
 
+  /** Meets and club events by day, for the strip below the day headers. */
+  private readonly allDayByDate = computed(() => {
+    const byDate = new Map<string, AllDayItem[]>();
+    const add = (iso: string, item: AllDayItem) =>
+      byDate.set(iso, [...(byDate.get(iso) ?? []), item]);
+    for (const meet of this.meets.calendarMeets()) {
+      const dates = meet.sections.map((section) => section.date).filter(Boolean);
+      for (const iso of new Set(dates.length > 0 ? dates : [dateOf(meet)])) {
+        add(iso, {
+          key: `${meet.id}-${iso}`,
+          title: meet.title,
+          icon: 'flag',
+          kind: 'meet',
+          route: `/wettkampf/wettkaempfe/${meet.id}`,
+        });
+      }
+    }
+    for (const event of this.start.events()) {
+      add(event.date, {
+        key: event.id,
+        title: event.title,
+        icon: event.icon,
+        kind: 'event',
+        route: '/',
+      });
+    }
+    return byDate;
+  });
+
+  /** Height of the all-day strip: as many lines as the busiest day of the week needs. */
+  protected readonly allDayLines = computed(() =>
+    Math.max(0, ...this.days().map((day) => day.allDay.length)),
+  );
+
   protected readonly days = computed<CalendarDay[]>(() => {
     const firstMinute = this.hours()[0] * 60;
     const sinceMonday = (parseIsoDate(this.store.today).getDay() + 6) % 7;
@@ -84,13 +135,12 @@ export class Home {
       const iso = addDays(monday, offset);
       const events = this.entries()
         .filter((entry) => entry.session.date === iso)
-        .map(({ session, labels }): CalendarEvent => {
+        .map(({ session }): CalendarEvent => {
           return {
             id: session.id,
             groupClass: `grp-${session.groupIds[0]}`,
             title: this.store.groupNames(session),
             time: `${session.time}–${endTime(session.time, session.durationMinutes)} Uhr`,
-            detail: labels.length > 0 ? labels.join(', ') : this.store.venueName(session.venueId),
             top: ((minutesOfDay(session.time) - firstMinute) / 60) * HOUR_HEIGHT,
             height: Math.max((session.durationMinutes / 60) * HOUR_HEIGHT - 3, 24),
           };
@@ -102,6 +152,7 @@ export class Home {
         label: `${date.getDate()}.${date.getMonth() + 1}.`,
         isToday: iso === this.store.today,
         events,
+        allDay: this.allDayByDate().get(iso) ?? [],
       };
     });
   });

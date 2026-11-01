@@ -1,7 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { PeopleStore } from '../people/people.store';
 import { addDays } from '../training/training-dates';
-import { GroupId } from '../training/training.models';
 import { TrainingStore } from '../training/training.store';
 import {
   CompEvent,
@@ -9,8 +8,8 @@ import {
   Decline,
   Entry,
   RelayEntry,
-  emptyPlan,
-  emptySchedule,
+  RunResult,
+  emptyResult,
   sameName,
   startKey,
   FeeStatus,
@@ -19,7 +18,10 @@ import {
   dateOf,
   euro,
   eventLabel,
+  eventTitle,
   yearFits,
+  normalizeTime,
+  timeMs,
 } from './competition.models';
 import {
   FileClub,
@@ -31,6 +33,7 @@ import {
   parseDsv7,
 } from './dsv7';
 import { createZip } from './zip';
+import { pastSeason, sampleMeet } from './competition-sample';
 import { ParsedResults, ParsedSchedule } from './wk-parse';
 
 /** The club as it appears in the entry file; editable in the settings later. */
@@ -79,103 +82,6 @@ export interface ImportResult {
   warnings: string[];
 }
 
-function sampleEvents(): CompEvent[] {
-  const list: CompEvent[] = [];
-  let no = 1;
-  const add = (distance: number, stroke: CompEvent['stroke'], fee: number, count = 1) => {
-    for (const sex of count > 1 ? (['X'] as const) : (['M', 'W'] as const)) {
-      list.push({
-        no: no++,
-        section: no <= 7 ? 1 : 2,
-        count,
-        distance,
-        stroke,
-        style: 'GL',
-        sex,
-        birthYears: 'offen',
-        fee,
-      });
-    }
-  };
-  add(50, 'F', 5);
-  add(100, 'F', 5);
-  add(50, 'R', 5);
-  add(50, 'B', 5);
-  add(50, 'S', 5);
-  add(50, 'F', 8, 4);
-  return list;
-}
-
-function sampleMeet(
-  id: string,
-  title: string,
-  place: string,
-  venue: string,
-  inDays: number,
-  groupIds: GroupId[],
-  open: boolean,
-  today: string,
-): Competition {
-  const date = addDays(today, inDays);
-  return {
-    id,
-    title,
-    place,
-    pool: 25,
-    timing: 'HANDZEIT',
-    venueName: venue,
-    venueStreet: 'Badstraße 1',
-    venueZip: '26121',
-    venueCity: place,
-    organiser: 'Beispielverein e. V.',
-    host: 'Beispielverein e. V.',
-    contactName: 'Meldestelle Beispielverein',
-    contactEmail: 'meldungen@beispielverein.example',
-    contactPhone: '',
-    note: '',
-    deadline: addDays(date, -10),
-    deadlineTime: '23:59',
-    internalDeadline: addDays(date, -14),
-    open,
-    groupIds,
-    flatFee: 0,
-    perSwimmerFee: 0,
-    discount: 0,
-    bank: {
-      holder: 'Beispielverein e. V.',
-      bank: 'Beispielbank',
-      iban: 'DE00 0000 0000 0000 0000 00',
-      bic: 'BEISPDE00XXX',
-    },
-    sent: false,
-    officials: [],
-    coaches: [],
-    plan: emptyPlan(),
-    schedule: emptySchedule(),
-    sections: [
-      {
-        no: 1,
-        date,
-        entry: '09:00',
-        warmup: '09:00',
-        judges: '09:30',
-        start: '10:00',
-        relative: false,
-      },
-      {
-        no: 2,
-        date,
-        entry: '00:00',
-        warmup: '00:00',
-        judges: '00:00',
-        start: '01:00',
-        relative: true,
-      },
-    ],
-    events: sampleEvents(),
-  };
-}
-
 /** In-memory stand-in for the future competition API. */
 @Injectable({ providedIn: 'root' })
 export class CompetitionStore {
@@ -184,6 +90,8 @@ export class CompetitionStore {
   readonly today = this.training.today;
   readonly club = CLUB;
   private nextId = 4;
+  /** Three finished meets with invented results, for the evaluation. */
+  private readonly past = pastSeason(this.today, this.people.members());
 
   readonly competitions = signal<Competition[]>([
     sampleMeet('c-1', 'Hunte-Pokal', 'Oldenburg', 'Hallenbad Oldenburg', 16, [], true, this.today),
@@ -207,6 +115,7 @@ export class CompetitionStore {
       false,
       this.today,
     ),
+    ...this.past.competitions,
   ]);
   readonly entries = signal<Entry[]>([
     ...[
@@ -227,6 +136,7 @@ export class CompetitionStore {
       eventNo: eventNo as number,
       time: time as string,
     })),
+    ...this.past.entries,
   ]);
   readonly relays = signal<RelayEntry[]>([
     {
@@ -237,6 +147,7 @@ export class CompetitionStore {
       time: '02:15,00',
       memberIds: ['p-mats', 'p-emil', 'p-nele', 'p-sophie'],
     },
+    ...this.past.relays,
   ]);
   readonly declines = signal<Decline[]>([]);
   readonly outbox = signal<SentMail[]>([]);
@@ -274,6 +185,17 @@ export class CompetitionStore {
       .sort((a, b) => dateOf(a).localeCompare(dateOf(b)));
   }
 
+  /** Meets for the calendar: all for trainers and the board, else those of the user's groups. */
+  calendarMeets(): Competition[] {
+    if (this.canManage()) return this.competitions();
+    const groups = new Set(
+      this.actors().flatMap((person) => this.people.member(person.id)?.swimmerGroupIds ?? []),
+    );
+    return this.competitions().filter(
+      (item) => item.groupIds.length === 0 || item.groupIds.some((group) => groups.has(group)),
+    );
+  }
+
   canRegister(competition: Competition): boolean {
     return competition.open && !competition.sent && this.today <= competition.internalDeadline;
   }
@@ -282,6 +204,49 @@ export class CompetitionStore {
     return this.entries()
       .filter((item) => item.competitionId === competitionId && item.personId === personId)
       .sort((a, b) => a.eventNo - b.eventNo);
+  }
+
+  /**
+   * The time to suggest as entry time: the best result of the person over the same distance and
+   * stroke, else the best entry time they used before. Empty when nothing is known.
+   */
+  knownTime(personId: string, competition: Competition, event: CompEvent): string {
+    const sameEvent = (other: CompEvent | undefined) =>
+      !!other &&
+      other.count === 1 &&
+      other.distance === event.distance &&
+      other.stroke === event.stroke &&
+      other.style === event.style;
+    const best = (times: string[]) =>
+      times
+        .map((time) => ({ time, ms: timeMs(time) }))
+        .filter((item): item is { time: string; ms: number } => !!item.ms)
+        .sort((a, b) => a.ms - b.ms)[0]?.time ?? '';
+    const name = this.nameOf(personId);
+    const results: string[] = [];
+    for (const meet of this.competitions()) {
+      if (meet.id === competition.id) continue;
+      for (const start of meet.schedule.starts) {
+        if (!sameName(start.n, name) || !sameEvent(meet.events.find((e) => e.no === start.e))) {
+          continue;
+        }
+        const result = meet.schedule.results[startKey(start)];
+        const time = result && !result.status ? normalizeTime(result.t) : null;
+        if (time) results.push(time);
+      }
+    }
+    const fromResults = best(results);
+    if (fromResults) return fromResults;
+    return best(
+      this.entries()
+        .filter((item) => item.personId === personId && item.competitionId !== competition.id)
+        .filter((item) =>
+          sameEvent(
+            this.competition(item.competitionId)?.events.find((e) => e.no === item.eventNo),
+          ),
+        )
+        .map((item) => item.time),
+    );
   }
 
   isDeclined(competitionId: string, personId: string): boolean {
@@ -716,6 +681,22 @@ export class CompetitionStore {
     }));
   }
 
+  /** Sets (a part of) the result of one start, as typed on the pool deck. */
+  setResult(id: string, key: string, change: Partial<RunResult>): void {
+    this.patchSchedule(id, (old) => {
+      const next = { ...(old.results[key] ?? emptyResult()), ...change };
+      const results = { ...old.results };
+      if (!next.t && !next.status && !next.ok && next.sp.every((time) => !time))
+        delete results[key];
+      else results[key] = next;
+      return { ...old, results };
+    });
+  }
+
+  setNote(id: string, note: string): void {
+    this.patchSchedule(id, (old) => ({ ...old, note }));
+  }
+
   assignDuty(id: string, index: number, name: string): void {
     this.patchSchedule(id, (old) => ({
       ...old,
@@ -758,6 +739,7 @@ export class CompetitionStore {
         const key = startKey(start);
         if (results[key] && (results[key].t || results[key].status) && !overwrite) continue;
         results[key] = {
+          ...results[key],
           t: found.time,
           sp: found.splits,
           status: found.status,
@@ -789,10 +771,7 @@ export class CompetitionStore {
 
   /** Name of an event: from the Meldeergebnis, else from the event list. */
   eventName(competition: Competition, no: number): string {
-    const fromFile = competition.schedule.eventNames[no];
-    if (fromFile) return fromFile;
-    const event = competition.events.find((item) => item.no === no);
-    return event ? eventLabel(event) : `Wettkampf ${no}`;
+    return eventTitle(competition, no);
   }
 
   /** Keeps the mail in the outbox. A real mail server comes with the backend. */

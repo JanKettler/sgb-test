@@ -9,7 +9,6 @@ export interface Competition {
   /** Official entry deadline, ISO date */
   deadline: string;
   entriesSent: boolean;
-  starters: { name: string; starts: number }[];
 }
 
 export interface ClubEvent {

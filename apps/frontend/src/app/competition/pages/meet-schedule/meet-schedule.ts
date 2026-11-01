@@ -1,147 +1,34 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Icon } from '../../../ui/icon';
 import { Toasts } from '../../../ui/toast';
-import { RunStart, startKey } from '../../competition.models';
+import { CompSection, showTime } from '../../competition.models';
 import { CompetitionStore } from '../../competition.store';
-import { escapeHtml, printHtml } from '../../competition-download';
+import { downloadXlsx, printHtml } from '../../competition-download';
+import {
+  ListLine,
+  bySwimmer,
+  byTime,
+  listFileName,
+  listLines,
+  overviewPage,
+  sectionTimes,
+  slipsBook,
+  slipsPage,
+  startListBook,
+  startListPage,
+} from '../../meet-lists';
 import { readPdfLines } from '../../pdf-text';
 import { parseMeldeergebnis } from '../../wk-parse';
 
-/** Meldeergebnis of one meet: who swims when and where, the order of the day and the judge slots. */
+type ListId = 'start' | 'event' | 'swimmer' | 'overview';
+
+/** Meldeergebnis of one meet: who swims when and where, the lists for the pool deck, the judges. */
 @Component({
   selector: 'app-meet-schedule',
   imports: [Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    @let item = competition();
-    @if (item) {
-      <div class="box is-shadowless" style="border: 1px solid var(--bulma-border, #dbdbdb)">
-        <p class="mb-2">
-          <strong>Meldeergebnis</strong> (PDF vom Ausrichter) hochladen: Es übernimmt Uhrzeiten,
-          Läufe, Bahnen und das Kampfgericht für „{{ clubName }}“.
-        </p>
-        @if (store.canManage()) {
-          <div class="file is-small mb-2">
-            <label class="file-label">
-              <input
-                class="file-input"
-                type="file"
-                accept="application/pdf,.pdf"
-                (change)="read($event)"
-              />
-              <span class="file-cta">
-                <span class="file-icon"><app-icon name="upload" /></span>
-                <span class="file-label">PDF auswählen</span>
-              </span>
-            </label>
-          </div>
-        }
-        @if (message()) {
-          <p class="help" [class.is-danger]="failed()">{{ message() }}</p>
-        }
-        @if (item.schedule.stand) {
-          <p class="help">Stand des Meldeergebnisses: {{ stand() }}</p>
-        }
-      </div>
-
-      @if (starts().length === 0) {
-        <p class="has-text-grey">Noch kein Meldeergebnis hochgeladen.</p>
-      } @else {
-        <div class="fees-actions">
-          <button type="button" class="button" (click)="printStartList()">
-            <app-icon name="download" /> Startliste drucken
-          </button>
-          <button type="button" class="button" (click)="printSlips(false)">
-            <app-icon name="download" /> Laufzettel (nach Wettkampf)
-          </button>
-          <button type="button" class="button" (click)="printSlips(true)">
-            <app-icon name="download" /> Laufzettel (nach Schwimmer)
-          </button>
-        </div>
-
-        <h3 class="title is-5">Wer schwimmt wann wo</h3>
-        @for (swimmer of swimmers(); track swimmer.name) {
-          <div class="mb-3">
-            <strong>{{ display(swimmer.name) }}</strong>
-            <span class="has-text-grey"> ({{ swimmer.year }})</span>
-            <table class="table is-narrow is-fullwidth">
-              <thead>
-                <tr>
-                  <th>Uhr</th>
-                  <th>Strecke</th>
-                  <th>Lauf / Bahn</th>
-                  <th>Meldezeit</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (start of swimmer.starts; track key(start)) {
-                  <tr>
-                    <td class="has-text-centered">
-                      <strong>{{ start.t }}</strong>
-                    </td>
-                    <td>Wk {{ start.e }} · {{ store.eventName(item, start.e) }}</td>
-                    <td class="has-text-centered">
-                      {{ start.l }}/{{ start.lt }} · Bahn {{ start.b }}
-                    </td>
-                    <td class="has-text-centered">{{ start.m || '–' }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-      }
-
-      @if (item.schedule.duties.length > 0) {
-        <h3 class="title is-5 mt-5">
-          Kampfgericht für {{ clubName }}
-          <span class="tag is-rounded ml-2">{{ store.openDuties(item) }} offen</span>
-        </h3>
-        <table class="table is-fullwidth is-hoverable">
-          <thead>
-            <tr>
-              <th>Abschnitt</th>
-              <th>Position</th>
-              <th>Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (duty of item.schedule.duties; track $index) {
-              <tr>
-                <td class="has-text-centered">{{ duty.a }}</td>
-                <td>
-                  {{ duty.pos }}
-                  <div class="has-text-grey is-size-7">{{ duty.g }}</div>
-                </td>
-                <td>
-                  @if (store.canManage()) {
-                    <div class="select is-small">
-                      <select
-                        [attr.aria-label]="'Name für ' + duty.pos"
-                        (change)="assign($index, $event)"
-                      >
-                        <option value="" [selected]="isOpen(duty.name)">offen</option>
-                        @if (!isOpen(duty.name) && !known(duty.name)) {
-                          <option [value]="duty.name" selected>{{ duty.name }}</option>
-                        }
-                        @for (person of people; track person.id) {
-                          <option [value]="person.name" [selected]="person.name === duty.name">
-                            {{ person.name }}
-                          </option>
-                        }
-                      </select>
-                    </div>
-                  } @else {
-                    {{ isOpen(duty.name) ? 'offen' : duty.name }}
-                  }
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
-    }
-  `,
+  templateUrl: './meet-schedule.html',
+  styleUrl: './meet-schedule.scss',
 })
 export class MeetSchedule {
   protected readonly store = inject(CompetitionStore);
@@ -151,37 +38,70 @@ export class MeetSchedule {
   protected readonly people = this.store.staffCandidates();
   protected readonly message = signal('');
   protected readonly failed = signal(false);
+  protected readonly view = signal<'swimmer' | 'time'>('swimmer');
+  protected readonly query = signal('');
   protected readonly competition = computed(() => this.store.competition(this.id()));
-  protected readonly starts = computed(() => this.competition()?.schedule.starts ?? []);
+
+  protected readonly lists: readonly { id: ListId; label: string; excel: boolean }[] = [
+    { id: 'start', label: 'Startliste (nach Uhrzeit)', excel: true },
+    { id: 'event', label: 'Laufzettel nach Wettkampffolge', excel: true },
+    { id: 'swimmer', label: 'Laufzettel nach Schwimmern', excel: true },
+    { id: 'overview', label: 'Übersicht je Schwimmer', excel: false },
+  ];
+
+  protected readonly lines = computed(() => {
+    const item = this.competition();
+    return item ? listLines(item) : [];
+  });
+
   protected readonly stand = computed(() => {
     const stand = this.competition()?.schedule.stand ?? '';
     const [date, time] = stand.split(' ');
     return `${date.split('-').reverse().join('.')} ${time ?? ''}`.trim();
   });
 
-  protected readonly swimmers = computed(() => {
-    const map = new Map<string, { name: string; year: string; starts: RunStart[] }>();
-    for (const start of this.starts()) {
-      const entry = map.get(`${start.n}|${start.j}`) ?? {
-        name: start.n,
-        year: start.j,
-        starts: [],
-      };
-      entry.starts.push(start);
-      map.set(`${start.n}|${start.j}`, entry);
-    }
-    return [...map.values()]
-      .map((entry) => ({
-        ...entry,
-        starts: [...entry.starts].sort((a, b) => a.t.localeCompare(b.t) || a.e - b.e),
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  protected readonly hasResults = computed(() => {
+    const results = this.competition()?.schedule.results ?? {};
+    return Object.values(results).some((result) => result.t || result.status);
   });
 
-  protected key = startKey;
+  /** One entry per swimmer (and year), by name, with the starts in the order of the day. */
+  protected readonly swimmers = computed(() => {
+    const query = this.query().trim().toLowerCase();
+    const map = new Map<string, { key: string; name: string; year: string; lines: ListLine[] }>();
+    for (const line of bySwimmer(this.lines())) {
+      const key = `${line.start.n}|${line.year}`;
+      const entry = map.get(key) ?? { key, name: line.swimmer, year: line.year, lines: [] };
+      entry.lines.push(line);
+      map.set(key, entry);
+    }
+    return [...map.values()].filter((entry) => !query || entry.name.toLowerCase().includes(query));
+  });
 
-  protected display(name: string): string {
-    return name.replace(/^([^,]+),\s*(.+)$/, '$2 $1');
+  /** The starts in the order of the day, one block per section. */
+  protected readonly timeGroups = computed(() => {
+    const lines = byTime(this.lines());
+    return [...new Set(lines.map((line) => line.section))].map((section) => ({
+      section,
+      lines: lines.filter((line) => line.section === section),
+    }));
+  });
+
+  protected value(event: Event): string {
+    return (event.target as HTMLInputElement).value;
+  }
+
+  protected resultOf(line: ListLine): string {
+    const result = this.competition()?.schedule.results[line.key];
+    if (!result) return '';
+    if (result.status) return result.status;
+    const time = showTime(result.t);
+    return result.place ? `${time} (${result.place}.)` : time;
+  }
+
+  /** "Einlass 09:00 · Einschwimmen 09:15 · Beginn 10:00" for a section; empty without times. */
+  protected sectionInfo(section: CompSection): string {
+    return sectionTimes(section).join(' · ');
   }
 
   protected isOpen(name: string): boolean {
@@ -194,6 +114,30 @@ export class MeetSchedule {
 
   protected assign(index: number, event: Event): void {
     this.store.assignDuty(this.id(), index, (event.target as HTMLSelectElement).value);
+  }
+
+  protected excel(list: ListId): void {
+    const item = this.competition();
+    if (!item || list === 'overview') return;
+    if (list === 'start') downloadXlsx(listFileName('Startliste', item), startListBook(item));
+    else {
+      downloadXlsx(
+        listFileName(list === 'event' ? 'Laufzettel' : 'Laufzettel_Schwimmer', item),
+        slipsBook(item, list),
+      );
+    }
+  }
+
+  protected print(list: ListId): void {
+    const item = this.competition();
+    if (!item) return;
+    const page =
+      list === 'start'
+        ? startListPage(item)
+        : list === 'overview'
+          ? overviewPage(item)
+          : slipsPage(item, list);
+    printHtml(page.title, page.body, { landscape: page.landscape, css: page.css });
   }
 
   protected async read(event: Event): Promise<void> {
@@ -221,57 +165,5 @@ export class MeetSchedule {
         error instanceof Error ? error.message : 'Die Datei konnte nicht gelesen werden.',
       );
     }
-  }
-
-  private head(what: string): string {
-    const item = this.competition();
-    if (!item) return '';
-    return `<h1>${escapeHtml(what)}</h1><div class="sub"><b>${escapeHtml(item.title)}</b> · ${escapeHtml(item.place)}</div>`;
-  }
-
-  protected printStartList(): void {
-    const item = this.competition();
-    if (!item) return;
-    const rows = [...this.starts()].sort(
-      (a, b) => a.t.localeCompare(b.t) || a.e - b.e || a.b - b.b,
-    );
-    const body = rows
-      .map(
-        (start) =>
-          `<tr><td><b>${start.t}</b></td><td><b>${escapeHtml(this.display(start.n))}</b> (${escapeHtml(start.j)})<br>Wk ${start.e} · ${escapeHtml(this.store.eventName(item, start.e))}</td><td>Lauf ${start.l}/${start.lt}<br>Bahn ${start.b}</td><td>${start.m || 'ohne'}</td></tr>`,
-      )
-      .join('');
-    const duties = item.schedule.duties
-      .map(
-        (duty) =>
-          `<tr><td>${duty.a}</td><td>${escapeHtml(duty.pos)}</td><td>${this.isOpen(duty.name) ? '<i>noch offen</i>' : escapeHtml(duty.name)}</td></tr>`,
-      )
-      .join('');
-    printHtml(
-      `Startliste ${item.title}`,
-      `${this.head(`Startliste ${this.clubName}`)}<table><tr><th>Uhr</th><th>Schwimmer / Strecke</th><th>Lauf / Bahn</th><th>Meldezeit</th></tr>${body}</table>` +
-        (duties
-          ? `<h2>Kampfgericht</h2><table><tr><th>Abschn.</th><th>Position</th><th>Name</th></tr>${duties}</table>`
-          : ''),
-    );
-  }
-
-  protected printSlips(bySwimmer: boolean): void {
-    const item = this.competition();
-    if (!item) return;
-    const list = bySwimmer
-      ? this.swimmers().flatMap((swimmer) => swimmer.starts)
-      : [...this.starts()].sort((a, b) => a.e - b.e || a.l - b.l || a.b - b.b);
-    const body = list
-      .map(
-        (start) =>
-          `<tr style="height:30px"><td><b>${start.t}</b></td><td>${start.e}</td><td>${escapeHtml(this.store.eventName(item, start.e))}</td><td>${start.l}/${start.lt}</td><td>${start.b}</td><td><b>${escapeHtml(this.display(start.n))}</b></td><td>${escapeHtml(start.j)}</td><td>${start.m}</td><td style="width:16%"></td><td style="width:26%"></td></tr>`,
-      )
-      .join('');
-    printHtml(
-      `Laufzettel ${item.title}`,
-      `${this.head(`Laufzettel nach ${bySwimmer ? 'Schwimmern' : 'Wettkampffolge'}`)}<table><tr><th>Uhr</th><th>Wk</th><th>Strecke</th><th>Lauf</th><th>Bahn</th><th>Schwimmer</th><th>Jg.</th><th>Meldezeit</th><th>Endzeit</th><th>Zwischenzeiten</th></tr>${body}</table>`,
-      true,
-    );
   }
 }

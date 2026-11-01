@@ -12,6 +12,7 @@ import { CompetitionStore } from '../../competition.store';
   imports: [RouterLink, Icon, ModalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './competition-list.html',
+  styleUrl: './competition-list.scss',
 })
 export class CompetitionList {
   protected readonly store = inject(CompetitionStore);
@@ -53,11 +54,6 @@ export class CompetitionList {
   }
 
   protected readonly lastId = signal('');
-
-  protected release(competition: Competition): void {
-    this.store.save({ ...competition, open: !competition.open });
-    this.toasts.show(competition.open ? 'Anmeldung geschlossen' : 'Anmeldung freigegeben', 'info');
-  }
 
   protected remove(): void {
     const competition = this.toDelete();

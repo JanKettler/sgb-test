@@ -11,20 +11,25 @@ import { parseResultsDsv7 } from '../../wk-parse';
   selector: 'app-meet-results',
   imports: [Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: `
+    .top {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.2rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .top .file {
+      margin: 0;
+    }
+  `,
   template: `
     @let item = competition();
     @if (item) {
       @if (store.canManage()) {
-        <div class="box is-shadowless" style="border: 1px solid var(--bulma-border, #dbdbdb)">
-          <p class="mb-2">
-            <strong>Ergebnisliste</strong> (DSV7-Datei vom Ausrichter) hochladen: Sie trägt Zeiten,
-            Plätze, Zwischenzeiten und das Kampfgericht für „{{ clubName }}“ ein.
-          </p>
-          <label class="checkbox is-block mb-2">
-            <input type="checkbox" [checked]="overwrite()" (change)="overwrite.set(!overwrite())" />
-            Vorhandene Zeiten überschreiben
-          </label>
-          <div class="file is-small mb-2">
+        <div class="top">
+          <div class="file is-small">
             <label class="file-label">
               <input
                 class="file-input"
@@ -34,14 +39,18 @@ import { parseResultsDsv7 } from '../../wk-parse';
               />
               <span class="file-cta">
                 <span class="file-icon"><app-icon name="upload" /></span>
-                <span class="file-label">Datei auswählen</span>
+                <span class="file-label">Ergebnisliste (DSV7)</span>
               </span>
             </label>
           </div>
-          @if (message()) {
-            <p class="help" [class.is-danger]="failed()">{{ message() }}</p>
-          }
+          <label class="checkbox">
+            <input type="checkbox" [checked]="overwrite()" (change)="overwrite.set(!overwrite())" />
+            Vorhandene Zeiten überschreiben
+          </label>
         </div>
+        @if (message()) {
+          <p class="help" [class.is-danger]="failed()">{{ message() }}</p>
+        }
       }
 
       @if (rows().length === 0 && item.schedule.relayResults.length === 0) {
@@ -119,7 +128,7 @@ export class MeetResults {
       [];
     for (const start of item.schedule.starts) {
       const result = item.schedule.results[startKey(start)];
-      if (result) list.push({ key: startKey(start), start, result });
+      if (result && (result.t || result.status)) list.push({ key: startKey(start), start, result });
     }
     return list.sort((a, b) => a.start.n.localeCompare(b.start.n, 'de') || a.start.e - b.start.e);
   });

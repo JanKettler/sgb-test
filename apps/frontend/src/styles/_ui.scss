@@ -498,8 +498,8 @@ td .button:has(app-icon:only-child),
   padding-inline: 1.1rem;
 }
 
-.button app-icon:not(:only-child) {
-  margin-right: 0.4rem;
+.button {
+  gap: 0.4rem;
 }
 
 /* Page-level actions above a tab's content: one tidy row with room between the buttons. */

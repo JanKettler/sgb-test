@@ -208,6 +208,7 @@ export function parseMeldeergebnis(lines: string[], club: string): ParsedSchedul
       ))
     ) {
       const clubName = match[4].trim();
+      const team = /^\d+\.\s*Mannschaft/i.test(match[2]) || /^\d+\s*x\s*\d/i.test(current.name);
       const start: RunStart = {
         e: current.no,
         l: heat.l,
@@ -216,7 +217,7 @@ export function parseMeldeergebnis(lines: string[], club: string): ParsedSchedul
         b: Number(match[1]),
         n: match[2].replace(/\s+\((M|W|X)\)\s*$/, '').trim(),
         s: sexOf(match[2], current.name),
-        j: match[3] === 'Offen' ? 'Staffel' : match[3],
+        j: team || match[3] === 'Offen' ? 'Staffel' : match[3],
         m: match[5] === '00:00,00' ? '' : match[5],
       };
       out.clubs[clubName] = (out.clubs[clubName] ?? 0) + 1;

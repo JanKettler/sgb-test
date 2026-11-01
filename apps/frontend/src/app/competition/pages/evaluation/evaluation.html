@@ -1,102 +1,595 @@
-<header
-  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
->
-  <div>
-    <h2 class="title is-4 mb-1">Auswertung</h2>
-    <p class="subtitle is-6 mb-0">Wettkämpfe der Saison mit Meldungen und Meldegeld</p>
-  </div>
-  <div class="select">
-    <select aria-label="Jahr" (change)="pick($event)">
-      @for (year of years(); track year) {
-        <option [value]="year" [selected]="year === this.year()">{{ year }}</option>
-      }
-    </select>
-  </div>
+<header class="page-head mb-4">
+  <h2 class="title is-4 mb-1">Auswertung</h2>
+  <p class="subtitle is-6 mb-0">Rangliste, Statistik, Ehrungen und Einzelblätter der Saison</p>
 </header>
 
 <section class="box">
-  <div class="table-container">
-    <table class="table is-fullwidth is-hoverable">
-      <thead>
-        <tr>
-          <th scope="col">Datum</th>
-          <th scope="col">Veranstaltung</th>
-          <th scope="col">Ort</th>
-          <th scope="col">Bahn</th>
-          <th scope="col">Schwimmer</th>
-          <th scope="col">Einzel</th>
-          <th scope="col">Staffel</th>
-          <th scope="col">Meldegeld</th>
-          <th scope="col">Kampfrichter</th>
-          <th scope="col">Trainer</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (row of rows(); track row.competition.id) {
-          <tr>
-            <td class="has-text-centered">{{ fullDate(row.date) }}</td>
-            <td>{{ row.competition.title }}</td>
-            <td>{{ row.competition.place }}</td>
-            <td class="has-text-centered">{{ row.competition.pool === 25 ? 'Kurz' : 'Lang' }}</td>
-            <td class="has-text-centered">{{ row.swimmers }}</td>
-            <td class="has-text-centered">{{ row.singles }}</td>
-            <td class="has-text-centered">{{ row.relays }}</td>
-            <td class="has-text-centered">{{ euro(row.fee) }}</td>
-            <td class="has-text-centered">{{ row.competition.officials.length }}</td>
-            <td class="has-text-centered">{{ row.competition.coaches.length }}</td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="10" class="has-text-grey">In diesem Jahr gibt es keine Wettkämpfe.</td>
-          </tr>
-        }
-      </tbody>
-      @if (rows().length > 0) {
-        <tfoot>
-          <tr>
-            <th scope="row" colspan="5">Gesamt</th>
-            <th class="has-text-centered">{{ totals().singles }}</th>
-            <th class="has-text-centered">{{ totals().relays }}</th>
-            <th class="has-text-centered">{{ euro(totals().fee) }}</th>
-            <th></th>
-            <th></th>
-          </tr>
-        </tfoot>
+  <div class="tabs" role="tablist">
+    <ul>
+      @for (entry of tabs; track entry.id) {
+        <li [class.is-active]="tab() === entry.id">
+          <a
+            role="tab"
+            tabindex="0"
+            [attr.aria-selected]="tab() === entry.id"
+            (click)="tab.set(entry.id)"
+            (keydown.enter)="tab.set(entry.id)"
+          >
+            {{ entry.label }}
+          </a>
+        </li>
       }
-    </table>
+    </ul>
   </div>
+
+  @if (tab() === 'upload') {
+    <h3 class="first">Basiszeiten World Aquatics</h3>
+    @if (expired(); as old) {
+      <div class="alert is-bad">
+        <strong>Die Basiszeiten sind veraltet.</strong>
+        Die Punkte beruhen auf den World-Aquatics-Tabellen von {{ old.last }}. Für
+        {{ old.current }} wurde noch keine neue Datei eingelesen. Bitte die Datei mit Kurzbahn und
+        Langbahn für {{ old.current }} einlesen.
+      </div>
+    }
+    <p class="help">
+      Mit den Basiszeiten (Zeit für 1000 Punkte) rechnet das Portal die Punkte aus den
+      Wettkampfergebnissen selbst aus, für Kurzbahn und Langbahn. Eine Datei je Jahr genügt: die
+      sechs PDF-Tabellen von worldaquatics.com oder eine CSV-Datei.
+    </p>
+    <div class="file is-small mt-2">
+      <label class="file-label">
+        <input
+          class="file-input"
+          type="file"
+          multiple
+          accept=".csv,.txt,.pdf,text/csv,text/plain,application/pdf"
+          (change)="readWa($event)"
+        />
+        <span class="file-cta">
+          <span class="file-icon"><app-icon name="upload" /></span>
+          <span class="file-label">Basiszeiten einlesen</span>
+        </span>
+      </label>
+    </div>
+    @if (waMessage()) {
+      <p class="help">{{ waMessage() }}</p>
+    }
+    <ul class="items">
+      @for (set of waSets(); track set.id) {
+        <li>
+          <span>
+            <strong>{{ set.bahn === 'Lang' ? 'Langbahn' : 'Kurzbahn' }} {{ set.jahr }}</strong>
+            <span class="sub">
+              gültig {{ date(set.von) }} bis {{ date(set.bis) }} · {{ countOf(set) }} Zeiten ·
+              eingelesen {{ date(set.stand) }}
+            </span>
+            @if (set.file === sampleFile) {
+              <span class="pill is-warn ml-1">Beispielwerte, nicht amtlich</span>
+            }
+          </span>
+          <button
+            type="button"
+            class="button is-small is-danger is-light"
+            aria-label="Löschen"
+            title="Löschen"
+            (click)="
+              askRemove('wa', set.id, (set.bahn === 'Lang' ? 'Langbahn ' : 'Kurzbahn ') + set.jahr)
+            "
+          >
+            <app-icon name="trash" />
+          </button>
+        </li>
+      } @empty {
+        <li class="has-text-grey">Noch keine Basiszeiten eingelesen.</li>
+      }
+    </ul>
+
+    <h3>Punkteliste aus WebClub (optional)</h3>
+    <p class="help">
+      Die Liste „Punktbeste Leistung nach World Aquatics“ als CSV. Sie ergänzt die Punkte aus den
+      Wettkampfergebnissen um frühere Starts; je Strecke zählt die bessere Punktzahl. Eine neue
+      Liste ersetzt die alte derselben Saison und Bahn.
+    </p>
+    <div class="file is-small mt-2">
+      <label class="file-label">
+        <input
+          class="file-input"
+          type="file"
+          accept=".csv,.txt,text/csv,text/plain"
+          (change)="readList($event)"
+        />
+        <span class="file-cta">
+          <span class="file-icon"><app-icon name="upload" /></span>
+          <span class="file-label">Punkteliste einlesen</span>
+        </span>
+      </label>
+    </div>
+    @if (listMessage()) {
+      <p class="help">{{ listMessage() }}</p>
+    }
+    <ul class="items">
+      @for (list of lists(); track list.id) {
+        <li>
+          <span>
+            <strong>{{ list.jahr }} · {{ list.bahn === 'Lang' ? 'Langbahn' : 'Kurzbahn' }}</strong>
+            <span class="sub">
+              {{ list.rows.length }} Schwimmer · hochgeladen {{ date(list.stand) }}
+            </span>
+          </span>
+          <button
+            type="button"
+            class="button is-small is-danger is-light"
+            aria-label="Löschen"
+            title="Löschen"
+            (click)="
+              askRemove(
+                'list',
+                list.id,
+                'Punkteliste ' + list.jahr + (list.bahn === 'Lang' ? ' Langbahn' : ' Kurzbahn')
+              )
+            "
+          >
+            <app-icon name="trash" />
+          </button>
+        </li>
+      } @empty {
+        <li class="has-text-grey">Noch keine Punkteliste hochgeladen.</li>
+      }
+    </ul>
+
+    <h3>Gruppen festlegen</h3>
+    <p class="help">
+      Welche Jahrgänge zu einer Gruppe zählen und ab welchem Alter jemand zu den Masters gehört
+      (jetzt ab {{ ev().masters() }} Jahren). Das gilt für alle Schwimmer.
+    </p>
+    <button type="button" class="button mt-2" (click)="openBands()">
+      <app-icon name="pencil" /> Jahrgangsgruppen {{ year() }}
+    </button>
+  } @else if (years().length === 0) {
+    <p class="empty">
+      Es gibt noch keine Punkte. Im Reiter „Hochladen“ zuerst die World-Aquatics-Basiszeiten
+      einlesen. Dann rechnet das Portal die Punkte aus den eingelesenen Wettkampfergebnissen selbst
+      aus. Alternativ lässt sich die WebClub-Liste „Punktbeste Leistung nach World Aquatics“
+      hochladen.
+    </p>
+  } @else {
+    <div class="card-head">
+      <h3 class="first">{{ title() }} {{ year() }}</h3>
+      <button type="button" class="button" (click)="download()">
+        <app-icon name="file-excel" /> Excel
+      </button>
+    </div>
+
+    @if (years().length > 1 || tab() === 'rank') {
+      <div class="filters">
+        @if (years().length > 1) {
+          <div class="filter-row">
+            <span class="filter-label">Jahr</span>
+            <div class="chips">
+              @for (entry of years(); track entry) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.is-on]="entry === year()"
+                  (click)="pickYear(entry)"
+                >
+                  {{ entry }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+        @if (tab() === 'rank') {
+          <div class="filter-row">
+            <span class="filter-label">Bahn</span>
+            <div class="chips">
+              @for (choice of bahnChoices; track choice.id) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.is-on]="choice.id === bahn()"
+                  (click)="bahn.set(choice.id)"
+                >
+                  {{ choice.label }}
+                </button>
+              }
+            </div>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">Wertung</span>
+            <div class="chips">
+              @for (entry of groups; track entry) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.is-on]="entry === group()"
+                  (click)="group.set(entry)"
+                >
+                  {{ entry }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (tab() !== 'stat') {
+      @if (expired(); as old) {
+        <div class="alert is-bad">
+          <strong>Die Basiszeiten sind veraltet.</strong>
+          Die Punkte beruhen auf den World-Aquatics-Tabellen von {{ old.last }}. Für
+          {{ old.current }} wurde noch keine neue Datei eingelesen. Bitte unter „Hochladen“ die
+          Datei mit Kurzbahn und Langbahn für {{ old.current }} einlesen.
+        </div>
+      }
+    }
+
+    @switch (tab()) {
+      @case ('rank') {
+        @if (usesSample()) {
+          <div class="alert is-warn">
+            Die Punkte beruhen auf Beispielwerten, nicht auf den amtlichen Basiszeiten. Die echten
+            Tabellen werden unter „Hochladen“ eingelesen.
+          </div>
+        }
+        <p class="help">
+          Stand der WebClub-Listen: {{ listInfo() || 'keine hochgeladen' }}.
+          @if (waInfo()) {
+            Punkte aus Wettkampfergebnissen mit den Basiszeiten: {{ waInfo() }}.
+          }
+          Gewertet wird je Strecke die punktbeste Leistung. Fett ist je Tabelle der höchste Wert
+          einer Spalte.
+        </p>
+        @if (rankBlocks().length > 0) {
+          <app-evaluation-blocks [blocks]="rankBlocks()" />
+        } @else if (group() === 'Alle') {
+          <p class="empty">Es gibt noch keine Schwimmer mit Punkten.</p>
+        } @else {
+          <p class="empty">In dieser Gruppe gibt es keine Schwimmer.</p>
+        }
+      }
+      @case ('stat') {
+        @if (missing().length > 0) {
+          <div class="alert is-warn">
+            <strong>Noch nicht vollständig</strong>
+            <ul>
+              @for (line of missing(); track $index) {
+                <li>
+                  <strong>{{ line.bold }}</strong>
+                  {{ line.text }}
+                </li>
+              }
+            </ul>
+          </div>
+        }
+        @if (noPool().length > 0) {
+          <div class="alert is-bad">
+            @for (row of noPool(); track row.id) {
+              <div class="pool-fix">
+                Bei <strong>{{ row.title }}</strong>
+                <button type="button" class="button is-small" (click)="setPool(row.id, 50)">
+                  Langbahn
+                </button>
+                <button type="button" class="button is-small" (click)="setPool(row.id, 25)">
+                  Kurzbahn
+                </button>
+              </div>
+            }
+            fehlt die Bahnlänge. Ohne sie werden für diese Veranstaltung keine Punkte berechnet.
+          </div>
+        }
+        <app-evaluation-blocks [blocks]="statPage()" />
+        <p class="help">
+          Das Meldegeld ist die Summe der Meldungen. Mit dem Stift lässt sich jeder Betrag selbst
+          eintragen (zum Beispiel 0 bei selbst ausgerichteten Veranstaltungen), mit dem Pfeil gilt
+          wieder die Summe. Mit „Zählt“ wird festgelegt, wer als offizieller Kampfrichter in die
+          Statistik kommt.
+        </p>
+      }
+      @case ('honour') {
+        <app-evaluation-blocks [blocks]="honourBlocks()" />
+        <p class="help">Die Jubiläume kommen aus dem Eintrittsdatum der Mitglieder.</p>
+      }
+      @case ('sheet') {
+        @let current = swimmer();
+        @if (current) {
+          <div class="split">
+            <div class="names">
+              <input
+                class="input is-small"
+                type="search"
+                placeholder="Suchen …"
+                aria-label="Schwimmer suchen"
+                autocomplete="off"
+                [value]="query()"
+                (input)="typedQuery($event)"
+              />
+              @for (item of shownNames(); track item.name) {
+                <button
+                  type="button"
+                  class="name-button"
+                  [class.is-on]="item.name === current.name"
+                  (click)="pickSwimmer(item.name)"
+                >
+                  {{ item.name }}
+                </button>
+              }
+            </div>
+            <div>
+              <div class="nav">
+                <button
+                  type="button"
+                  class="button is-small"
+                  [disabled]="position() <= 0"
+                  (click)="step(-1)"
+                >
+                  <app-icon name="chevron-left" /> Zurück
+                </button>
+                <button
+                  type="button"
+                  class="button is-small"
+                  [disabled]="position() >= names().length - 1"
+                  (click)="step(1)"
+                >
+                  Weiter <app-icon name="chevron-right" />
+                </button>
+                <span class="sub"
+                  >Platz {{ place() }} von {{ bestList().length }} in der Gesamtwertung</span
+                >
+              </div>
+              @if (gaps().length > 0) {
+                <div class="alert is-warn">
+                  <strong>Nicht in diesem Blatt (Prüfung)</strong>
+                  <ul>
+                    @for (line of gaps(); track $index) {
+                      <li>{{ line }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+              <app-evaluation-blocks [blocks]="sheet()" />
+            </div>
+          </div>
+          <p class="help">
+            Die Zeiten kommen aus den Wettkämpfen dieser Saison, bei denen Ergebnisse eingelesen
+            sind. Die Bahnlänge steht im Wettkampf.
+          </p>
+        } @else {
+          <p class="empty">Es gibt noch keine Schwimmer mit Punkten.</p>
+        }
+      }
+    }
+  }
 </section>
 
-<section class="box">
-  <h3 class="title is-5">Kampfrichter und Trainer</h3>
-  <div class="table-container">
-    <table class="table is-hoverable">
-      <thead>
-        <tr>
-          <th scope="col">Person</th>
-          <th scope="col">Als Kampfrichter</th>
-          <th scope="col">Als Trainer</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (person of staff(); track person.id) {
-          <tr>
-            <td>{{ person.name }}</td>
-            <td class="has-text-centered">{{ person.judge || '–' }}</td>
-            <td class="has-text-centered">{{ person.coach || '–' }}</td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="3" class="has-text-grey">
-              Noch niemand eingetragen. Das geschieht im Wettkampf unter „Kampfrichter & Trainer“.
-            </td>
-          </tr>
+@if (waPreview(); as preview) {
+  <app-modal-dialog heading="Das wurde gefunden" accent="amber" (closed)="waPreview.set(null)">
+    @if (preview.result.errors.length > 0) {
+      <div class="alert is-bad">
+        <strong>Das stimmt nicht, deshalb wird nichts übernommen:</strong>
+        @for (error of preview.result.errors.slice(0, 12); track $index) {
+          <div>{{ error }}</div>
         }
-      </tbody>
-    </table>
-  </div>
-  <p class="help">
-    Ergebnisse, Pokale und Medaillen kommen als Nächstes, wenn die Ergebnislisten eingelesen werden
-    können.
-  </p>
-</section>
+        @if (preview.result.errors.length > 12) {
+          <div>… und {{ preview.result.errors.length - 12 }} weitere</div>
+        }
+      </div>
+    }
+    @if (preview.result.warnings.length > 0) {
+      <div class="alert is-warn">
+        @for (warning of preview.result.warnings; track $index) {
+          <div>{{ warning }}</div>
+        }
+      </div>
+    }
+    @if (preview.result.errors.length === 0) {
+      @for (read of preview.result.list; track read.id) {
+        <div class="found">
+          <strong>{{ courseName[read.course] }} {{ read.jahr }}</strong>
+          <span class="sub">
+            {{ read.count }} Zeiten
+            @if (replacesWa(read.id)) {
+              · ersetzt die vorhandenen
+            }
+          </span>
+          <div class="date-pair">
+            <label class="label-line">
+              Gültig ab
+              <input
+                class="input"
+                type="date"
+                [value]="waDate(read.id, 'von')"
+                (change)="setWaDate(read.id, 'von', $event)"
+              />
+            </label>
+            <label class="label-line">
+              Gültig bis
+              <input
+                class="input"
+                type="date"
+                [value]="waDate(read.id, 'bis')"
+                (change)="setWaDate(read.id, 'bis', $event)"
+              />
+            </label>
+          </div>
+        </div>
+      } @empty {
+        <p class="has-text-grey">Keine Basiszeiten gefunden.</p>
+      }
+    }
+    <ng-container dialogActions>
+      <button
+        type="button"
+        class="button is-danger"
+        aria-label="Abbrechen"
+        title="Abbrechen"
+        (click)="waPreview.set(null)"
+      >
+        <app-icon name="x" />
+      </button>
+      @if (preview.result.errors.length === 0 && preview.result.list.length > 0) {
+        <button type="button" class="button is-success" (click)="saveWa()">
+          <app-icon name="check" /> Übernehmen
+        </button>
+      }
+    </ng-container>
+  </app-modal-dialog>
+}
+
+@if (listPreview(); as preview) {
+  <app-modal-dialog heading="Das wurde gefunden" accent="amber" (closed)="listPreview.set(null)">
+    @if (preview.read.warnings.length > 0) {
+      <div class="alert is-warn">
+        @for (warning of preview.read.warnings.slice(0, 6); track $index) {
+          <div>{{ warning }}</div>
+        }
+        @if (preview.read.warnings.length > 6) {
+          <div>… und {{ preview.read.warnings.length - 6 }} weitere</div>
+        }
+      </div>
+    }
+    <p>
+      <strong>{{ preview.read.rows.length }}</strong> Schwimmer · Saison in der Datei:
+      <strong>{{ preview.read.season || '?' }}</strong>
+      <br />
+      Beste Punktzahl: {{ topOf(preview.read) }}
+    </p>
+    <div class="date-pair">
+      <label class="label-line">
+        Saison
+        <input
+          class="input"
+          type="number"
+          min="2000"
+          max="2100"
+          [value]="listYear()"
+          (input)="typedListYear($event)"
+        />
+      </label>
+      <div class="label-line">
+        <label for="list-pool">Bahn</label>
+        <span class="select is-fullwidth">
+          <select id="list-pool" (change)="pickListPool($event)">
+            <option value="Lang" [selected]="listPool() === 'Lang'">Langbahn (50 m)</option>
+            <option value="Kurz" [selected]="listPool() === 'Kurz'">Kurzbahn (25 m)</option>
+          </select>
+        </span>
+      </div>
+    </div>
+    @if (preview.read.season && preview.read.season !== listYear().trim()) {
+      <div class="alert is-warn">
+        Die Datei gehört zur Saison {{ preview.read.season }}, gewählt ist {{ listYear() }}. Bitte
+        prüfen.
+      </div>
+    }
+    @if (replacesList()) {
+      <p class="help">Für diese Saison und Bahn gibt es schon eine Liste. Sie wird ersetzt.</p>
+    }
+    <ng-container dialogActions>
+      <button
+        type="button"
+        class="button is-danger"
+        aria-label="Abbrechen"
+        title="Abbrechen"
+        (click)="listPreview.set(null)"
+      >
+        <app-icon name="x" />
+      </button>
+      <button type="button" class="button is-success" (click)="saveList()">
+        <app-icon name="check" /> Übernehmen
+      </button>
+    </ng-container>
+  </app-modal-dialog>
+}
+
+@if (bandsForm(); as form) {
+  <app-modal-dialog
+    [heading]="'Jahrgangsgruppen ' + year()"
+    accent="navy"
+    (closed)="bandsForm.set(null)"
+  >
+    <div class="date-pair">
+      <label class="label-line">
+        Masters ab Alter
+        <input
+          class="input"
+          type="number"
+          min="1"
+          [value]="form.masters"
+          (input)="setBands('masters', $event)"
+        />
+      </label>
+      <label class="label-line">
+        Gruppen zusammenlegen bei … Personen oder weniger (0 = nie)
+        <input
+          class="input"
+          type="number"
+          min="0"
+          max="9"
+          [value]="form.mergeMax"
+          (input)="setBands('mergeMax', $event)"
+        />
+      </label>
+    </div>
+    <label class="label-line" for="bands-women">Weiblich</label>
+    <textarea
+      id="bands-women"
+      class="textarea"
+      rows="8"
+      [value]="form.women"
+      (input)="setBands('women', $event)"
+    ></textarea>
+    <label class="label-line" for="bands-men">Männlich</label>
+    <textarea
+      id="bands-men"
+      class="textarea"
+      rows="8"
+      [value]="form.men"
+      (input)="setBands('men', $event)"
+    ></textarea>
+    <p class="help">
+      Eine Gruppe pro Zeile: Name | Jahrgang von-bis, bei einem einzelnen Jahrgang nur Name |
+      Jahrgang. Mehrere Bereiche mit + verbinden, zum Beispiel „Jahrgang 2012-2015 | 2012-2013 +
+      2014-2015“. Leer lassen = Standard (Junioren, dann jeder Jahrgang einzeln). Gruppen mit
+      wenigen Personen werden nach der Einstellung oben automatisch zusammengelegt, nur innerhalb
+      des Geschlechts und ohne die Junioren.
+    </p>
+    <ng-container dialogActions>
+      <button
+        type="button"
+        class="button is-danger"
+        aria-label="Abbrechen"
+        title="Abbrechen"
+        (click)="bandsForm.set(null)"
+      >
+        <app-icon name="x" />
+      </button>
+      <button type="button" class="button is-success" (click)="saveBands()">
+        <app-icon name="save" /> Speichern
+      </button>
+    </ng-container>
+  </app-modal-dialog>
+}
+
+@if (removal(); as item) {
+  <app-modal-dialog
+    [heading]="item.name + ' löschen?'"
+    accent="red"
+    [compact]="true"
+    (closed)="removal.set(null)"
+  >
+    <p>
+      @if (item.kind === 'wa') {
+        Die Punkte für Wettkämpfe in diesem Zeitraum entfallen dann.
+      } @else {
+        Die Punkte dieser Liste fließen dann nicht mehr in die Rangliste ein.
+      }
+    </p>
+    <ng-container dialogActions>
+      <button type="button" class="button" (click)="removal.set(null)">Abbrechen</button>
+      <button type="button" class="button is-danger" (click)="remove()">Löschen</button>
+    </ng-container>
+  </app-modal-dialog>
+}

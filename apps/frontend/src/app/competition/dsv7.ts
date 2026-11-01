@@ -71,8 +71,8 @@ function emptyMeet(): Omit<Competition, 'id'> {
     sent: false,
     sections: [],
     events: [],
-    officials: [],
-    coaches: [],
+    officials: {},
+    coaches: {},
     plan: emptyPlan(),
     schedule: emptySchedule(),
   };

@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { PeopleStore } from '../../../people/people.store';
-import { fullDate, weekdayLong } from '../../../training/training-dates';
+import { fullDate, weekdayLong, weekdayShort } from '../../../training/training-dates';
 import { Icon } from '../../../ui/icon';
 import { Competition, dateOf } from '../../competition.models';
 import { CompetitionStore } from '../../competition.store';
@@ -21,6 +21,10 @@ interface Row {
   weekday: string;
   starts: number;
   status: Status;
+  deadlineWeekday: string;
+  /** "noch 3 Tage", "heute", "morgen" */
+  left: string;
+  tone: 'danger' | 'warning' | 'info';
 }
 
 @Component({
@@ -60,7 +64,17 @@ export class CompetitionEntry {
               ? 'open'
               : 'closed';
       const date = dateOf(competition);
-      return { competition, date, weekday: weekdayLong(date), starts, status };
+      const days = this.store.daysTo(competition.internalDeadline);
+      return {
+        competition,
+        date,
+        weekday: weekdayLong(date),
+        starts,
+        status,
+        deadlineWeekday: weekdayShort(competition.internalDeadline),
+        left: days <= 0 ? 'heute' : days === 1 ? 'morgen' : `noch ${days} Tage`,
+        tone: days <= 3 ? 'danger' : days <= 7 ? 'warning' : 'info',
+      };
     });
   });
 

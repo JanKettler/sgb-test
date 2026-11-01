@@ -49,6 +49,9 @@
   <div class="week">
     <div class="times">
       <div class="head"></div>
+      @if (allDayLines() > 0) {
+        <div class="allday-label" [style.height.rem]="allDayLines() * lineRem + 0.3">ganztägig</div>
+      }
       @for (hour of hours(); track hour) {
         <div class="time" [style.height.px]="hourHeight">{{ hour }}:00</div>
       }
@@ -59,6 +62,19 @@
           <span class="weekday">{{ day.weekday }}</span>
           <span class="date" [class.is-today]="day.isToday">{{ day.label }}</span>
         </div>
+        @if (allDayLines() > 0) {
+          <div class="allday" [style.height.rem]="allDayLines() * lineRem + 0.3">
+            @for (item of day.allDay; track item.key) {
+              <a
+                [routerLink]="item.route"
+                [class]="'allday-item is-' + item.kind"
+                [title]="item.title"
+              >
+                <app-icon [name]="item.icon" /> {{ item.title }}
+              </a>
+            }
+          </div>
+        }
         <div class="body" [style.height.px]="bodyHeight()">
           @for (hour of hours(); track hour) {
             <div class="line" [style.height.px]="hourHeight"></div>
@@ -73,7 +89,6 @@
             >
               <strong>{{ event.title }}</strong>
               <span>{{ event.time }}</span>
-              <span class="detail">{{ event.detail }}</span>
             </a>
           }
         </div>

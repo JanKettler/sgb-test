@@ -1,0 +1,206 @@
+h3 {
+  border-bottom: 1px solid var(--sgb-line);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 1.6rem 0 0.7rem;
+  padding-bottom: 0.3rem;
+
+  &.first {
+    margin-top: 0;
+  }
+}
+
+.card-head h3 {
+  border-bottom: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Year, pool and group as rows of chips, like the filter box of the Intranet. */
+.filters {
+  background: var(--sgb-hover);
+  border: 1px solid var(--sgb-line);
+  border-radius: 14px;
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 0.8rem;
+  padding: 0.6rem 0.8rem;
+}
+
+.filter-row {
+  align-items: center;
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: 5rem 1fr;
+}
+
+.filter-label {
+  color: var(--sgb-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+@media (max-width: 36rem) {
+  .filter-row {
+    gap: 0.2rem;
+    grid-template-columns: 1fr;
+  }
+}
+
+.alert {
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin: 0.6rem 0;
+  padding: 0.6rem 0.9rem;
+
+  &.is-bad {
+    background: var(--bad-bg);
+    color: var(--bad-fg);
+  }
+
+  &.is-warn {
+    background: var(--warn-bg);
+    color: var(--warn-fg);
+  }
+
+  ul {
+    list-style: disc;
+    margin: 0.3rem 0 0 1.2rem;
+  }
+}
+
+.pool-fix {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+
+/* The sheet of one swimmer: names on the left, the sheet on the right. */
+.split {
+  align-items: start;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: 12rem minmax(0, 1fr);
+}
+
+.names {
+  border: 1px solid var(--sgb-line);
+  border-radius: 12px;
+  max-height: 78vh;
+  overflow-y: auto;
+  padding: 0.3rem;
+  position: sticky;
+  top: 0.5rem;
+
+  .input {
+    margin-bottom: 0.3rem;
+  }
+}
+
+.name-button {
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  text-align: left;
+  width: 100%;
+
+  &.is-on {
+    background: var(--sgb-strong);
+    color: var(--sgb-on-strong);
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 45rem) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .names {
+    max-height: 10rem;
+    position: static;
+  }
+}
+
+.nav {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+/* Stored base times and points lists, one per line with a delete button. */
+.items {
+  margin-top: 0.7rem;
+
+  li {
+    align-items: center;
+    border-bottom: 1px solid var(--sgb-line);
+    display: flex;
+    gap: 0.6rem;
+    justify-content: space-between;
+    padding: 0.45rem 0;
+  }
+}
+
+.found {
+  border: 1px solid var(--sgb-line);
+  border-radius: 12px;
+  margin-bottom: 0.6rem;
+  padding: 0.6rem 0.8rem;
+
+  .sub {
+    margin-left: 0.4rem;
+  }
+}
+
+.date-pair {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: 1fr 1fr;
+  margin: 0.5rem 0;
+}
+
+@media (max-width: 30rem) {
+  .date-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.label-line {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.6rem;
+
+  .input,
+  .select {
+    display: block;
+    font-weight: 400;
+    margin-top: 0.2rem;
+  }
+}
+
+@media print {
+  .tabs,
+  .filters,
+  .card-head .button {
+    display: none;
+  }
+}

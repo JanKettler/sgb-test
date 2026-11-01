@@ -31,6 +31,11 @@
   --bulma-primary-s: 50%;
   --bulma-primary-l: 46%;
   --bulma-primary-invert-l: 100%;
+  --xl-bg: #0b1220;
+  --xl-head: #162033;
+  --xl-ink: #e2e8f0;
+  --xl-line: #475569;
+  --xl-heavy: #94a3b8;
   color-scheme: dark;
 }
 
@@ -75,6 +80,13 @@
   --g-WK-fg: #6b21a8;
   --g-MA-bg: #ffe4e6;
   --g-MA-fg: #9f1239;
+
+  /* The evaluation looks like the exported Excel sheet: white, black lines, a heavy line over totals. */
+  --xl-bg: #fff;
+  --xl-head: #fff;
+  --xl-ink: #000;
+  --xl-line: #000;
+  --xl-heavy: #000;
 }
 
 @media (prefers-color-scheme: dark) {

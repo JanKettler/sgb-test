@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PeopleStore } from '../../../people/people.store';
 import { GROUPS, GroupId } from '../../../training/training.models';
 import { DateField } from '../../../ui/date-field';
-import { Icon } from '../../../ui/icon';
+import { Icon, IconName } from '../../../ui/icon';
 import { ModalDialog } from '../../../ui/modal-dialog';
 import { Toasts } from '../../../ui/toast';
 import { fullDate } from '../../../training/training-dates';
@@ -18,18 +18,30 @@ import {
   TIMINGS,
   eventLabel,
   euro,
+  showTime,
 } from '../../competition.models';
 import { CompetitionStore, MailDraft } from '../../competition.store';
 import { downloadBytes, escapeHtml, printHtml } from '../../competition-download';
 import { EntryForm } from '../entry-form/entry-form';
 import { MeetChecklist } from '../meet-checklist/meet-checklist';
+import { MeetOnsite } from '../meet-onsite/meet-onsite';
 import { MeetResults } from '../meet-results/meet-results';
 import { MeetSchedule } from '../meet-schedule/meet-schedule';
 import { MailDialog } from '../mail-dialog/mail-dialog';
 import { RelayForm } from '../relay-form/relay-form';
 
-type Tab = 'base' | 'sections' | 'events' | 'entries' | 'check' | 'schedule' | 'results' | 'staff';
+type Tab =
+  | 'base'
+  | 'sections'
+  | 'events'
+  | 'entries'
+  | 'check'
+  | 'schedule'
+  | 'onsite'
+  | 'results'
+  | 'staff';
 type Staff = 'officials' | 'coaches';
+type RegMode = 'all' | 'groups' | 'locked';
 type TextKey =
   | 'title'
   | 'place'
@@ -57,6 +69,7 @@ type MoneyKey = 'flatFee' | 'perSwimmerFee' | 'discount';
     RelayForm,
     MeetChecklist,
     MeetSchedule,
+    MeetOnsite,
     MeetResults,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -77,6 +90,7 @@ export class CompetitionEditor {
   protected readonly euro = euro;
   protected readonly eventLabel = eventLabel;
   protected readonly fullDate = fullDate;
+  protected readonly showTime = showTime;
 
   private readonly allTabs: readonly { id: Tab; label: string; saved?: true }[] = [
     { id: 'base', label: 'Basisdaten' },
@@ -84,11 +98,12 @@ export class CompetitionEditor {
     { id: 'events', label: 'Wettkampffolge' },
     { id: 'entries', label: 'Meldungen' },
     { id: 'check', label: 'Checkliste', saved: true },
-    { id: 'schedule', label: 'Ablauf', saved: true },
+    { id: 'schedule', label: 'Meldeergebnis', saved: true },
+    { id: 'onsite', label: 'Vor Ort', saved: true },
     { id: 'results', label: 'Ergebnisse', saved: true },
     { id: 'staff', label: 'Kampfrichter & Trainer' },
   ];
-  /** Checklist, schedule and results need a saved meet. */
+  /** Checklist, Meldeergebnis, pool deck and results need a saved meet. */
   protected readonly tabs = this.allTabs.filter(
     (tab) => !tab.saved || !!this.store.competition(this.id),
   );
@@ -98,6 +113,13 @@ export class CompetitionEditor {
     structuredClone(this.store.competition(this.id) ?? this.store.create()),
   );
   protected readonly invalid = signal(false);
+  protected readonly regModes: readonly { id: RegMode; label: string; icon: IconName }[] = [
+    { id: 'all', label: 'Alle', icon: 'unlock' },
+    { id: 'groups', label: 'Nur bestimmte Gruppen', icon: 'users' },
+    { id: 'locked', label: 'Gesperrt', icon: 'lock' },
+  ];
+  /** Who may register: everybody, the chosen groups, or nobody (also before the deadline). */
+  protected readonly regMode = signal<RegMode>(this.regModeOf(this.draft()));
   protected readonly editing = signal('');
   protected readonly adding = signal('');
   protected readonly mail = signal<'entry' | 'treasurer' | null>(null);
@@ -119,6 +141,7 @@ export class CompetitionEditor {
 
   protected readonly starters = computed(() => this.store.starters(this.draft()));
   protected readonly counts = computed(() => this.store.counts(this.draft()));
+  protected readonly hasEntries = computed(() => this.starters().length + this.relays().length > 0);
   protected readonly total = computed(() => this.store.totalFee(this.draft()));
   protected readonly relays = computed(() => {
     this.store.relays();
@@ -169,6 +192,17 @@ export class CompetitionEditor {
     this.patch({
       groupIds: current.includes(id) ? current.filter((group) => group !== id) : [...current, id],
     });
+  }
+
+  private regModeOf(item: Competition): RegMode {
+    if (!item.open) return 'locked';
+    return item.groupIds.length > 0 ? 'groups' : 'all';
+  }
+
+  protected setRegMode(mode: RegMode): void {
+    this.regMode.set(mode);
+    if (mode === 'all') this.patch({ open: true, groupIds: [] });
+    else this.patch({ open: mode === 'groups' });
   }
 
   // Sections
@@ -249,7 +283,19 @@ export class CompetitionEditor {
       this.toasts.show('Bitte einen Namen eintragen.', 'bad');
       return;
     }
-    this.store.save({ ...item, title: item.title.trim() });
+    if (this.regMode() === 'groups' && item.groupIds.length === 0) {
+      this.tab.set('base');
+      this.toasts.show('Bitte mindestens eine Gruppe wählen oder „Alle“ einstellen.', 'bad');
+      return;
+    }
+    // Checklist, Meldeergebnis and results are saved on their own tabs; the draft must not undo them.
+    const stored = this.store.competition(item.id);
+    this.store.save({
+      ...item,
+      title: item.title.trim(),
+      plan: stored?.plan ?? item.plan,
+      schedule: stored?.schedule ?? item.schedule,
+    });
     this.toasts.saved('Wettkampf gespeichert');
     void this.router.navigate(['/wettkampf/wettkaempfe']);
   }
@@ -275,19 +321,19 @@ export class CompetitionEditor {
       const starts = row.entries
         .map(
           (entry) =>
-            `Wk ${entry.eventNo} ${escapeHtml(this.store.eventName(item, entry.eventNo))} ${entry.time || 'ohne Zeit'}`,
+            `Wk ${entry.eventNo} ${escapeHtml(this.startLabel(entry.eventNo))} ${showTime(entry.time) || 'ohne Zeit'}`,
         )
         .join('<br>');
-      return `<tr><td><b>${escapeHtml(row.name)}</b></td><td>${member?.birthDate.slice(0, 4) ?? ''}</td><td>${escapeHtml(member?.dsvId ?? '')}</td><td>${starts}</td><td>${euro(row.fee)}</td></tr>`;
+      return `<tr><td><b>${escapeHtml(row.name)}</b></td><td>${member?.birthDate.slice(0, 4) ?? ''}</td><td>${escapeHtml(member?.dsvId ?? '')}</td><td>${starts}</td></tr>`;
     });
     const relays = this.relays().map((relay) => {
       const names = relay.memberIds.map((id) => escapeHtml(this.store.nameOf(id))).join(', ');
-      return `<tr><td><b>${this.relayName(relay)}</b></td><td>${relay.year}</td><td></td><td>${escapeHtml(this.relayEvent(relay))} ${relay.time || 'ohne Zeit'}<br>${names}</td><td></td></tr>`;
+      return `<tr><td><b>${this.relayName(relay)}</b></td><td>${relay.year}</td><td></td><td>Wk ${relay.eventNo} ${escapeHtml(this.startLabel(relay.eventNo))} ${showTime(relay.time) || 'ohne Zeit'}<br>${names}</td></tr>`;
     });
     printHtml(
       `Meldeliste ${item.title}`,
       `<h1>Meldeliste ${escapeHtml(this.store.club.name)}</h1><div class="sub"><b>${escapeHtml(item.title)}</b> · ${escapeHtml(item.place)}</div>` +
-        `<table><tr><th>Schwimmer</th><th>Jg.</th><th>DSV-Id</th><th>Starts</th><th>Meldegeld</th></tr>${[...rows, ...relays].join('')}</table>` +
+        `<table><tr><th>Schwimmer</th><th>Jg.</th><th>DSV-Id</th><th>Starts</th></tr>${[...rows, ...relays].join('')}</table>` +
         `<p>Meldegeld gesamt: <b>${euro(this.total())}</b></p>`,
     );
   }
@@ -334,30 +380,51 @@ export class CompetitionEditor {
     return `${relay.team}. Mannschaft`;
   }
 
-  protected relayEvent(relay: RelayEntry): string {
-    const event = this.draft().events.find((item) => item.no === relay.eventNo);
-    return event ? `Wk ${event.no} · ${eventLabel(event)}` : `Wk ${relay.eventNo}`;
+  /** "100m Freistil" for the event number, as set in the event list. */
+  protected startLabel(eventNo: number): string {
+    const event = this.draft().events.find((item) => item.no === eventNo);
+    return event ? eventLabel(event) : '–';
   }
 
-  // Judges and coaches
-  protected staffNames(kind: Staff): { id: string; name: string }[] {
-    return this.draft()[kind].map((id) => ({ id, name: this.store.nameOf(id) }));
+  protected yearOf(personId: string): string {
+    return this.people.member(personId)?.birthDate.slice(0, 4) ?? '–';
   }
 
-  protected staffAddable(kind: Staff): { id: string; name: string }[] {
-    const chosen = new Set(this.draft()[kind]);
+  // Judges and coaches, per section
+  protected staffNames(kind: Staff, section: number): { id: string; name: string }[] {
+    return (this.draft()[kind][section] ?? []).map((id) => ({ id, name: this.store.nameOf(id) }));
+  }
+
+  protected staffAddable(kind: Staff, section: number): { id: string; name: string }[] {
+    const chosen = new Set(this.draft()[kind][section] ?? []);
     return this.store.staffCandidates().filter((person) => !chosen.has(person.id));
   }
 
-  protected addStaff(kind: Staff, event: Event): void {
+  protected addStaff(kind: Staff, section: number, event: Event): void {
     const select = event.target as HTMLSelectElement;
     const id = select.value;
     select.value = '';
-    if (id) this.patch({ [kind]: [...this.draft()[kind], id] });
+    if (id) this.setStaff(kind, section, [...(this.draft()[kind][section] ?? []), id]);
   }
 
-  protected removeStaff(kind: Staff, id: string): void {
-    this.patch({ [kind]: this.draft()[kind].filter((item) => item !== id) });
+  protected removeStaff(kind: Staff, section: number, id: string): void {
+    this.setStaff(
+      kind,
+      section,
+      (this.draft()[kind][section] ?? []).filter((item) => item !== id),
+    );
+  }
+
+  private setStaff(kind: Staff, section: number, ids: string[]): void {
+    this.patch({ [kind]: { ...this.draft()[kind], [section]: ids } });
+  }
+
+  /** "2 von 3": judges entered for the section against the number set in the checklist. */
+  protected judgePill(section: number): { text: string; ok: boolean } | null {
+    const needed = this.store.competition(this.draft().id)?.plan.judges[section];
+    if (needed === null || needed === undefined) return null;
+    const have = (this.draft().officials[section] ?? []).length;
+    return { text: `${have} von ${needed}`, ok: have >= needed };
   }
 
   protected startAdding(event: Event): void {
