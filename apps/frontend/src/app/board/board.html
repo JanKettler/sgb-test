@@ -17,7 +17,7 @@
     </div>
   </div>
 
-  @if (shown().length > 0) {
+  @if (shown().length > 0 || draft()) {
     <div class="table-container">
       <table class="table is-bordered is-fullwidth board-table">
         <thead>
@@ -31,61 +31,81 @@
           </tr>
         </thead>
         <tbody>
+          @if (draft(); as current) {
+            @if (creating()) {
+              <tr class="editing">
+                <ng-container *ngTemplateOutlet="editor; context: { $implicit: current }" />
+              </tr>
+            }
+          }
           @for (post of shown(); track post.id) {
-            <tr
-              [class.is-important]="post.important"
-              [class.has-bg]="!!post.bg"
-              [style.--row-bg]="post.bg || null"
-              [style.--row-ink]="ink(post)"
-            >
-              <td class="meta">{{ post.author }}</td>
-              <td class="meta">{{ day(post.date) }}</td>
-              <td class="message">
-                @if (post.important || store.isNew(post) || audience(post)) {
-                  <div class="flags">
-                    @if (post.important) {
-                      <span class="tag is-danger is-rounded">
-                        <app-icon name="bullhorn" /> Wichtig
-                      </span>
-                    }
-                    @if (store.isNew(post)) {
-                      <span class="tag is-success is-rounded">NEU</span>
-                    }
-                    @if (audience(post)) {
-                      <span class="note"><app-icon name="lock" /> {{ audience(post) }}</span>
-                    }
-                  </div>
-                }
-                <div class="content-text" [appRichText]="post.html"></div>
-                @if (post.until) {
-                  <span class="note">sichtbar bis {{ fullDate(post.until) }}</span>
-                }
-              </td>
-              @if (store.canWrite()) {
-                <td class="actions">
-                  <div class="buttons is-flex-wrap-nowrap are-small">
-                    <button
-                      type="button"
-                      class="button is-warning"
-                      aria-label="Bearbeiten"
-                      (click)="edit(post)"
-                    >
-                      <app-icon name="pencil" />
-                    </button>
-                    <button
-                      type="button"
-                      class="button is-danger"
-                      aria-label="Löschen"
-                      (click)="toDelete.set(post)"
-                    >
-                      <app-icon name="trash" />
-                    </button>
-                  </div>
-                </td>
+            @if (draft(); as current) {
+              @if (current.id === post.id && !creating()) {
+                <tr class="editing">
+                  <ng-container *ngTemplateOutlet="editor; context: { $implicit: current }" />
+                </tr>
+              } @else {
+                <ng-container *ngTemplateOutlet="row; context: { $implicit: post }" />
               }
-            </tr>
+            } @else {
+              <ng-container *ngTemplateOutlet="row; context: { $implicit: post }" />
+            }
           }
         </tbody>
+        <ng-template #row let-post>
+          <tr
+            [class.is-important]="post.important"
+            [class.has-bg]="!!post.bg"
+            [style.--row-bg]="post.bg || null"
+            [style.--row-ink]="ink(post)"
+          >
+            <td class="meta">{{ post.author }}</td>
+            <td class="meta">{{ day(post.date) }}</td>
+            <td class="message">
+              @if (post.important || store.isNew(post) || audience(post)) {
+                <div class="flags">
+                  @if (post.important) {
+                    <span class="tag is-danger is-rounded">
+                      <app-icon name="bullhorn" /> Wichtig
+                    </span>
+                  }
+                  @if (store.isNew(post)) {
+                    <span class="tag is-success is-rounded">NEU</span>
+                  }
+                  @if (audience(post)) {
+                    <span class="note"><app-icon name="lock" /> {{ audience(post) }}</span>
+                  }
+                </div>
+              }
+              <div class="content-text" [appRichText]="post.html"></div>
+              @if (post.until) {
+                <span class="note">sichtbar bis {{ fullDate(post.until) }}</span>
+              }
+            </td>
+            @if (store.canWrite()) {
+              <td class="actions">
+                <div class="buttons is-flex-wrap-nowrap are-small">
+                  <button
+                    type="button"
+                    class="button is-warning"
+                    aria-label="Bearbeiten"
+                    (click)="edit(post)"
+                  >
+                    <app-icon name="pencil" />
+                  </button>
+                  <button
+                    type="button"
+                    class="button is-danger"
+                    aria-label="Löschen"
+                    (click)="toDelete.set(post)"
+                  >
+                    <app-icon name="trash" />
+                  </button>
+                </div>
+              </td>
+            }
+          </tr>
+        </ng-template>
       </table>
     </div>
   } @else {
@@ -173,62 +193,65 @@
   </details>
 }
 
-@if (draft(); as post) {
-  <app-modal-dialog
-    [heading]="creating() ? 'Neue Mitteilung' : 'Mitteilung bearbeiten'"
-    accent="amber"
-    [wide]="true"
-    (closed)="draft.set(null)"
-  >
-    <div class="columns is-mobile is-multiline">
-      <div class="column is-12-mobile is-6-tablet">
-        <label class="label" for="board-author">Von</label>
-        <input
-          id="board-author"
-          class="input"
-          maxlength="60"
-          placeholder="z. B. Jan, i. A. Frieda"
-          [value]="post.author"
-          (change)="setAuthor($event)"
+@if (toDelete(); as post) {
+  <app-modal-dialog heading="Mitteilung löschen?" accent="red" (closed)="toDelete.set(null)">
+    <p>„{{ titleOf(post) }}“ wird gelöscht und bleibt 30 Tage im Archiv.</p>
+    <ng-container dialogActions>
+      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
+      <button type="button" class="button is-danger" (click)="remove()">Löschen</button>
+    </ng-container>
+  </app-modal-dialog>
+}
+
+<ng-template #editor let-post>
+  <td class="meta edit-cell">
+    <label class="is-sr-only" for="board-author">Von</label>
+    <input
+      id="board-author"
+      class="input"
+      maxlength="60"
+      placeholder="Von"
+      [value]="post.author"
+      (change)="setAuthor($event)"
+    />
+  </td>
+  <td class="meta edit-cell">
+    <label class="is-sr-only" for="board-date">Datum</label>
+    <app-date-field
+      inputId="board-date"
+      [value]="post.date"
+      (valueChange)="patch({ date: $event })"
+    />
+  </td>
+  <td class="message edit-cell">
+    <app-rich-editor
+      [html]="post.html"
+      [background]="post.bg"
+      [textColor]="ink(post) ?? ''"
+      (htmlChange)="patch({ html: $event })"
+    />
+    @if (invalid() && !post.html) {
+      <p class="help is-danger">Bitte einen Text eingeben.</p>
+    }
+    <div class="edit-options">
+      <div>
+        <span class="label">Hintergrundfarbe</span>
+        <app-color-field
+          label="Hintergrund"
+          [swatches]="backgrounds"
+          [value]="post.bg"
+          (valueChange)="patch({ bg: $event })"
         />
       </div>
-      <div class="column is-12-mobile is-6-tablet">
-        <label class="label" for="board-date">Datum</label>
+      <div>
+        <label class="label" for="board-until">Sichtbar bis</label>
         <app-date-field
-          inputId="board-date"
-          [value]="post.date"
-          (valueChange)="patch({ date: $event })"
+          inputId="board-until"
+          [value]="post.until"
+          (valueChange)="patch({ until: $event })"
         />
+        <p class="help">Leer: bleibt stehen.</p>
       </div>
-    </div>
-
-    <div class="field">
-      <span class="label">Mitteilung</span>
-      <p class="help mb-2">
-        Die erste Zeile ist die Überschrift: einfach markieren und größer oder fett machen.
-      </p>
-      <app-rich-editor
-        [html]="post.html"
-        [background]="post.bg"
-        [textColor]="ink(post) ?? ''"
-        (htmlChange)="patch({ html: $event })"
-      />
-      @if (invalid() && !post.html) {
-        <p class="help is-danger">Bitte einen Text eingeben.</p>
-      }
-    </div>
-
-    <div class="field">
-      <span class="label">Hintergrundfarbe des Eintrags</span>
-      <app-color-field
-        label="Hintergrund"
-        [swatches]="backgrounds"
-        [value]="post.bg"
-        (valueChange)="patch({ bg: $event })"
-      />
-    </div>
-
-    <div class="field">
       <label class="checkbox">
         <input
           type="checkbox"
@@ -238,17 +261,6 @@
         Wichtig (steht ganz oben)
       </label>
     </div>
-
-    <div class="field">
-      <label class="label" for="board-until">Sichtbar bis</label>
-      <app-date-field
-        inputId="board-until"
-        [value]="post.until"
-        (valueChange)="patch({ until: $event })"
-      />
-      <p class="help">Leer lassen, dann bleibt die Mitteilung stehen.</p>
-    </div>
-
     <details [open]="post.groups.length + post.roles.length > 0">
       <summary class="has-text-weight-bold is-clickable">
         <app-icon name="lock" /> Nur für bestimmte Gruppen oder Rollen
@@ -283,22 +295,27 @@
         </div>
       </div>
     </details>
-
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="draft.set(null)">Abbrechen</button>
-      <button type="button" class="button is-link" (click)="save()">
-        <app-icon name="save" /> Speichern
+  </td>
+  <td class="actions edit-cell">
+    <div class="icon-row">
+      <button
+        type="button"
+        class="button is-primary"
+        aria-label="Speichern"
+        title="Speichern"
+        (click)="save()"
+      >
+        <app-icon name="save" />
       </button>
-    </ng-container>
-  </app-modal-dialog>
-}
-
-@if (toDelete(); as post) {
-  <app-modal-dialog heading="Mitteilung löschen?" accent="red" (closed)="toDelete.set(null)">
-    <p>„{{ titleOf(post) }}“ wird gelöscht und bleibt 30 Tage im Archiv.</p>
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
-      <button type="button" class="button is-danger" (click)="remove()">Löschen</button>
-    </ng-container>
-  </app-modal-dialog>
-}
+      <button
+        type="button"
+        class="button"
+        aria-label="Abbrechen"
+        title="Abbrechen"
+        (click)="cancel()"
+      >
+        <app-icon name="x" />
+      </button>
+    </div>
+  </td>
+</ng-template>

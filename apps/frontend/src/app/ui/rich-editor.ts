@@ -41,6 +41,7 @@ export class RichEditor {
   protected readonly area = viewChild<ElementRef<HTMLElement>>('area');
   protected readonly menu = signal<Menu>(null);
   protected readonly hint = signal('');
+  protected readonly source = signal(false);
   protected readonly textColors = TEXT_COLORS;
   protected readonly markColors = MARK_COLORS;
   protected readonly presets = PRESET_SIZES;
@@ -147,6 +148,21 @@ export class RichEditor {
 
   protected sizeTyped(event: Event): void {
     this.setSize(Number((event.target as HTMLInputElement).value));
+  }
+
+  protected sourceTyped(event: Event): void {
+    this.html.set(cleanHtml((event.target as HTMLTextAreaElement).value));
+  }
+
+  protected pasteFromClipboard(): void {
+    this.restore();
+    navigator.clipboard
+      .readText()
+      .then((text) => {
+        document.execCommand('insertText', false, text);
+        this.changed();
+      })
+      .catch(() => this.hint.set('Zum Einfügen bitte lange auf das Textfeld tippen.'));
   }
 
   protected setLink(href: string): void {

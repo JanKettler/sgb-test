@@ -38,6 +38,9 @@ export type IconName =
   | 'bold'
   | 'italic'
   | 'underline'
+  | 'code'
+  | 'cut'
+  | 'paste'
   | 'strikethrough'
   | 'subscript'
   | 'superscript'
@@ -103,6 +106,9 @@ const FONT_AWESOME: Record<IconName, string> = {
   bold: 'fa-bold',
   italic: 'fa-italic',
   underline: 'fa-underline',
+  code: 'fa-code',
+  cut: 'fa-scissors',
+  paste: 'fa-paste',
   strikethrough: 'fa-strikethrough',
   subscript: 'fa-subscript',
   superscript: 'fa-superscript',

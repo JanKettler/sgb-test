@@ -69,7 +69,7 @@
         <th scope="col"><app-sort-button label="Person" column="person" [sort]="sort" /></th>
         <th scope="col"><app-sort-button label="Zahler" column="payer" [sort]="sort" /></th>
         <th scope="col">
-          <app-sort-button label="Status / Beitragsart" column="type" [sort]="sort" />
+          <app-sort-button label="Beitragsart" column="type" [sort]="sort" />
         </th>
         <th scope="col"><app-sort-button label="Offen" column="amount" [sort]="sort" /></th>
         <th scope="col"><app-sort-button label="Zahlart" column="method" [sort]="sort" /></th>
@@ -93,27 +93,7 @@
           </td>
           <td>{{ payment.payerName }}</td>
           <td>
-            <div class="buttons has-addons mb-0">
-              <button
-                type="button"
-                class="button is-small"
-                [class.is-link]="!isPassive(payment)"
-                [attr.aria-pressed]="!isPassive(payment)"
-                (click)="setPassive(payment, false)"
-              >
-                Aktiv
-              </button>
-              <button
-                type="button"
-                class="button is-small"
-                [class.is-link]="isPassive(payment)"
-                [attr.aria-pressed]="isPassive(payment)"
-                (click)="setPassive(payment, true)"
-              >
-                Passiv
-              </button>
-            </div>
-            <span class="sub">{{ store.feeName(payment.feeTypeId) }}</span>
+            {{ store.feeName(payment.feeTypeId) }}
           </td>
           <td>
             @if (payment.paid) {

@@ -25,7 +25,7 @@
             [attr.aria-expanded]="!collapsed().has(section.key)"
             (click)="toggleSection(section.key)"
           >
-            <span>{{ section.title }}</span>
+            <span class="group-title"><app-icon [name]="section.icon" /> {{ section.title }}</span>
             <app-icon [name]="collapsed().has(section.key) ? 'chevron-right' : 'chevron-down'" />
           </button>
         }

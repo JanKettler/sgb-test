@@ -16,10 +16,6 @@ type TextField =
 const RELATIONS: readonly Relation[] = [
   'Mutter',
   'Vater',
-  'Großmutter',
-  'Großvater',
-  'Pflegemutter',
-  'Pflegevater',
   'Erziehungsberechtigte',
   'Andere Person',
 ];

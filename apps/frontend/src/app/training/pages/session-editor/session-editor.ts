@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Toasts } from '../../../ui/toast';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DateField } from '../../../ui/date-field';
 import { Icon } from '../../../ui/icon';
 import { PersonPickerDialog } from '../../dialogs/person-picker-dialog';
 import { dayMonth, fullDate, shortDay, weekdayIndex } from '../../training-dates';
@@ -28,7 +29,7 @@ type Picker = 'trainer' | 'swimmer' | null;
 /** Edit, copy or create a session, optionally as a series. */
 @Component({
   selector: 'app-session-editor',
-  imports: [RouterLink, Icon, PersonPickerDialog],
+  imports: [RouterLink, Icon, PersonPickerDialog, DateField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './session-editor.html',
   styleUrl: './session-editor.scss',

@@ -21,13 +21,15 @@
         </select>
       </div>
     </div>
-    <div>
-      <label class="label" for="export-from">Von</label>
-      <app-date-field inputId="export-from" [(value)]="from" />
-    </div>
-    <div>
-      <label class="label" for="export-to">Bis</label>
-      <app-date-field inputId="export-to" [(value)]="to" />
+    <div class="range-pair">
+      <div>
+        <label class="label" for="export-from">Von</label>
+        <app-date-field inputId="export-from" [(value)]="from" />
+      </div>
+      <div>
+        <label class="label" for="export-to">Bis</label>
+        <app-date-field inputId="export-to" [(value)]="to" />
+      </div>
     </div>
   </div>
   <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2">

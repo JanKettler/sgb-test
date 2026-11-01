@@ -19,6 +19,7 @@ const ALLOWED_TAGS = new Set([
   'OL',
   'LI',
   'BLOCKQUOTE',
+  'HR',
 ]);
 const DROPPED_TAGS = new Set([
   'SCRIPT',

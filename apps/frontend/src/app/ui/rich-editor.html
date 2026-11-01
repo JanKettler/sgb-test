@@ -4,6 +4,45 @@
       <button
         type="button"
         class="button is-small"
+        title="Quellcode"
+        aria-label="Quellcode"
+        (click)="source.set(!source())"
+      >
+        <app-icon name="code" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Ausschneiden"
+        aria-label="Ausschneiden"
+        (click)="command('cut')"
+      >
+        <app-icon name="cut" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Kopieren"
+        aria-label="Kopieren"
+        (click)="command('copy')"
+      >
+        <app-icon name="copy" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Einfügen"
+        aria-label="Einfügen"
+        (click)="pasteFromClipboard()"
+      >
+        <app-icon name="paste" />
+      </button>
+    </div>
+
+    <div class="buttons has-addons mb-0">
+      <button
+        type="button"
+        class="button is-small"
         title="Rückgängig"
         aria-label="Rückgängig"
         (click)="command('undo')"
@@ -180,6 +219,15 @@
       >
         <app-icon name="quote" />
       </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Trennlinie"
+        aria-label="Trennlinie"
+        (click)="command('insertHorizontalRule')"
+      >
+        <app-icon name="minus" />
+      </button>
     </div>
 
     <div class="buttons mb-0">
@@ -276,18 +324,28 @@
     <p class="help is-danger mt-1">{{ hint() }}</p>
   }
 
-  <div
-    #area
-    class="area"
-    contenteditable="true"
-    role="textbox"
-    tabindex="0"
-    aria-multiline="true"
-    aria-label="Mitteilung"
-    data-placeholder="Mitteilung …"
-    [style.background]="background() || null"
-    [style.color]="textColor() || null"
-    (input)="changed()"
-    (paste)="paste($event)"
-  ></div>
+  @if (source()) {
+    <textarea
+      class="textarea source"
+      aria-label="Quellcode"
+      [value]="html()"
+      (change)="sourceTyped($event)"
+    ></textarea>
+    <p class="help">Nur einfache Formatierung bleibt erhalten, alles andere wird entfernt.</p>
+  } @else {
+    <div
+      #area
+      class="area"
+      contenteditable="true"
+      role="textbox"
+      tabindex="0"
+      aria-multiline="true"
+      aria-label="Mitteilung"
+      data-placeholder="Mitteilung …"
+      [style.background]="background() || null"
+      [style.color]="textColor() || null"
+      (input)="changed()"
+      (paste)="paste($event)"
+    ></div>
+  }
 </div>

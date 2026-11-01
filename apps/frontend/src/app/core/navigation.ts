@@ -17,12 +17,19 @@ export interface NavSection {
   /** Empty for the top block without a title. */
   title: string;
   tone: string;
+  icon: IconName;
   items: NavItem[];
 }
 
 /** Page that is announced in the menu but not built yet. */
-function soon(label: string, key: string, icon: IconName, tone: string): NavItem {
-  return { label, path: `/bald/${key}`, icon, tone, access: 'manage' };
+function soon(
+  label: string,
+  key: string,
+  icon: IconName,
+  tone: string,
+  access: NavAccess = 'manage',
+): NavItem {
+  return { label, path: `/bald/${key}`, icon, tone, access };
 }
 
 export const NAVIGATION: readonly NavSection[] = [
@@ -30,18 +37,20 @@ export const NAVIGATION: readonly NavSection[] = [
     key: 'top',
     title: '',
     tone: 'blue',
+    icon: 'home',
     items: [
       { label: 'Startseite', path: '/', icon: 'home', tone: 'blue', access: 'all', exact: true },
       { label: 'Schwarzes Brett', path: '/brett', icon: 'pin', tone: 'amber', access: 'all' },
-      { label: 'Aufgaben', path: '/aufgaben', icon: 'tasks', tone: 'green', access: 'manage' },
     ],
   },
   {
     key: 'competition',
     title: 'Wettkampf',
     tone: 'blue',
+    icon: 'flag',
     items: [
       soon('Wettkämpfe', 'wettkaempfe', 'flag', 'blue'),
+      soon('Anmeldung', 'wk-anmeldung', 'check', 'green', 'all'),
       soon('Auswertung', 'auswertung', 'sheet', 'teal'),
     ],
   },
@@ -49,6 +58,7 @@ export const NAVIGATION: readonly NavSection[] = [
     key: 'training',
     title: 'Training',
     tone: 'green',
+    icon: 'swim',
     items: [
       {
         label: 'Anmeldung',
@@ -84,6 +94,7 @@ export const NAVIGATION: readonly NavSection[] = [
     key: 'club',
     title: 'Verein',
     tone: 'rose',
+    icon: 'users',
     items: [
       { label: 'Personen', path: '/personen', icon: 'users', tone: 'rose', access: 'manage' },
       { label: 'Beiträge', path: '/beitraege', icon: 'coins', tone: 'green', access: 'manage' },
@@ -96,22 +107,28 @@ export const NAVIGATION: readonly NavSection[] = [
     key: 'organisation',
     title: 'Organisation',
     tone: 'violet',
+    icon: 'tasks',
     items: [
+      { label: 'Aufgaben', path: '/aufgaben', icon: 'tasks', tone: 'green', access: 'manage' },
       soon('Abrechnung', 'abrechnung', 'coins', 'green'),
       soon('Material', 'material', 'list', 'amber'),
-      soon('Veranstaltungen', 'veranstaltungen', 'calendar', 'teal'),
     ],
   },
   {
     key: 'actions',
     title: 'Aktionen',
     tone: 'amber',
-    items: [soon('Weihnachtsmarkt', 'weihnachtsmarkt', 'tree', 'green')],
+    icon: 'bolt',
+    items: [
+      soon('Veranstaltungen', 'veranstaltungen', 'calendar', 'teal', 'all'),
+      soon('Weihnachtsmarkt', 'weihnachtsmarkt', 'tree', 'green'),
+    ],
   },
   {
     key: 'waitlist',
     title: 'Warteliste',
     tone: 'amber',
+    icon: 'list',
     items: [
       {
         label: 'Anmelden',
@@ -131,6 +148,10 @@ export const SOON_PAGES: Record<string, { title: string; text: string }> = {
     title: 'Wettkämpfe',
     text: 'Ausschreibungen, Meldungen und Starterlisten der Wettkämpfe.',
   },
+  'wk-anmeldung': {
+    title: 'Wettkampf-Anmeldung',
+    text: 'Hier melden sich Schwimmerinnen und Schwimmer (oder die Eltern) für Wettkämpfe an.',
+  },
   auswertung: {
     title: 'Auswertung',
     text: 'Ergebnisse und Bestzeiten der Schwimmerinnen und Schwimmer.',
@@ -140,7 +161,10 @@ export const SOON_PAGES: Record<string, { title: string; text: string }> = {
   dokumente: { title: 'Dokumente', text: 'Satzung, Formulare und Vorlagen des Vereins.' },
   abrechnung: { title: 'Abrechnung', text: 'Fahrtkosten, Auslagen und Erstattungen.' },
   material: { title: 'Material', text: 'Ausleihe und Bestand von Vereinsmaterial.' },
-  veranstaltungen: { title: 'Veranstaltungen', text: 'Vereinsfeiern, Helferlisten und Termine.' },
+  veranstaltungen: {
+    title: 'Veranstaltungen',
+    text: 'Vereinsfeiern, Helferlisten und Termine. Mitglieder können sich anmelden, sobald die Veranstaltung dafür freigegeben ist.',
+  },
   weihnachtsmarkt: {
     title: 'Weihnachtsmarkt',
     text: 'Planung und Helferplan für den Weihnachtsmarkt.',

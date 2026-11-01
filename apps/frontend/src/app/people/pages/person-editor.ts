@@ -62,6 +62,7 @@ type TextKey =
   | 'iban'
   | 'bic'
   | 'refereeNo'
+  | 'priorTraining'
   | 'refereeUntil'
   | 'officialFunction';
 type GroupKey = 'swimmerGroupIds' | 'trainerGroupIds';
@@ -107,7 +108,25 @@ export class PersonEditor {
   protected readonly chips = computed(() => this.store.roleChips(this.draft()));
   protected readonly name = computed(() => fullName(this.draft()) || 'Neue Person');
   protected readonly initials = computed(() => initials(this.draft()) || '+');
-  protected readonly missingRoles = computed(() => ROLES.filter((role) => !this.draft()[role.key]));
+  /** One list of roles, in the order of the user administration; a tick shows the matching fields. */
+  protected readonly roleCards: readonly { id: string; label: string; hint: string }[] = [
+    { id: 'swimmer', label: 'Schwimmer', hint: 'Gruppen, Startrecht und Sportattest' },
+    ...[
+      { id: 'trainer', label: 'Trainer' },
+      { id: 'helper', label: 'Helfer' },
+    ].map((item) => ({
+      ...item,
+      hint: APP_ROLES.find((role) => role.key === item.id)?.hint ?? '',
+    })),
+    { id: 'referee', label: 'Kampfrichter', hint: 'Lizenznummer und Lizenzen' },
+    { id: 'official', label: 'Funktionär', hint: 'Funktion und Amtszeit' },
+    { id: 'driver', label: 'Fahrer', hint: 'Bankverbindung für die Fahrtenabrechnung' },
+    ...APP_ROLES.filter((role) => !['trainer', 'helper'].includes(role.key)).map((role) => ({
+      id: role.key,
+      label: role.label,
+      hint: role.hint,
+    })),
+  ];
 
   private load(): Member {
     const id = this.id();
@@ -129,6 +148,28 @@ export class PersonEditor {
 
   protected setNumber(key: 'memberNo', event: Event): void {
     this.draft.update((member) => ({ ...member, [key]: Number(this.value(event)) || 0 }));
+  }
+
+  protected setPassive(passive: boolean): void {
+    this.draft.update((member) => ({ ...member, passive }));
+  }
+
+  protected roleOn(id: string): boolean {
+    const member = this.draft();
+    return id in member && typeof member[id as RoleKey] === 'boolean'
+      ? member[id as RoleKey]
+      : member.appRoles.includes(id as AppRoleKey);
+  }
+
+  /** Trainer and Helfer exist as club role and as user role; both are switched together. */
+  protected toggleRoleCard(id: string): void {
+    const on = !this.roleOn(id);
+    const isClubRole = ROLES.some((role) => role.key === id);
+    if (isClubRole) this.setRole(id as RoleKey, on);
+    const isAppRole = APP_ROLES.some((role) => role.key === id);
+    if (isAppRole && this.draft().appRoles.includes(id as AppRoleKey) !== on) {
+      this.toggleAppRole(id as AppRoleKey);
+    }
   }
 
   protected toggleCompetes(): void {
@@ -255,6 +296,7 @@ export class PersonEditor {
       return;
     }
     this.store.save(member);
+    this.fees.syncMembership(this.store.member(member.id) ?? member);
     this.fees.generate();
     this.toasts.saved(`${fullName(member)} gespeichert`);
     void this.router.navigate(['/personen']);

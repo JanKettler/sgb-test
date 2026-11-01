@@ -1,5 +1,38 @@
 <section class="box">
-  <h3 class="title"><app-icon name="calendar" /> Nächste 7 Tage</h3>
+  <div class="week-bar">
+    <h3 class="title mb-0">
+      <app-icon name="calendar" /> {{ weekOffset() === 0 ? 'Diese Woche' : 'Woche' }}
+      <span class="week-label">{{ weekLabel() }}</span>
+    </h3>
+    <div class="icon-row">
+      <button
+        type="button"
+        class="button"
+        aria-label="Eine Woche zurück"
+        title="Woche zurück"
+        (click)="shiftWeek(-1)"
+      >
+        <app-icon name="chevron-left" />
+      </button>
+      <button
+        type="button"
+        class="button"
+        [disabled]="weekOffset() === 0"
+        (click)="weekOffset.set(0)"
+      >
+        Heute
+      </button>
+      <button
+        type="button"
+        class="button"
+        aria-label="Eine Woche vor"
+        title="Woche vor"
+        (click)="shiftWeek(1)"
+      >
+        <app-icon name="chevron-right" />
+      </button>
+    </div>
+  </div>
   <p class="hint">
     @switch (role()) {
       @case ('parent') {

@@ -26,12 +26,10 @@
       <div class="form-grid">
         <div>
           <label class="label" for="edit-date">Datum</label>
-          <input
-            id="edit-date"
-            class="input"
-            type="date"
+          <app-date-field
+            inputId="edit-date"
             [value]="session.date"
-            (input)="patch({ date: value($event) })"
+            (valueChange)="patch({ date: $event })"
           />
         </div>
         <div>
@@ -164,12 +162,10 @@
       <div class="form-grid">
         <div>
           <label class="label" for="edit-deadline-date">Meldeschluss Datum</label>
-          <input
-            id="edit-deadline-date"
-            class="input"
-            type="date"
+          <app-date-field
+            inputId="edit-deadline-date"
             [value]="session.deadlineDate"
-            (input)="patch({ deadlineDate: value($event) })"
+            (valueChange)="patch({ deadlineDate: $event })"
           />
         </div>
         <div>
@@ -229,13 +225,13 @@
             </select>
           </div>
           <label class="label" for="edit-until">Bis</label>
-          <input
-            id="edit-until"
-            class="input mb-3"
-            type="date"
-            [value]="until()"
-            (input)="until.set(value($event))"
-          />
+          <div class="mb-3">
+            <app-date-field
+              inputId="edit-until"
+              [value]="until()"
+              (valueChange)="until.set($event)"
+            />
+          </div>
           @if (rhythm() !== 'monthly') {
             <span class="label">Wochentage</span>
             <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">

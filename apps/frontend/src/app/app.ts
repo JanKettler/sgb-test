@@ -34,7 +34,7 @@ export class App implements OnInit {
   protected readonly menuOpen = signal(false);
   protected readonly connectionStatus = signal<'loading' | 'connected' | 'unavailable'>('loading');
 
-  protected readonly collapsed = signal<ReadonlySet<string>>(new Set());
+  protected readonly collapsed = signal<ReadonlySet<string>>(this.loadCollapsed());
 
   /** The menu for the current role; sections without any visible entry disappear. */
   protected readonly sections = computed(() => {
@@ -53,8 +53,26 @@ export class App implements OnInit {
     this.collapsed.update((current) => {
       const next = new Set(current);
       if (!next.delete(key)) next.add(key);
+      this.saveCollapsed(next);
       return next;
     });
+  }
+
+  /** The folded sections are remembered per browser; later they belong to the account. */
+  private loadCollapsed(): ReadonlySet<string> {
+    try {
+      return new Set(JSON.parse(localStorage.getItem('sgb-nav-collapsed') ?? '[]') as string[]);
+    } catch {
+      return new Set();
+    }
+  }
+
+  private saveCollapsed(value: ReadonlySet<string>): void {
+    try {
+      localStorage.setItem('sgb-nav-collapsed', JSON.stringify([...value]));
+    } catch {
+      // Storage may be blocked; the menu then simply starts open again.
+    }
   }
 
   protected toggleMenu(): void {

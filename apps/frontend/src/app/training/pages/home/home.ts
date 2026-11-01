@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Icon } from '../../../ui/icon';
 import { addDays, endTime, minutesOfDay, parseIsoDate, weekdayShort } from '../../training-dates';
@@ -25,7 +25,7 @@ interface CalendarDay {
   events: CalendarEvent[];
 }
 
-/** Start page: the next seven days. The hour range follows the sessions that are shown. */
+/** Start page: the current week. The hour range follows the sessions that are shown. */
 @Component({
   selector: 'app-home',
   imports: [RouterLink, Icon],
@@ -38,27 +38,48 @@ export class Home {
   protected readonly role = this.store.role;
   protected readonly hourHeight = HOUR_HEIGHT;
 
-  private readonly entries = computed(() => this.store.weekEntries());
+  /** 0 = current week, -1 = last week, 1 = next week, ... */
+  protected readonly weekOffset = signal(0);
+
+  private readonly entries = computed(() => this.store.weekEntries(this.weekOffset()));
 
   protected readonly hours = computed(() => {
     const sessions = this.entries().map((entry) => entry.session);
     let first: number = FALLBACK_HOURS[0];
     let last: number = FALLBACK_HOURS[1];
     if (sessions.length > 0) {
-      first = Math.min(...sessions.map((s) => Math.floor(minutesOfDay(s.time) / 60)));
-      last = Math.max(
-        ...sessions.map((s) => Math.ceil(minutesOfDay(endTime(s.time, s.durationMinutes)) / 60)),
+      // Half an hour before and after the sessions of the week.
+      first = Math.max(
+        0,
+        Math.min(...sessions.map((s) => Math.floor((minutesOfDay(s.time) - 30) / 60))),
+      );
+      last = Math.min(
+        24,
+        Math.max(
+          ...sessions.map((s) =>
+            Math.ceil((minutesOfDay(endTime(s.time, s.durationMinutes)) + 30) / 60),
+          ),
+        ),
       );
     }
     return Array.from({ length: Math.max(last - first, 1) }, (_, index) => first + index);
   });
+
+  protected readonly weekLabel = computed(() => {
+    const days = this.days();
+    return `${days[0].label} – ${days[6].label}`;
+  });
+
+  protected shiftWeek(step: number): void {
+    this.weekOffset.update((offset) => offset + step);
+  }
 
   protected readonly bodyHeight = computed(() => this.hours().length * HOUR_HEIGHT);
 
   protected readonly days = computed<CalendarDay[]>(() => {
     const firstMinute = this.hours()[0] * 60;
     const sinceMonday = (parseIsoDate(this.store.today).getDay() + 6) % 7;
-    const monday = addDays(this.store.today, -sinceMonday);
+    const monday = addDays(this.store.today, -sinceMonday + this.weekOffset() * 7);
     return Array.from({ length: 7 }, (_, offset) => {
       const iso = addDays(monday, offset);
       const events = this.entries()
