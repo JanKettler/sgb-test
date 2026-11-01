@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { Toasts } from '../../../ui/toast';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { GroupChips } from '../../../ui/group-chips';
 import { DateField } from '../../../ui/date-field';
 import { Icon } from '../../../ui/icon';
@@ -30,6 +30,8 @@ interface SessionRow {
   deadline: string;
   past: boolean;
   started: boolean;
+  /** Was just created in the editor and is highlighted. */
+  fresh: boolean;
 }
 
 @Component({
@@ -53,6 +55,8 @@ export class Sessions {
   protected readonly toDelete = signal<TrainingSession | null>(null);
   protected readonly viewing = signal<TrainingSession | null>(null);
   protected readonly mailing = signal<TrainingSession | null>(null);
+  /** The session the editor has just created (or the first of a series). */
+  private readonly freshId = inject(ActivatedRoute).snapshot.queryParamMap.get('neu') ?? '';
 
   protected readonly rows = computed<SessionRow[]>(() => {
     return this.store
@@ -70,6 +74,7 @@ export class Sessions {
           deadline: this.store.deadlineLabel(session),
           past: this.store.isPast(session),
           started: this.store.attendanceStarted(session),
+          fresh: session.id === this.freshId,
         };
       });
   });
@@ -80,7 +85,7 @@ export class Sessions {
   );
 
   constructor() {
-    afterNextRender(() => this.scrollToNext());
+    afterNextRender(() => this.scrollTo(this.freshId ? 'tr.is-fresh' : 'tr.is-next'));
   }
 
   protected readonly filtered = computed(
@@ -111,10 +116,14 @@ export class Sessions {
     this.to.set('');
   }
 
-  /** Puts the next session directly below the sticky table heading. */
   protected scrollToNext(): void {
+    this.scrollTo('tr.is-next');
+  }
+
+  /** Puts the row directly below the sticky table heading. */
+  private scrollTo(selector: string): void {
     const box = this.scroller()?.nativeElement;
-    const row = box?.querySelector<HTMLElement>('tr.is-next');
+    const row = box?.querySelector<HTMLElement>(selector);
     if (!box || !row) return;
     const head = box.querySelector('thead')?.getBoundingClientRect().height ?? 0;
     const offset = row.getBoundingClientRect().top - box.getBoundingClientRect().top;

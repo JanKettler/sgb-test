@@ -38,6 +38,14 @@ export interface RepeatOptions {
   weekdays: number[];
 }
 
+/** What creating sessions came to: the new ones and the dates that were there already. */
+export interface AddedSessions {
+  /** Ids of the new sessions, in date order. */
+  ids: string[];
+  /** Dates that already had the same session and were left out. */
+  existing: number;
+}
+
 export interface ActionNeeded {
   person: Person;
   streak: number;
@@ -388,32 +396,75 @@ export class TrainingStore {
       );
       return 1;
     }
+    return this.append(this.expand(session, repeat)).length;
+  }
+
+  /**
+   * Creates the sessions of a new draft or series. A date that already has the same session
+   * (same day, time and groups) is left out, so copying never makes doubles.
+   */
+  addSessions(session: TrainingSession, repeat: RepeatOptions | null): AddedSessions {
+    const drafts = this.expand(session, repeat);
+    const fresh = drafts.filter(
+      (draft) => !this.hasSession(draft.date, draft.time, draft.groupIds),
+    );
+    const created = this.append(fresh);
+    return { ids: created.map((item) => item.id), existing: drafts.length - fresh.length };
+  }
+
+  /** Whether a session of exactly these groups takes place at that day and time. */
+  hasSession(date: string, time: string, groupIds: readonly GroupId[]): boolean {
+    const key = [...groupIds].sort().join();
+    return this.sessions().some(
+      (item) =>
+        item.date === date && item.time === time && [...item.groupIds].sort().join() === key,
+    );
+  }
+
+  /** One draft per date of the series, the deadline moves with the date. The ids come later. */
+  private expand(session: TrainingSession, repeat: RepeatOptions | null): TrainingSession[] {
     const offset = (Date.parse(session.deadlineDate) - Date.parse(session.date)) / DAY_MS;
     const dates = repeat ? this.repeatDates(session.date, repeat) : [session.date];
-    const created = dates.map((date) => ({
+    return dates.map((date) => ({
       ...session,
-      id: `s${this.nextSessionNumber++}`,
+      id: '',
       date,
       deadlineDate: addDays(date, offset),
     }));
-    this.sessions.update((all) => [...all, ...created].sort(compareSessions));
-    return created.length;
+  }
+
+  private append(drafts: TrainingSession[]): TrainingSession[] {
+    const created = drafts.map((draft) => ({ ...draft, id: `s${this.nextSessionNumber++}` }));
+    if (created.length > 0) {
+      this.sessions.update((all) => [...all, ...created].sort(compareSessions));
+    }
+    return created;
   }
 
   findSession(id: string): TrainingSession | undefined {
     return this.sessions().find((session) => session.id === id);
   }
 
-  /** A copy of a session one week later, not saved yet. */
+  /**
+   * A copy for the next week that does not have this session yet, not saved yet. People who
+   * were added for the one session only stay out of the copy.
+   */
   copyOf(session: TrainingSession): TrainingSession {
+    const offset = (Date.parse(session.deadlineDate) - Date.parse(session.date)) / DAY_MS;
+    let date = addDays(session.date, 7);
+    for (let week = 0; week < MAX_SERIES_LENGTH; week++) {
+      if (!this.hasSession(date, session.time, session.groupIds)) break;
+      date = addDays(date, 7);
+    }
+    const regular = new Set(this.trainersForGroups(session.groupIds).map((trainer) => trainer.id));
     return {
       ...session,
       id: '',
-      date: addDays(session.date, 7),
-      deadlineDate: addDays(session.deadlineDate, 7),
+      date,
+      deadlineDate: addDays(date, offset),
       groupIds: [...session.groupIds],
-      trainerIds: [...session.trainerIds],
-      extraSwimmerIds: [...session.extraSwimmerIds],
+      trainerIds: session.trainerIds.filter((id) => regular.has(id)),
+      extraSwimmerIds: [],
     };
   }
 

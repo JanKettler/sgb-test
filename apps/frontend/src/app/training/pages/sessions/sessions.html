@@ -79,8 +79,17 @@
       </thead>
       <tbody>
         @for (row of rows(); track row.session.id) {
-          <tr [class.is-past]="row.past" [class.is-next]="row.session.id === nextId()">
-            <td class="day nowrap">{{ row.day }}</td>
+          <tr
+            [class.is-past]="row.past"
+            [class.is-next]="row.session.id === nextId()"
+            [class.is-fresh]="row.fresh"
+          >
+            <td class="day nowrap">
+              {{ row.day }}
+              @if (row.fresh) {
+                <span class="pill is-ok">Neu</span>
+              }
+            </td>
             <td class="nowrap">{{ row.time }}</td>
             <td>
               <app-group-chips [groupIds]="row.session.groupIds" [short]="true" />

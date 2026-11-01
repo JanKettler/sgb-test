@@ -38,12 +38,15 @@ export class SessionEditor {
   protected readonly toasts = inject(Toasts);
   protected readonly store = inject(TrainingStore);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   protected readonly weekdays = WEEKDAYS;
   protected readonly rhythms = RHYTHMS;
 
+  /** The session this draft was copied from, when the editor was opened with "Kopieren". */
+  protected readonly copySource = this.sourceOfCopy();
   protected readonly draft = signal<TrainingSession>(this.initialDraft());
   protected readonly invalid = signal(false);
-  protected readonly series = signal(inject(ActivatedRoute).snapshot.queryParamMap.has('serie'));
+  protected readonly series = signal(this.route.snapshot.queryParamMap.has('serie'));
   protected readonly rhythm = signal<RepeatOptions['rhythm']>('weekly');
   protected readonly until = signal('');
   protected readonly repeatDays = signal<number[]>([weekdayIndex(this.draft().date)]);
@@ -51,10 +54,25 @@ export class SessionEditor {
 
   protected readonly isNew = computed(() => this.draft().id === '');
 
+  protected readonly heading = computed(() => {
+    if (!this.isNew()) return 'Termin bearbeiten';
+    return this.copySource ? 'Termin kopieren' : 'Neuer Termin';
+  });
+
   protected readonly title = computed(() => {
     const draft = this.draft();
     const names = draft.groupIds.map((id) => this.store.groupName(id)).join(', ');
-    return `${draft.date ? shortDay(draft.date) : ''} · ${names}`;
+    const own = `${draft.date ? shortDay(draft.date) : ''} · ${names}`;
+    const source = this.copySource;
+    if (!source || !this.isNew()) return own;
+    return `${own} · Kopie von ${shortDay(source.date)}, ${source.time} Uhr`;
+  });
+
+  /** A new session on a day and time where the same groups already train. */
+  protected readonly clash = computed(() => {
+    const draft = this.draft();
+    const known = this.store.hasSession(draft.date, draft.time, draft.groupIds);
+    return this.isNew() && draft.date !== '' && draft.time !== '' && known;
   });
 
   /** Trainers of the selected groups; the others were added for this session only. */
@@ -112,19 +130,24 @@ export class SessionEditor {
   protected readonly repeatSummary = computed(() => {
     const dates = this.repeatDates();
     if (dates.length === 0) return '';
+    const draft = this.draft();
+    const known = dates.filter((date) => this.store.hasSession(date, draft.time, draft.groupIds));
     const last = dates[dates.length - 1];
-    return `Ergebnis: ${dates.length} Termine zwischen ${dayMonth(dates[0])} und ${fullDate(last)}`;
+    const text = `Ergebnis: ${dates.length} Termine zwischen ${dayMonth(dates[0])} und ${fullDate(last)}`;
+    return known.length > 0 ? `${text}, davon ${known.length} schon vorhanden` : text;
   });
 
+  private sourceOfCopy(): TrainingSession | undefined {
+    const id = this.route.snapshot.queryParamMap.get('kopie');
+    return id ? this.store.findSession(id) : undefined;
+  }
+
   private initialDraft(): TrainingSession {
-    const snapshot = inject(ActivatedRoute).snapshot;
-    const id = snapshot.paramMap.get('id');
-    const copyOf = snapshot.queryParamMap.get('kopie');
+    const id = this.route.snapshot.paramMap.get('id');
     const existing = id ? this.store.findSession(id) : undefined;
-    const source = copyOf ? this.store.findSession(copyOf) : undefined;
     if (existing) return this.clone(existing);
-    if (source) return this.store.copyOf(source);
-    return this.store.emptySession();
+    const source = this.sourceOfCopy();
+    return source ? this.store.copyOf(source) : this.store.emptySession();
   }
 
   private clone(session: TrainingSession): TrainingSession {
@@ -199,12 +222,30 @@ export class SessionEditor {
       return;
     }
     const session = asCopy ? { ...draft, id: '' } : draft;
+    if (session.id) {
+      this.store.saveSession(session, null);
+      this.toasts.saved('Termin gespeichert');
+      void this.router.navigateByUrl('/training/termine');
+      return;
+    }
     const repeat: RepeatOptions | null =
-      this.series() && !session.id && this.until()
+      this.series() && this.until()
         ? { rhythm: this.rhythm(), until: this.until(), weekdays: this.repeatDays() }
         : null;
-    const count = this.store.saveSession(session, repeat);
-    this.toasts.saved(count > 1 ? `${count} Termine angelegt` : 'Termin gespeichert');
-    void this.router.navigateByUrl('/training/termine');
+    const { ids, existing } = this.store.addSessions(session, repeat);
+    if (ids.length === 0) {
+      this.toasts.failed(
+        existing > 1 ? 'Diese Termine gibt es schon' : 'Diesen Termin gibt es schon',
+      );
+      return;
+    }
+    this.toasts.saved(this.createdText(ids.length, existing));
+    // The list scrolls to the new session, so the copy does not get lost among the others.
+    void this.router.navigate(['/training/termine'], { queryParams: { neu: ids[0] } });
+  }
+
+  private createdText(created: number, existing: number): string {
+    const made = created > 1 ? `${created} Termine angelegt` : 'Termin gespeichert';
+    return existing > 0 ? `${made}, ${existing} gab es schon` : made;
   }
 }
