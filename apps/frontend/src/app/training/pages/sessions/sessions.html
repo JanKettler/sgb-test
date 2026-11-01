@@ -1,5 +1,5 @@
 <header
-  class="is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
 >
   <div>
     <h2 class="title is-4 mb-1">Training</h2>
@@ -82,7 +82,7 @@
           <tr [class.is-past]="row.past" [class.is-next]="row.session.id === nextId()">
             <td class="day nowrap">{{ row.day }}</td>
             <td class="nowrap">{{ row.time }}</td>
-            <td class="center">
+            <td>
               <app-group-chips [groupIds]="row.session.groupIds" [short]="true" />
             </td>
             <td>{{ row.trainers }}</td>
@@ -92,7 +92,6 @@
             </td>
             <td class="center">
               <strong>{{ row.trainerCount }}</strong>
-              <span class="max">/ {{ row.session.maxTrainers }}</span>
             </td>
             <td>{{ row.deadline }}</td>
             <td>

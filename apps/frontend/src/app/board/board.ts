@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { fullDate, weekdayShort } from '../training/training-dates';
+import { fullDate } from '../training/training-dates';
 import { DEMO_ROLES, DemoRole, GROUPS, GroupId } from '../training/training.models';
 import { BACKGROUND_COLORS, ColorField, readableOn } from '../ui/color-field';
 import { DateField } from '../ui/date-field';
@@ -73,18 +73,11 @@ export class Board {
   }
 
   protected day(iso: string): string {
-    return `${weekdayShort(iso)}, ${fullDate(iso)}`;
+    return fullDate(iso);
   }
 
   protected ink(post: BoardPost): string | null {
     return post.bg ? readableOn(post.bg) : null;
-  }
-
-  /** The arrows only work between messages of the same importance. */
-  protected canMove(post: BoardPost, step: -1 | 1): boolean {
-    const list = this.store.live();
-    const other = list[list.findIndex((item) => item.id === post.id) + step];
-    return !!other && other.important === post.important;
   }
 
   protected add(): void {

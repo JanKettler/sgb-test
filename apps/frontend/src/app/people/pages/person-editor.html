@@ -310,6 +310,10 @@
               <app-icon name="x" />
             </button>
           </div>
+          <label class="checkbox mb-3">
+            <input type="checkbox" [checked]="draft().competes" (change)="toggleCompetes()" />
+            Startet bei Wettkämpfen (Sportattest nötig)
+          </label>
           <div class="form-grid">
             <div>
               <label class="label" for="s-dsv">DSV-ID</label>

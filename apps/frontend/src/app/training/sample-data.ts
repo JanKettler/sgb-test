@@ -201,7 +201,6 @@ function buildSessions(today: string): TrainingSession[] {
         trainerIds: slot.trainerIds,
         extraSwimmerIds: [],
         maxSwimmers: 15,
-        maxTrainers: 3,
         deadlineDate: addDays(date, -1),
         deadlineTime: '14:00',
       });
@@ -223,7 +222,6 @@ function buildDefaults(): Record<GroupId, GroupDefaults> {
       deadlineDaysBefore: 1,
       deadlineTime: '14:00',
       maxSwimmers: 15,
-      maxTrainers: 3,
       trainerIds,
     };
   }

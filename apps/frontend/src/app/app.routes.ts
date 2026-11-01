@@ -99,6 +99,11 @@ export const routes: Routes = [
     loadComponent: () => import('./tasks/tasks').then((module) => module.Tasks),
   },
   {
+    path: 'bald/:seite',
+    title: 'In Planung – SGB Portal',
+    loadComponent: () => import('./core/soon-page').then((module) => module.SoonPage),
+  },
+  {
     path: 'wettkaempfe/:id',
     title: 'Wettkampf – SGB Portal',
     loadComponent: () => import('./start/competition').then((module) => module.CompetitionPage),

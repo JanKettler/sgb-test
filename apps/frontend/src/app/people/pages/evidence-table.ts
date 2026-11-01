@@ -12,6 +12,7 @@ import {
   EVIDENCE_LABELS,
   EvidenceCategory,
   EvidenceKind,
+  EVIDENCE_FIELDS,
   EvidenceRow,
   categoryOf,
 } from '../people-evidence';
@@ -42,8 +43,6 @@ export class EvidenceTable {
   protected readonly from = signal(this.store.today);
   protected readonly to = signal(addDays(this.store.today, 90));
   protected readonly kind = signal<EvidenceKind | ''>('');
-  /** Hide missing evidence only in the shown category or in all of them. */
-  protected readonly forAll = signal(false);
   protected readonly selected = signal<ReadonlySet<string>>(new Set());
   protected readonly mailing = signal(false);
 
@@ -55,7 +54,13 @@ export class EvidenceTable {
   );
 
   protected readonly kinds = computed(() => EVIDENCE_CATEGORIES[this.category()].kinds);
-  protected readonly hidingMissing = computed(() => this.store.hideMissing()[this.category()]);
+  protected readonly hideKinds = computed(() =>
+    this.kinds().map((kind) => ({
+      kind,
+      label: EVIDENCE_LABELS[kind],
+      on: this.store.hideMissing()[kind],
+    })),
+  );
 
   protected readonly periods = computed(() => {
     const rows = this.inCategory();
@@ -130,8 +135,15 @@ export class EvidenceTable {
     this.selected.set(new Set());
   }
 
-  protected toggleHidingMissing(): void {
-    this.store.setHideMissing(this.forAll() ? 'all' : this.category(), !this.hidingMissing());
+  protected toggleHiding(kind: EvidenceKind, on: boolean): void {
+    this.store.setHideMissing(kind, !on);
+  }
+
+  /** Enters the date right in the row. */
+  protected setDate(row: EvidenceRow, date: string): void {
+    if (!date || date === row.date) return;
+    this.store.save({ ...row.member, [EVIDENCE_FIELDS[row.kind]]: date });
+    this.toasts.saved(`${row.label} von ${fullName(row.member)} eingetragen`);
   }
 
   protected key(row: EvidenceRow): string {

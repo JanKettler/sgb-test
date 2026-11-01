@@ -8,13 +8,42 @@
 }
 
 .search {
-  max-width: 22rem;
+  flex: 1;
+  min-width: 14rem;
+}
+
+.more-filters,
+.who-choices {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip .count {
+  background: var(--sgb-hover);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+  padding: 0.05rem 0.45rem;
+}
+
+.chip.is-on .count {
+  background: rgb(255 255 255 / 25%);
+}
+
+.sub-edit {
+  align-items: center;
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  margin-bottom: 0.6rem;
 }
 
 .chip.is-bad {
@@ -39,8 +68,18 @@
 .task {
   background: var(--sgb-card);
   border: 1px solid var(--sgb-line);
+  border-left: 5px solid var(--sgb-line);
   border-radius: 12px;
-  margin-bottom: 0.5rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
+  margin-bottom: 0.55rem;
+
+  &.is-high {
+    border-left-color: #f59e0b;
+  }
+
+  &.is-late {
+    border-left-color: #dc2626;
+  }
 
   &.is-done {
     opacity: 0.65;

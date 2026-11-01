@@ -4,6 +4,27 @@
       <button
         type="button"
         class="button is-small"
+        title="Rückgängig"
+        aria-label="Rückgängig"
+        (click)="command('undo')"
+      >
+        <app-icon name="undo" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Wiederholen"
+        aria-label="Wiederholen"
+        (click)="command('redo')"
+      >
+        <app-icon name="redo" />
+      </button>
+    </div>
+
+    <div class="buttons has-addons mb-0">
+      <button
+        type="button"
+        class="button is-small"
         title="Linksbündig"
         aria-label="Linksbündig"
         (click)="command('justifyLeft')"
@@ -80,6 +101,84 @@
         (click)="command('underline')"
       >
         <app-icon name="underline" />
+      </button>
+    </div>
+
+    <div class="buttons has-addons mb-0">
+      <button
+        type="button"
+        class="button is-small"
+        title="Durchgestrichen"
+        aria-label="Durchgestrichen"
+        (click)="command('strikeThrough')"
+      >
+        <app-icon name="strikethrough" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Tiefgestellt"
+        aria-label="Tiefgestellt"
+        (click)="command('subscript')"
+      >
+        <app-icon name="subscript" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Hochgestellt"
+        aria-label="Hochgestellt"
+        (click)="command('superscript')"
+      >
+        <app-icon name="superscript" />
+      </button>
+    </div>
+
+    <div class="buttons has-addons mb-0">
+      <button
+        type="button"
+        class="button is-small"
+        title="Aufzählung"
+        aria-label="Aufzählung"
+        (click)="command('insertUnorderedList')"
+      >
+        <app-icon name="list-ul" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Nummerierung"
+        aria-label="Nummerierung"
+        (click)="command('insertOrderedList')"
+      >
+        <app-icon name="list-ol" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Einrücken"
+        aria-label="Einrücken"
+        (click)="command('indent')"
+      >
+        <app-icon name="indent" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Ausrücken"
+        aria-label="Ausrücken"
+        (click)="command('outdent')"
+      >
+        <app-icon name="outdent" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Zitat"
+        aria-label="Zitat"
+        (click)="command('quote')"
+      >
+        <app-icon name="quote" />
       </button>
     </div>
 

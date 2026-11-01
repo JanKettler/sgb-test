@@ -1,7 +1,25 @@
 import { Directive, ElementRef, effect, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 
-const ALLOWED_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'SPAN', 'DIV', 'P', 'BR', 'A']);
+const ALLOWED_TAGS = new Set([
+  'B',
+  'STRONG',
+  'I',
+  'EM',
+  'U',
+  'SPAN',
+  'DIV',
+  'P',
+  'BR',
+  'A',
+  'S',
+  'SUB',
+  'SUP',
+  'UL',
+  'OL',
+  'LI',
+  'BLOCKQUOTE',
+]);
 const DROPPED_TAGS = new Set([
   'SCRIPT',
   'STYLE',

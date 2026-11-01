@@ -131,6 +131,10 @@ export class PersonEditor {
     this.draft.update((member) => ({ ...member, [key]: Number(this.value(event)) || 0 }));
   }
 
+  protected toggleCompetes(): void {
+    this.draft.update((member) => ({ ...member, competes: !member.competes }));
+  }
+
   protected setRole(key: RoleKey, on: boolean): void {
     this.draft.update((member) => ({ ...member, [key]: on }));
   }

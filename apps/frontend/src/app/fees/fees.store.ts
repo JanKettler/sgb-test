@@ -66,14 +66,22 @@ export class FeesStore {
       });
   });
 
-  /** Gives a payment another fee type by hand, e.g. "Passiv"; the amount follows the type. */
-  setFeeType(paymentId: string, typeId: string): void {
-    const amount = this.feeType(typeId)?.amount;
-    if (amount === undefined) return;
+  /** Switches a payment between passive and active; "active" picks the matching fee type itself. */
+  setPassive(paymentId: string, passive: boolean): void {
+    const payment = this.payments().find((item) => item.id === paymentId);
+    if (!payment) return;
+    const members = payment.memberIds
+      .map((id) => this.people.member(id))
+      .filter((member): member is Member => !!member);
+    const typeId = passive
+      ? 'passive'
+      : members.length > 0
+        ? describeGroup(members, this.year).typeId
+        : undefined;
+    const amount = typeId ? this.feeType(typeId)?.amount : undefined;
+    if (!typeId || amount === undefined) return;
     this.payments.update((all) =>
-      all.map((payment) =>
-        payment.id === paymentId ? { ...payment, feeTypeId: typeId, amount } : payment,
-      ),
+      all.map((item) => (item.id === paymentId ? { ...item, feeTypeId: typeId, amount } : item)),
     );
   }
 

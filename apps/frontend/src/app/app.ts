@@ -4,12 +4,14 @@ import {
   Component,
   DestroyRef,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { timeout } from 'rxjs';
+import { NAVIGATION, NavAccess } from './core/navigation';
 import { ThemeService } from './core/theme.service';
 import { DEMO_ROLES, DemoRole } from './training/training.models';
 import { TrainingStore } from './training/training.store';
@@ -31,6 +33,29 @@ export class App implements OnInit {
   protected readonly demoRoles = DEMO_ROLES;
   protected readonly menuOpen = signal(false);
   protected readonly connectionStatus = signal<'loading' | 'connected' | 'unavailable'>('loading');
+
+  protected readonly collapsed = signal<ReadonlySet<string>>(new Set());
+
+  /** The menu for the current role; sections without any visible entry disappear. */
+  protected readonly sections = computed(() => {
+    const allowed: Record<NavAccess, boolean> = {
+      all: true,
+      manage: this.store.canManage(),
+      admin: this.store.isAdmin(),
+    };
+    return NAVIGATION.map((section) => ({
+      ...section,
+      items: section.items.filter((item) => allowed[item.access]),
+    })).filter((section) => section.items.length > 0);
+  });
+
+  protected toggleSection(key: string): void {
+    this.collapsed.update((current) => {
+      const next = new Set(current);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
+  }
 
   protected toggleMenu(): void {
     this.menuOpen.update((open) => !open);

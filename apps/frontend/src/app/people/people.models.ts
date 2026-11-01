@@ -17,6 +17,8 @@ export interface Member {
   /** Date of the police clearance certificate; needed once per person. */
   criminalRecordOn: string;
   swimmer: boolean;
+  /** Starts at competitions, in any group; only these need a medical certificate. */
+  competes: boolean;
   swimmerGroupIds: GroupId[];
   dsvId: string;
   attestUntil: string;
@@ -234,6 +236,7 @@ export function emptyMember(id: string, memberNo: number, today: string): Member
     exitDate: '',
     criminalRecordOn: '',
     swimmer: true,
+    competes: false,
     swimmerGroupIds: [],
     dsvId: '',
     attestUntil: '',

@@ -101,26 +101,9 @@ export class BoardStore {
     this.posts.update((all) => [item.post, ...all]);
   }
 
-  /** Moves a live message up or down; important and normal messages stay apart. */
-  move(id: string, direction: -1 | 1): void {
-    const list = this.live();
-    const index = list.findIndex((post) => post.id === id);
-    const other = list[index + direction];
-    if (index < 0 || !other || other.important !== list[index].important) return;
-    const order = new Map(list.map((post, position) => [post.id, position]));
-    order.set(id, index + direction);
-    order.set(other.id, index);
-    this.posts.update((all) =>
-      all.map((post) => (order.has(post.id) ? { ...post, order: order.get(post.id)! } : post)),
-    );
-  }
-
   private sorted(list: BoardPost[]): BoardPost[] {
     return [...list].sort(
-      (a, b) =>
-        Number(b.important) - Number(a.important) ||
-        (a.order ?? -1) - (b.order ?? -1) ||
-        b.date.localeCompare(a.date),
+      (a, b) => Number(b.important) - Number(a.important) || b.date.localeCompare(a.date),
     );
   }
 
