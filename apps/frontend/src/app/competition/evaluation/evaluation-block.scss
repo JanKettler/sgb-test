@@ -1,0 +1,157 @@
+/* Tables of the evaluation: white sheet, black lines, Calibri-like type, as in the Excel file. */
+:host {
+  color: var(--xl-ink);
+  display: block;
+  font-family: Calibri, Carlito, 'Segoe UI', Arial, sans-serif;
+}
+
+.big {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 22px 0 0;
+}
+
+.head {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 16px 0 4px;
+}
+
+:host(:first-child) .head {
+  margin-top: 0;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.xt {
+  background: var(--xl-bg);
+  border: 2px solid var(--xl-line);
+  border-collapse: collapse;
+  margin: 0 0 6px;
+  min-width: 640px;
+  width: 100%;
+
+  th,
+  td {
+    background: var(--xl-bg);
+    border: 1px solid var(--xl-line);
+    color: var(--xl-ink);
+    font-size: 13px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    padding: 2px 6px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: normal;
+  }
+
+  th {
+    background: var(--xl-head);
+    font-style: italic;
+    font-weight: 700;
+    padding: 6px;
+  }
+
+  .l {
+    text-align: left;
+  }
+
+  .r {
+    text-align: right;
+  }
+
+  tr.total td {
+    border-top: 2px solid var(--xl-heavy);
+  }
+
+  tr.group td {
+    font-weight: 700;
+    text-align: left;
+  }
+
+  tr.dim {
+    opacity: 0.45;
+  }
+
+  /* The ranking: place on the right of its column, the name on one line. */
+  &.rank {
+    min-width: 760px;
+
+    td:first-child {
+      text-align: right;
+    }
+
+    td:nth-child(2) {
+      text-align: left;
+      white-space: nowrap;
+    }
+  }
+
+  &.info,
+  &.places,
+  &.judges,
+  &.medals {
+    min-width: 0;
+    width: auto;
+  }
+
+  &.medals {
+    min-width: 460px;
+  }
+
+  &.sheet td,
+  &.sheet th {
+    height: 22px;
+  }
+}
+
+/* The sum lines under the sheet of a swimmer. */
+.sum {
+  display: flex;
+  font-size: 14px;
+  gap: 14px;
+  justify-content: flex-end;
+  margin-top: 8px;
+
+  b,
+  i {
+    border-bottom: 1px solid var(--xl-line);
+    display: inline-block;
+    font-size: 15px;
+    font-style: normal;
+    min-width: 90px;
+    text-align: right;
+  }
+
+  &.small {
+    font-size: 13px;
+  }
+
+  .label-bold {
+    font-weight: 700;
+  }
+}
+
+.note {
+  font-size: 12.5px;
+  margin: 6px 0;
+  opacity: 0.7;
+}
+
+.actions {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.money {
+  width: 5.5rem;
+}
+
+@media print {
+  .screen {
+    display: none;
+  }
+}
