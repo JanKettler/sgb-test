@@ -29,34 +29,34 @@
     </ul>
   </div>
 
-<div class="fees-actions">
-        @switch (tab()) {
-          @case ('payments') {
-            <button type="button" class="button" (click)="payments()?.exportCsv()">
-              <app-icon name="sheet" /> Excel
-            </button>
-            <button type="button" class="button" (click)="payments()?.exportSepa()">
-              <app-icon name="download" /> SEPA-Lastschriftdatei
-            </button>
-            <button type="button" class="button is-primary" (click)="payments()?.generate()">
-              <app-icon name="plus" /> Zahlungen erzeugen
-            </button>
-          }
-          @case ('dunning') {
-            <button type="button" class="button" (click)="dunning()?.exportCsv()">
-              <app-icon name="sheet" /> Excel
-            </button>
-          }
-          @case ('types') {
-            <button type="button" class="button" (click)="types()?.exportCsv()">
-              <app-icon name="sheet" /> Excel
-            </button>
-            <button type="button" class="button is-primary" (click)="types()?.add()">
-              <app-icon name="plus" /> Neue Beitragsart
-            </button>
-          }
-        }
-</div>
+  <div class="fees-actions">
+    @switch (tab()) {
+      @case ('payments') {
+        <button type="button" class="button" (click)="payments()?.exportCsv()">
+          <app-icon name="sheet" /> Excel
+        </button>
+        <button type="button" class="button" (click)="payments()?.exportSepa()">
+          <app-icon name="download" /> SEPA-Lastschriftdatei
+        </button>
+        <button type="button" class="button is-primary" (click)="payments()?.generate()">
+          <app-icon name="plus" /> Zahlungen erzeugen
+        </button>
+      }
+      @case ('dunning') {
+        <button type="button" class="button" (click)="dunning()?.exportCsv()">
+          <app-icon name="sheet" /> Excel
+        </button>
+      }
+      @case ('types') {
+        <button type="button" class="button" (click)="types()?.exportCsv()">
+          <app-icon name="sheet" /> Excel
+        </button>
+        <button type="button" class="button is-primary" (click)="types()?.add()">
+          <app-icon name="plus" /> Neue Beitragsart
+        </button>
+      }
+    }
+  </div>
 
   @switch (tab()) {
     @case ('payments') {

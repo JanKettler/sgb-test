@@ -377,12 +377,24 @@
       />
     </div>
     <ng-container dialogActions>
-<button type="button" class="button is-danger" aria-label="Abbrechen" title="Abbrechen" (click)="cancel()">
-<app-icon name="x" />
-</button>
-<button type="button" class="button is-success" aria-label="Speichern" title="Speichern" (click)="save()">
-<app-icon name="save" />
-</button>
+      <button
+        type="button"
+        class="button is-danger"
+        aria-label="Abbrechen"
+        title="Abbrechen"
+        (click)="cancel()"
+      >
+        <app-icon name="x" />
+      </button>
+      <button
+        type="button"
+        class="button is-success"
+        aria-label="Speichern"
+        title="Speichern"
+        (click)="save()"
+      >
+        <app-icon name="save" />
+      </button>
     </ng-container>
   </app-modal-dialog>
 }

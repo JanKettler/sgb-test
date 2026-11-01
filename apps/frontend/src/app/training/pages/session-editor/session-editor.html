@@ -7,15 +7,32 @@
     <p class="subtitle is-6 mb-0">{{ title() }}</p>
   </div>
   <div class="icon-row">
-    <a class="button is-danger" routerLink="/training/termine" aria-label="Abbrechen" title="Abbrechen">
+    <a
+      class="button is-danger"
+      routerLink="/training/termine"
+      aria-label="Abbrechen"
+      title="Abbrechen"
+    >
       <app-icon name="x" />
     </a>
-    <button type="button" class="button" aria-label="Als Kopie speichern" title="Als Kopie speichern" (click)="save(true)">
+    <button
+      type="button"
+      class="button"
+      aria-label="Als Kopie speichern"
+      title="Als Kopie speichern"
+      (click)="save(true)"
+    >
       <app-icon name="copy" />
     </button>
-<button type="button" class="button is-success" aria-label="Speichern" title="Speichern" (click)="save(false)">
-<app-icon name="save" />
-</button>
+    <button
+      type="button"
+      class="button is-success"
+      aria-label="Speichern"
+      title="Speichern"
+      (click)="save(false)"
+    >
+      <app-icon name="save" />
+    </button>
   </div>
 </header>
 

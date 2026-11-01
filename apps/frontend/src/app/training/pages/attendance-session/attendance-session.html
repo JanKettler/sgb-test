@@ -16,12 +16,26 @@
       >
         <app-icon name="plus" />
       </button>
-<button type="button" class="button is-danger" aria-label="Abbrechen" title="Abbrechen" [disabled]="pending().size === 0" (click)="cancel()">
-<app-icon name="x" />
-</button>
-<button type="button" class="button is-success" aria-label="Speichern" title="Speichern" [disabled]="pending().size === 0" (click)="save()">
-<app-icon name="save" />
-</button>
+      <button
+        type="button"
+        class="button is-danger"
+        aria-label="Abbrechen"
+        title="Abbrechen"
+        [disabled]="pending().size === 0"
+        (click)="cancel()"
+      >
+        <app-icon name="x" />
+      </button>
+      <button
+        type="button"
+        class="button is-success"
+        aria-label="Speichern"
+        title="Speichern"
+        [disabled]="pending().size === 0"
+        (click)="save()"
+      >
+        <app-icon name="save" />
+      </button>
       <a
         class="button"
         routerLink="/training/termine"

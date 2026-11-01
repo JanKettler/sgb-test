@@ -289,18 +289,18 @@
 
   <ng-content select="[popExtra]" />
 
-    <div
-      #area
-      class="area"
-      contenteditable="true"
-      role="textbox"
-      tabindex="0"
-      aria-multiline="true"
-      aria-label="Mitteilung"
-      data-placeholder="Mitteilung …"
-      [style.background]="background() || null"
-      [style.color]="textColor() || null"
-      (input)="changed()"
-      (paste)="paste($event)"
-    ></div>
+  <div
+    #area
+    class="area"
+    contenteditable="true"
+    role="textbox"
+    tabindex="0"
+    aria-multiline="true"
+    aria-label="Mitteilung"
+    data-placeholder="Mitteilung …"
+    [style.background]="background() || null"
+    [style.color]="textColor() || null"
+    (input)="changed()"
+    (paste)="paste($event)"
+  ></div>
 </div>
