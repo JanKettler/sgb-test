@@ -62,6 +62,7 @@ type TextKey =
   | 'iban'
   | 'bic'
   | 'refereeNo'
+  | 'priorTraining'
   | 'refereeUntil'
   | 'officialFunction';
 type GroupKey = 'swimmerGroupIds' | 'trainerGroupIds';
