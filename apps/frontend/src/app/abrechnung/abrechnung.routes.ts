@@ -1,0 +1,10 @@
+import { Routes } from '@angular/router';
+
+export const ABRECHNUNG_ROUTES: Routes = [
+  {
+    path: '',
+    title: 'Abrechnung – SGB Portal',
+    data: { seite: 'abrechnung' },
+    loadComponent: () => import('../core/soon-page').then((module) => module.SoonPage),
+  },
+];
