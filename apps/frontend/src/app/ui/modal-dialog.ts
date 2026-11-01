@@ -17,6 +17,9 @@ export class ModalDialog {
   /** Colour of the badge: one of the pill tones, e.g. "is-ok". */
   readonly badgeTone = input('is-violet');
   readonly accent = input<DialogAccent>('navy');
-  readonly wide = input(false);
+  /** Small yes/no question; all other dialogs share one width. */
+  readonly compact = input(false);
+  /** Kept so existing templates compile; every dialog is wide by default now. */
+  readonly wide = input(true);
   readonly closed = output();
 }

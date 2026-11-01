@@ -27,7 +27,7 @@ export interface Task {
   repeat: TaskRepeat;
   subs: SubTask[];
   comments: TaskComment[];
-  /** Portal page this task refers to, e.g. "/wettkaempfe/c-1"; empty = none */
+  /** Portal page this task refers to, e.g. "/wettkampf/wettkaempfe/c-1"; empty = none */
   link: string;
   by: string;
   /** ISO date and name, set when the task is ticked off */

@@ -226,6 +226,25 @@
       <button
         type="button"
         class="button is-small"
+        title="Bild einfügen"
+        aria-label="Bild einfügen"
+        (click)="picture.click()"
+      >
+        <app-icon name="image" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
+        title="Tabelle einfügen"
+        aria-label="Tabelle einfügen"
+        [class.is-link]="menu() === 'table'"
+        (click)="toggle('table')"
+      >
+        <app-icon name="sheet" />
+      </button>
+      <button
+        type="button"
+        class="button is-small"
         title="Formatierung entfernen"
         aria-label="Formatierung entfernen"
         (click)="clearFormat()"
@@ -236,7 +255,56 @@
     </div>
   </div>
 
+  <input
+    #picture
+    type="file"
+    accept="image/*"
+    class="is-hidden"
+    aria-label="Bild auswählen"
+    (change)="pictureChosen($event)"
+  />
+
   @switch (menu()) {
+    @case ('table') {
+      <div class="pop">
+        <p class="label is-small mb-2">Tabelle einfügen</p>
+        <div class="field has-addons mb-0">
+          <div class="control">
+            <input
+              type="number"
+              class="input is-small size"
+              min="1"
+              max="12"
+              aria-label="Zeilen"
+              [value]="tableRows()"
+              (input)="tableRows.set(+$any($event.target).value)"
+            />
+          </div>
+          <div class="control">
+            <span class="button is-small is-static">Zeilen</span>
+          </div>
+          <div class="control">
+            <input
+              type="number"
+              class="input is-small size"
+              min="1"
+              max="8"
+              aria-label="Spalten"
+              [value]="tableCols()"
+              (input)="tableCols.set(+$any($event.target).value)"
+            />
+          </div>
+          <div class="control">
+            <span class="button is-small is-static">Spalten</span>
+          </div>
+          <div class="control">
+            <button type="button" class="button is-small is-link" (click)="insertTable()">
+              Einfügen
+            </button>
+          </div>
+        </div>
+      </div>
+    }
     @case ('color') {
       <div class="pop">
         <p class="label is-small mb-2">Textfarbe</p>

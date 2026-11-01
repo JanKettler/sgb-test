@@ -42,7 +42,7 @@ export class LinkTargets {
     if (sessions.length > 0) groups.push({ label: 'Trainingstermine', targets: sessions });
     const meets = this.start.upcomingCompetitions().map((meet) => ({
       label: `${meet.title} (${shortDay(meet.date)})`,
-      path: `/wettkaempfe/${meet.id}`,
+      path: `/wettkampf/wettkaempfe/${meet.id}`,
     }));
     if (meets.length > 0) groups.push({ label: 'Wettkämpfe', targets: meets });
     const tasks = this.tasks.open().map((task) => ({

@@ -1,0 +1,66 @@
+<header
+  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
+  <div>
+    <h2 class="title is-4 mb-1">Auswertung</h2>
+    <p class="subtitle is-6 mb-0">Wettkämpfe der Saison mit Meldungen und Meldegeld</p>
+  </div>
+  <div class="select">
+    <select aria-label="Jahr" (change)="pick($event)">
+      @for (year of years(); track year) {
+        <option [value]="year" [selected]="year === this.year()">{{ year }}</option>
+      }
+    </select>
+  </div>
+</header>
+
+<section class="box">
+  <div class="table-container">
+    <table class="table is-fullwidth is-hoverable">
+      <thead>
+        <tr>
+          <th scope="col">Datum</th>
+          <th scope="col">Veranstaltung</th>
+          <th scope="col">Ort</th>
+          <th scope="col">Bahn</th>
+          <th scope="col">Schwimmer</th>
+          <th scope="col">Einzel</th>
+          <th scope="col">Staffel</th>
+          <th scope="col">Meldegeld</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.competition.id) {
+          <tr>
+            <td class="has-text-centered">{{ fullDate(row.date) }}</td>
+            <td>{{ row.competition.title }}</td>
+            <td>{{ row.competition.place }}</td>
+            <td class="has-text-centered">{{ row.competition.pool === 25 ? 'Kurz' : 'Lang' }}</td>
+            <td class="has-text-centered">{{ row.swimmers }}</td>
+            <td class="has-text-centered">{{ row.singles }}</td>
+            <td class="has-text-centered">{{ row.relays }}</td>
+            <td class="has-text-centered">{{ euro(row.fee) }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="has-text-grey">In diesem Jahr gibt es keine Wettkämpfe.</td>
+          </tr>
+        }
+      </tbody>
+      @if (rows().length > 0) {
+        <tfoot>
+          <tr>
+            <th scope="row" colspan="5">Gesamt</th>
+            <th class="has-text-centered">{{ totals().singles }}</th>
+            <th class="has-text-centered">{{ totals().relays }}</th>
+            <th class="has-text-centered">{{ euro(totals().fee) }}</th>
+          </tr>
+        </tfoot>
+      }
+    </table>
+  </div>
+  <p class="help">
+    Ergebnisse, Kampfrichter-Statistik, Pokale und Medaillen kommen als Nächstes, wenn die
+    Ergebnislisten eingelesen werden können.
+  </p>
+</section>

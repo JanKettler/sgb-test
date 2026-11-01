@@ -1,4 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { CompetitionStore } from '../competition/competition.store';
+import { dateOf } from '../competition/competition.models';
 import { addDays, parseIsoDate } from '../training/training-dates';
 import { TrainingStore } from '../training/training.store';
 import { ClubEvent, Competition } from './start.models';
@@ -10,6 +12,7 @@ const DEMO_NAMES = { admin: 'Maria', trainer: 'Jonas', parent: 'Sabine' } as con
 @Injectable({ providedIn: 'root' })
 export class StartStore {
   private readonly training = inject(TrainingStore);
+  private readonly meets = inject(CompetitionStore);
   readonly today = this.training.today;
 
   readonly userName = computed(() => DEMO_NAMES[this.training.role()]);
@@ -17,7 +20,21 @@ export class StartStore {
   readonly canSeeClub = this.training.canManage;
   readonly canSeeAllTasks = this.training.isAdmin;
 
-  readonly competitions = signal<Competition[]>(this.sampleCompetitions());
+  /** The meets of the competition module, in the short form the start page shows. */
+  readonly competitions = computed<Competition[]>(() =>
+    this.meets.competitions().map((meet) => ({
+      id: meet.id,
+      title: meet.title,
+      date: dateOf(meet),
+      place: meet.place,
+      internalDeadline: meet.internalDeadline,
+      deadline: meet.deadline,
+      entriesSent: meet.sent,
+      starters: this.meets
+        .starters(meet)
+        .map((row) => ({ name: row.name, starts: row.entries.length })),
+    })),
+  );
   readonly events = signal<ClubEvent[]>(this.sampleEvents());
 
   readonly upcomingCompetitions = computed(() =>
@@ -30,48 +47,6 @@ export class StartStore {
     return Math.round(
       (parseIsoDate(iso).getTime() - parseIsoDate(this.today).getTime()) / (24 * 60 * 60 * 1000),
     );
-  }
-
-  private sampleCompetitions(): Competition[] {
-    const day = (offset: number) => addDays(this.today, offset);
-    return [
-      {
-        id: 'c-1',
-        title: 'Hunte-Pokal',
-        date: day(16),
-        place: 'Hallenbad Oldenburg',
-        internalDeadline: day(2),
-        deadline: day(6),
-        entriesSent: false,
-        starters: [
-          { name: 'Lena Brandt', starts: 3 },
-          { name: 'Mats Hoffmann', starts: 2 },
-          { name: 'Nele Sommer', starts: 4 },
-          { name: 'Tim Wagner', starts: 2 },
-          { name: 'Ida Krüger', starts: 3 },
-        ],
-      },
-      {
-        id: 'c-2',
-        title: 'Nikolausschwimmen',
-        date: day(40),
-        place: 'Freizeitbad Hunteholz',
-        internalDeadline: day(24),
-        deadline: day(28),
-        entriesSent: false,
-        starters: [],
-      },
-      {
-        id: 'c-3',
-        title: 'Bezirksmeisterschaften',
-        date: day(75),
-        place: 'Sportbad Bremen',
-        internalDeadline: day(55),
-        deadline: day(60),
-        entriesSent: false,
-        starters: [],
-      },
-    ];
   }
 
   private sampleEvents(): ClubEvent[] {

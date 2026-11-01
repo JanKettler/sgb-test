@@ -456,6 +456,23 @@ td .button:has(app-icon:only-child),
     margin-left: 1.4rem;
   }
 
+  table {
+    border-collapse: collapse;
+    margin: 0.3rem 0;
+  }
+
+  td,
+  th {
+    border: 1px solid var(--sgb-line);
+    min-width: 3rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  img {
+    height: auto;
+    max-width: 100%;
+  }
+
   blockquote {
     border-left: 3px solid var(--sgb-line);
     color: var(--sgb-soft);

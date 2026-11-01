@@ -105,8 +105,46 @@ export const routes: Routes = [
   },
   {
     path: 'wettkaempfe/:id',
+    pathMatch: 'full',
+    redirectTo: 'wettkampf/wettkaempfe/:id',
+  },
+  {
+    path: 'wettkampf/wettkaempfe',
+    title: 'Wettkämpfe – SGB Portal',
+    loadComponent: () =>
+      import('./competition/pages/competition-list/competition-list').then(
+        (module) => module.CompetitionList,
+      ),
+  },
+  {
+    path: 'wettkampf/wettkaempfe/neu',
+    title: 'Neuer Wettkampf – SGB Portal',
+    loadComponent: () =>
+      import('./competition/pages/competition-editor/competition-editor').then(
+        (module) => module.CompetitionEditor,
+      ),
+  },
+  {
+    path: 'wettkampf/wettkaempfe/:id',
     title: 'Wettkampf – SGB Portal',
-    loadComponent: () => import('./start/competition').then((module) => module.CompetitionPage),
+    loadComponent: () =>
+      import('./competition/pages/competition-editor/competition-editor').then(
+        (module) => module.CompetitionEditor,
+      ),
+  },
+  {
+    path: 'wettkampf/anmeldung',
+    title: 'Wettkampf-Anmeldung – SGB Portal',
+    loadComponent: () =>
+      import('./competition/pages/entry/entry').then((module) => module.CompetitionEntry),
+  },
+  {
+    path: 'wettkampf/auswertung',
+    title: 'Auswertung – SGB Portal',
+    loadComponent: () =>
+      import('./competition/pages/evaluation/evaluation').then(
+        (module) => module.CompetitionEvaluation,
+      ),
   },
   {
     path: 'beitraege',

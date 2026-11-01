@@ -72,7 +72,12 @@
 <app-table-pager [total]="rows().length" [(page)]="page" [(size)]="size" />
 
 @if (toDelete(); as parent) {
-  <app-modal-dialog heading="Eltern löschen?" accent="red" (closed)="toDelete.set(null)">
+  <app-modal-dialog
+    heading="Eltern löschen?"
+    [compact]="true"
+    accent="red"
+    (closed)="toDelete.set(null)"
+  >
     <p>{{ parent.name }} wird entfernt. Die Kinder bleiben als Mitglieder erhalten.</p>
     <ng-container dialogActions>
       <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>

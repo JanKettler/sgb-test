@@ -192,7 +192,12 @@
 </section>
 
 @if (toDelete(); as member) {
-  <app-modal-dialog heading="Person löschen?" accent="red" (closed)="toDelete.set(null)">
+  <app-modal-dialog
+    heading="Person löschen?"
+    [compact]="true"
+    accent="red"
+    (closed)="toDelete.set(null)"
+  >
     <p>{{ member.firstName }} {{ member.lastName }} wird mit allen Angaben entfernt.</p>
     <ng-container dialogActions>
       <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>

@@ -1,0 +1,679 @@
+@let item = draft();
+<header
+  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
+  <div>
+    <h2 class="title is-4 mb-1">{{ item.title || 'Neuer Wettkampf' }}</h2>
+    <p class="subtitle is-6 mb-0">
+      {{ item.place }}
+      @if (item.sections.length > 0 && item.sections[0].date) {
+        · {{ fullDate(item.sections[0].date) }}
+      }
+    </p>
+  </div>
+  <div class="icon-row">
+    <button
+      type="button"
+      class="button is-danger"
+      aria-label="Abbrechen"
+      title="Abbrechen"
+      (click)="cancel()"
+    >
+      <app-icon name="x" />
+    </button>
+    <button
+      type="button"
+      class="button is-success"
+      aria-label="Speichern"
+      title="Speichern"
+      (click)="save()"
+    >
+      <app-icon name="save" />
+    </button>
+  </div>
+</header>
+
+<section class="box">
+  <div class="tabs" role="tablist">
+    <ul>
+      @for (entry of tabs; track entry.id) {
+        <li [class.is-active]="tab() === entry.id">
+          <a
+            role="tab"
+            tabindex="0"
+            [attr.aria-selected]="tab() === entry.id"
+            (click)="tab.set(entry.id)"
+            (keydown.enter)="tab.set(entry.id)"
+          >
+            {{ entry.label }}
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+
+  @switch (tab()) {
+    @case ('base') {
+      <div class="form-grid">
+        <div>
+          <label class="label" for="c-title">Veranstaltung</label>
+          <input
+            id="c-title"
+            class="input"
+            [class.is-danger]="invalid() && !item.title.trim()"
+            [value]="item.title"
+            (change)="text('title', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-place">Ort</label>
+          <input id="c-place" class="input" [value]="item.place" (change)="text('place', $event)" />
+        </div>
+        <div>
+          <label class="label" for="c-pool">Bahnlänge</label>
+          <div class="select is-fullwidth">
+            <select id="c-pool" (change)="patch({ pool: +value($event) })">
+              <option value="25" [selected]="item.pool === 25">Kurzbahn (25 m)</option>
+              <option value="50" [selected]="item.pool === 50">Langbahn (50 m)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="label" for="c-timing">Zeitnahme</label>
+          <div class="select is-fullwidth">
+            <select id="c-timing" (change)="patch({ timing: value($event) })">
+              @for (timing of timings; track timing.key) {
+                <option [value]="timing.key" [selected]="item.timing === timing.key">
+                  {{ timing.label }}
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="range-pair">
+          <div>
+            <label class="label" for="c-deadline">Meldeschluss</label>
+            <app-date-field
+              inputId="c-deadline"
+              [value]="item.deadline"
+              (valueChange)="patch({ deadline: $event })"
+            />
+          </div>
+          <div>
+            <label class="label" for="c-deadline-time">Uhrzeit</label>
+            <input
+              id="c-deadline-time"
+              class="input"
+              placeholder="23:59"
+              [value]="item.deadlineTime"
+              (change)="text('deadlineTime', $event)"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="label" for="c-internal">Interner Meldeschluss</label>
+          <app-date-field
+            inputId="c-internal"
+            [value]="item.internalDeadline"
+            (valueChange)="patch({ internalDeadline: $event })"
+          />
+        </div>
+      </div>
+
+      <h3>Anmeldung im Portal</h3>
+      <label class="checkbox mb-3">
+        <input type="checkbox" [checked]="item.open" (change)="patch({ open: !item.open })" />
+        Anmeldung ist freigegeben
+      </label>
+      <p class="label mb-1">
+        Nur für bestimmte Gruppen
+        <span class="has-text-weight-normal has-text-grey">(nichts angehakt = alle)</span>
+      </p>
+      <div class="group-pick mb-4">
+        @for (group of groups; track group.id) {
+          <label class="checkbox">
+            <input
+              type="checkbox"
+              [checked]="item.groupIds.includes(group.id)"
+              (change)="toggleGroup(group.id)"
+            />
+            {{ group.name }}
+          </label>
+        }
+      </div>
+
+      <h3>Veranstalter und Meldestelle</h3>
+      <div class="form-grid">
+        <div>
+          <label class="label" for="c-org">Veranstalter</label>
+          <input
+            id="c-org"
+            class="input"
+            [value]="item.organiser"
+            (change)="text('organiser', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-host">Ausrichter</label>
+          <input id="c-host" class="input" [value]="item.host" (change)="text('host', $event)" />
+        </div>
+        <div>
+          <label class="label" for="c-cname">Meldestelle</label>
+          <input
+            id="c-cname"
+            class="input"
+            [value]="item.contactName"
+            (change)="text('contactName', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-cmail">Mail für die Meldedatei</label>
+          <input
+            id="c-cmail"
+            class="input"
+            type="email"
+            [value]="item.contactEmail"
+            (change)="text('contactEmail', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-cphone">Telefon</label>
+          <input
+            id="c-cphone"
+            class="input"
+            [value]="item.contactPhone"
+            (change)="text('contactPhone', $event)"
+          />
+        </div>
+      </div>
+
+      <h3>Schwimmbad</h3>
+      <div class="form-grid">
+        <div>
+          <label class="label" for="c-vname">Name des Bades</label>
+          <input
+            id="c-vname"
+            class="input"
+            [value]="item.venueName"
+            (change)="text('venueName', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-vstreet">Straße</label>
+          <input
+            id="c-vstreet"
+            class="input"
+            [value]="item.venueStreet"
+            (change)="text('venueStreet', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-vzip">PLZ</label>
+          <input
+            id="c-vzip"
+            class="input"
+            [value]="item.venueZip"
+            (change)="text('venueZip', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-vcity">Ort</label>
+          <input
+            id="c-vcity"
+            class="input"
+            [value]="item.venueCity"
+            (change)="text('venueCity', $event)"
+          />
+        </div>
+      </div>
+
+      <h3>Meldegeld</h3>
+      <div class="form-grid">
+        <div>
+          <label class="label" for="c-flat">Pauschale (€)</label>
+          <input
+            id="c-flat"
+            class="input"
+            inputmode="decimal"
+            [value]="item.flatFee"
+            (change)="money('flatFee', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-per">pro Schwimmer (€)</label>
+          <input
+            id="c-per"
+            class="input"
+            inputmode="decimal"
+            [value]="item.perSwimmerFee"
+            (change)="money('perSwimmerFee', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-disc">Rabatt (€)</label>
+          <input
+            id="c-disc"
+            class="input"
+            inputmode="decimal"
+            [value]="item.discount"
+            (change)="money('discount', $event)"
+          />
+        </div>
+      </div>
+      <p class="help mb-4">Das Meldegeld je Wettkampf steht in der Wettkampffolge.</p>
+
+      <h3>Bankverbindung für das Meldegeld</h3>
+      <div class="form-grid">
+        <div>
+          <label class="label" for="c-bh">Kontoinhaber</label>
+          <input
+            id="c-bh"
+            class="input"
+            [value]="item.bank.holder"
+            (change)="bank('holder', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-bb">Bank</label>
+          <input id="c-bb" class="input" [value]="item.bank.bank" (change)="bank('bank', $event)" />
+        </div>
+        <div>
+          <label class="label" for="c-bi">IBAN</label>
+          <input id="c-bi" class="input" [value]="item.bank.iban" (change)="bank('iban', $event)" />
+        </div>
+        <div>
+          <label class="label" for="c-bc">BIC</label>
+          <input id="c-bc" class="input" [value]="item.bank.bic" (change)="bank('bic', $event)" />
+        </div>
+      </div>
+      <p class="help mb-4">Im Testportal bitte keine echten Bankdaten eintragen.</p>
+
+      <label class="label" for="c-note">Bemerkung</label>
+      <textarea
+        id="c-note"
+        class="textarea"
+        rows="3"
+        [value]="item.note"
+        (change)="text('note', $event)"
+      ></textarea>
+    }
+
+    @case ('sections') {
+      <div class="table-container">
+        <table class="table is-fullwidth wide-table">
+          <thead>
+            <tr>
+              <th scope="col">Nr.</th>
+              <th scope="col">Datum</th>
+              <th scope="col">Einlass</th>
+              <th scope="col">Einschwimmen</th>
+              <th scope="col">Kampfrichter</th>
+              <th scope="col">Beginn</th>
+              <th scope="col">nach Abs. davor</th>
+              <th scope="col"><span class="is-sr-only">Aktionen</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (section of item.sections; track $index) {
+              <tr>
+                <td>
+                  <input
+                    class="input narrow"
+                    inputmode="numeric"
+                    aria-label="Abschnittsnummer"
+                    [value]="section.no"
+                    (change)="setSection($index, { no: number($event) })"
+                  />
+                </td>
+                <td>
+                  <app-date-field
+                    [value]="section.date"
+                    (valueChange)="setSection($index, { date: $event })"
+                  />
+                </td>
+                <td>
+                  <input
+                    class="input narrow"
+                    placeholder="09:00"
+                    aria-label="Einlass"
+                    [value]="section.entry"
+                    (change)="setSection($index, { entry: value($event) })"
+                  />
+                </td>
+                <td>
+                  <input
+                    class="input narrow"
+                    placeholder="09:00"
+                    aria-label="Einschwimmen"
+                    [value]="section.warmup"
+                    (change)="setSection($index, { warmup: value($event) })"
+                  />
+                </td>
+                <td>
+                  <input
+                    class="input narrow"
+                    placeholder="09:30"
+                    aria-label="Kampfrichter"
+                    [value]="section.judges"
+                    (change)="setSection($index, { judges: value($event) })"
+                  />
+                </td>
+                <td>
+                  <input
+                    class="input narrow"
+                    placeholder="10:00"
+                    aria-label="Beginn"
+                    [value]="section.start"
+                    (change)="setSection($index, { start: value($event) })"
+                  />
+                </td>
+                <td class="has-text-centered">
+                  <input
+                    type="checkbox"
+                    aria-label="Zeiten gelten nach dem vorigen Abschnitt"
+                    [checked]="section.relative"
+                    (change)="setSection($index, { relative: !section.relative })"
+                  />
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="button is-danger"
+                    aria-label="Abschnitt entfernen"
+                    title="Entfernen"
+                    (click)="removeSection($index)"
+                  >
+                    <app-icon name="trash" />
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <button
+        type="button"
+        class="button is-success"
+        aria-label="Abschnitt hinzufügen"
+        title="Abschnitt hinzufügen"
+        (click)="addSection()"
+      >
+        <app-icon name="plus" />
+      </button>
+    }
+
+    @case ('events') {
+      <div class="table-container">
+        <table class="table is-fullwidth wide-table">
+          <thead>
+            <tr>
+              <th scope="col">Wk</th>
+              <th scope="col">Abs.</th>
+              <th scope="col">Starter</th>
+              <th scope="col">Meter</th>
+              <th scope="col">Lage</th>
+              <th scope="col">Art</th>
+              <th scope="col">M/F</th>
+              <th scope="col">Jahrgang</th>
+              <th scope="col">Geld (€)</th>
+              <th scope="col"><span class="is-sr-only">Aktionen</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (event of item.events; track $index) {
+              <tr>
+                <td>
+                  <input
+                    class="input narrow"
+                    inputmode="numeric"
+                    aria-label="Wettkampfnummer"
+                    [value]="event.no"
+                    (change)="setEvent($index, { no: number($event) })"
+                  />
+                </td>
+                <td>
+                  <input
+                    class="input narrow"
+                    inputmode="numeric"
+                    aria-label="Abschnitt"
+                    [value]="event.section"
+                    (change)="setEvent($index, { section: number($event) })"
+                  />
+                </td>
+                <td>
+                  <input
+                    class="input narrow"
+                    inputmode="numeric"
+                    aria-label="Anzahl Starter (Staffel: 4)"
+                    [value]="event.count"
+                    (change)="setEvent($index, { count: number($event) || 1 })"
+                  />
+                </td>
+                <td>
+                  <input
+                    class="input narrow"
+                    inputmode="numeric"
+                    aria-label="Strecke in Metern"
+                    [value]="event.distance"
+                    (change)="setEvent($index, { distance: number($event) })"
+                  />
+                </td>
+                <td>
+                  <div class="select">
+                    <select
+                      aria-label="Schwimmart"
+                      (change)="setEvent($index, { stroke: $any(value($event)) })"
+                    >
+                      @for (stroke of strokes; track stroke.key) {
+                        <option [value]="stroke.key" [selected]="event.stroke === stroke.key">
+                          {{ stroke.label }}
+                        </option>
+                      }
+                    </select>
+                  </div>
+                </td>
+                <td>
+                  <div class="select">
+                    <select
+                      aria-label="Ausübung"
+                      (change)="setEvent($index, { style: $any(value($event)) })"
+                    >
+                      @for (style of styles; track style.key) {
+                        <option [value]="style.key" [selected]="event.style === style.key">
+                          {{ style.label }}
+                        </option>
+                      }
+                    </select>
+                  </div>
+                </td>
+                <td>
+                  <div class="select">
+                    <select
+                      aria-label="Geschlecht"
+                      (change)="setEvent($index, { sex: $any(value($event)) })"
+                    >
+                      <option value="M" [selected]="event.sex === 'M'">M</option>
+                      <option value="W" [selected]="event.sex === 'W'">W</option>
+                      <option value="X" [selected]="event.sex === 'X'">mixed</option>
+                    </select>
+                  </div>
+                </td>
+                <td>
+                  <input
+                    class="input years"
+                    aria-label="Jahrgang"
+                    placeholder="offen"
+                    [value]="event.birthYears"
+                    (change)="setEvent($index, { birthYears: value($event) })"
+                  />
+                </td>
+                <td>
+                  <input
+                    class="input narrow"
+                    inputmode="decimal"
+                    aria-label="Meldegeld"
+                    [value]="event.fee"
+                    (change)="setEvent($index, { fee: number($event) })"
+                  />
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="button is-danger"
+                    aria-label="Wettkampf entfernen"
+                    title="Entfernen"
+                    (click)="removeEvent($index)"
+                  >
+                    <app-icon name="trash" />
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <button
+        type="button"
+        class="button is-success"
+        aria-label="Wettkampf hinzufügen"
+        title="Wettkampf hinzufügen"
+        (click)="addEvent()"
+      >
+        <app-icon name="plus" />
+      </button>
+    }
+
+    @case ('entries') {
+      <div class="tiles mb-3">
+        <div class="tile">
+          <span class="label">Schwimmer</span>
+          <strong class="big">{{ counts().swimmers }}</strong>
+        </div>
+        <div class="tile">
+          <span class="label">Einzelstarts</span>
+          <strong class="big">{{ counts().singles }}</strong>
+        </div>
+        <div class="tile">
+          <span class="label">Staffelstarts</span>
+          <strong class="big">{{ counts().relays }}</strong>
+        </div>
+        <div class="tile">
+          <span class="label">Meldegeld</span>
+          <strong class="big">{{ euro(total()) }}</strong>
+        </div>
+      </div>
+
+      <div class="fees-actions">
+        @if (addable().length > 0) {
+          <div class="select">
+            <select aria-label="Person hinzufügen" (change)="startAdding($event)">
+              <option value="">Person hinzufügen …</option>
+              @for (person of addable(); track person.id) {
+                <option [value]="person.id">{{ person.name }}</option>
+              }
+            </select>
+          </div>
+        }
+        <button
+          type="button"
+          class="button"
+          (click)="showMail()"
+          [disabled]="starters().length === 0"
+        >
+          <app-icon name="mail" /> Info an Kassenwart
+        </button>
+        <button
+          type="button"
+          class="button is-primary"
+          (click)="download()"
+          [disabled]="starters().length === 0 || isNew"
+        >
+          <app-icon name="download" /> Meldedatei (ZIP)
+        </button>
+        @if (!isNew) {
+          <button type="button" class="button" [class.is-success]="item.sent" (click)="markSent()">
+            <app-icon name="check" /> {{ item.sent ? 'Gesendet' : 'Als gesendet markieren' }}
+          </button>
+        }
+      </div>
+
+      @if (starters().length === 0) {
+        <p class="has-text-grey">
+          Noch keine Meldungen. Die Schwimmer melden sich unter „Anmeldung“.
+        </p>
+      } @else {
+        <div class="table-container">
+          <table class="table is-fullwidth is-hoverable">
+            <thead>
+              <tr>
+                <th scope="col">Schwimmer</th>
+                <th scope="col">Starts</th>
+                <th scope="col">Hinweise</th>
+                <th scope="col">Geld</th>
+                <th scope="col"><span class="is-sr-only">Aktionen</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of starters(); track row.personId) {
+                <tr>
+                  <td>
+                    <strong>{{ row.name }}</strong>
+                  </td>
+                  <td>
+                    @for (entry of row.entries; track entry.eventNo) {
+                      <span class="tag is-rounded mr-1 mb-1">
+                        {{ entry.eventNo }} · {{ entry.time || 'ohne Zeit' }}
+                      </span>
+                    }
+                  </td>
+                  <td>
+                    @for (issue of row.issues; track issue) {
+                      <span class="pill is-warn mr-1">{{ issue }}</span>
+                    } @empty {
+                      <span class="has-text-grey">–</span>
+                    }
+                  </td>
+                  <td class="has-text-centered">{{ euro(row.fee) }}</td>
+                  <td>
+                    <button
+                      type="button"
+                      class="button is-warning"
+                      aria-label="Starts ändern"
+                      title="Starts ändern"
+                      (click)="editing.set(row.personId)"
+                    >
+                      <app-icon name="pencil" />
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  }
+</section>
+
+@if (editing()) {
+  <app-modal-dialog
+    [heading]="store.nameOf(editing())"
+    [subtitle]="item.title"
+    accent="green"
+    (closed)="editing.set('')"
+  >
+    <app-entry-form [competition]="item" [personId]="editing()" (saved)="editing.set('')" />
+  </app-modal-dialog>
+}
+
+@if (mailText()) {
+  <app-modal-dialog heading="Info an den Kassenwart" accent="amber" (closed)="mailText.set('')">
+    <textarea class="textarea mail-text" readonly [value]="mailText()"></textarea>
+    <ng-container dialogActions>
+      <button type="button" class="button" (click)="copyMail()">
+        <app-icon name="copy" /> Kopieren
+      </button>
+      <a class="button is-primary" [href]="mailLink()"><app-icon name="mail" /> Mail öffnen</a>
+    </ng-container>
+  </app-modal-dialog>
+}

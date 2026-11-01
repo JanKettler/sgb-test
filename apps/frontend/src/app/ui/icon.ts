@@ -66,7 +66,9 @@ export type IconName =
   | 'columns'
   | 'sort'
   | 'sort-up'
-  | 'sort-down';
+  | 'sort-down'
+  | 'image'
+  | 'upload';
 
 const FONT_AWESOME: Record<IconName, string> = {
   check: 'fa-check',
@@ -135,6 +137,8 @@ const FONT_AWESOME: Record<IconName, string> = {
   sort: 'fa-sort',
   'sort-up': 'fa-sort-up',
   'sort-down': 'fa-sort-down',
+  image: 'fa-image',
+  upload: 'fa-upload',
 };
 
 /**

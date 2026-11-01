@@ -7,6 +7,8 @@ export interface Member {
   lastName: string;
   /** ISO date, yyyy-MM-dd */
   birthDate: string;
+  /** W, M or X (divers); needed for the DSV entry file. */
+  sex: 'W' | 'M' | 'X';
   memberNo: number;
   /** ISO date, yyyy-MM-dd */
   entry: string;
@@ -230,6 +232,7 @@ export function emptyMember(id: string, memberNo: number, today: string): Member
     firstName: '',
     lastName: '',
     birthDate: `${Number(today.slice(0, 4)) - 10}-01-01`,
+    sex: 'X',
     memberNo,
     entry: today,
     active: true,

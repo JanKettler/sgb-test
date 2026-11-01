@@ -138,6 +138,11 @@ export class PersonEditor {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
+  protected setSex(event: Event): void {
+    const sex = (event.target as HTMLSelectElement).value as Member['sex'];
+    this.draft.update((member) => ({ ...member, sex }));
+  }
+
   protected setText(key: TextKey, event: Event): void {
     this.draft.update((member) => ({ ...member, [key]: this.value(event) }));
   }

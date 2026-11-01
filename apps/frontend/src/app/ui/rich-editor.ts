@@ -13,7 +13,9 @@ import { Icon } from './icon';
 import { LinkPicker } from './link-picker';
 import { cleanHtml } from './rich-text';
 
-type Menu = 'color' | 'mark' | 'link' | null;
+type Menu = 'color' | 'mark' | 'link' | 'table' | null;
+
+const MAX_PICTURE_PX = 800;
 
 const MIN_PX = 8;
 const MAX_PX = 64;
@@ -45,6 +47,8 @@ export class RichEditor {
   protected readonly minPx = MIN_PX;
   protected readonly maxPx = MAX_PX;
   protected readonly link = signal('https://');
+  protected readonly tableRows = signal(3);
+  protected readonly tableCols = signal(3);
 
   private saved: Range | null = null;
 
@@ -145,6 +149,41 @@ export class RichEditor {
 
   protected sizeTyped(event: Event): void {
     this.setSize(Number((event.target as HTMLInputElement).value));
+  }
+
+  /** A chosen picture is scaled down and embedded, so it needs no upload. */
+  protected pictureChosen(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    createImageBitmap(file)
+      .then((bitmap) => {
+        const scale = Math.min(1, MAX_PICTURE_PX / bitmap.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        this.restore();
+        document.execCommand('insertImage', false, canvas.toDataURL('image/jpeg', 0.8));
+        this.changed();
+      })
+      .catch(() => this.hint.set('Dieses Bild konnte nicht gelesen werden.'));
+  }
+
+  protected insertTable(): void {
+    const rows = Math.min(12, Math.max(1, Math.round(this.tableRows()) || 1));
+    const cols = Math.min(8, Math.max(1, Math.round(this.tableCols()) || 1));
+    const cell = '<td><br></td>';
+    const row = `<tr>${cell.repeat(cols)}</tr>`;
+    this.restore();
+    document.execCommand(
+      'insertHTML',
+      false,
+      `<table><tbody>${row.repeat(rows)}</tbody></table><p><br></p>`,
+    );
+    this.menu.set(null);
+    this.changed();
   }
 
   protected pasteFromClipboard(): void {

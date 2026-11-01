@@ -1,0 +1,81 @@
+<header
+  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
+  <div>
+    <h2 class="title is-4 mb-1">Wettkampf-Anmeldung</h2>
+    <p class="subtitle is-6 mb-0">Wettkämpfe, für die sich Schwimmer anmelden können</p>
+  </div>
+</header>
+
+<section class="box">
+  @if (person(); as current) {
+    <div class="person-bar">
+      <p class="mb-0">
+        <span class="label for-person">Anmeldung für</span>
+        <strong>{{ nameOf(current.id) }}</strong>
+      </p>
+      @if (store.actors().length > 1) {
+        <div class="select is-small">
+          <select aria-label="Person wechseln" (change)="select($event)">
+            @for (actor of store.actors(); track actor.id) {
+              <option [value]="actor.id" [selected]="current.id === actor.id">
+                {{ nameOf(actor.id) }}
+              </option>
+            }
+          </select>
+        </div>
+      }
+    </div>
+
+    @for (row of rows(); track row.competition.id) {
+      <article class="meet" [class.is-open]="openId() === row.competition.id">
+        <div class="meet-head">
+          <div>
+            <strong>{{ row.competition.title }}</strong>
+            <small class="is-block has-text-grey">
+              {{ row.weekday }}, {{ fullDate(row.date) }} · {{ row.competition.place }}
+            </small>
+            <small class="is-block has-text-grey">
+              Bis {{ fullDate(row.competition.internalDeadline) }} anmelden
+            </small>
+          </div>
+          <div class="meet-actions">
+            @switch (row.status) {
+              @case ('registered') {
+                <span class="pill is-ok">{{ row.starts }} Starts gemeldet</span>
+              }
+              @case ('declined') {
+                <span class="pill is-warn">Abgemeldet</span>
+              }
+              @case ('closed') {
+                <span class="pill is-bad">Anmeldung beendet</span>
+              }
+              @default {
+                <span class="pill is-bad">Keine Rückmeldung</span>
+              }
+            }
+            <button
+              type="button"
+              class="button is-small"
+              [attr.aria-expanded]="openId() === row.competition.id"
+              [attr.aria-label]="
+                openId() === row.competition.id ? 'Zuklappen' : 'Anmelden oder ändern'
+              "
+              [title]="openId() === row.competition.id ? 'Zuklappen' : 'Anmelden oder ändern'"
+              (click)="toggle(row.competition.id)"
+            >
+              <app-icon [name]="openId() === row.competition.id ? 'chevron-up' : 'pencil'" />
+            </button>
+          </div>
+        </div>
+        @if (openId() === row.competition.id) {
+          <app-entry-form [competition]="row.competition" [personId]="current.id" />
+        }
+      </article>
+    } @empty {
+      <p class="has-text-grey">Zurzeit ist keine Wettkampf-Anmeldung freigegeben.</p>
+    }
+  } @else {
+    <p class="has-text-grey">Für diese Rolle gibt es keine Person zum Anmelden.</p>
+  }
+</section>

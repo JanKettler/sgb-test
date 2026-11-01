@@ -18,10 +18,11 @@
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
   color: var(--sgb-ink);
   padding: 1.25rem;
-  width: min(24rem, 100%);
+  width: min(50rem, 100%);
 
-  &.is-wide {
-    width: min(50rem, 100%);
+  /* Only small yes/no questions are narrow; every form dialog has the same width. */
+  &.is-compact {
+    width: min(26rem, 100%);
   }
 
   &.accent-amber {

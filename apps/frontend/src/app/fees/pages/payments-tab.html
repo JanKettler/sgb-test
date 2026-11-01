@@ -117,7 +117,12 @@
 <app-table-pager [total]="rows().length" [(page)]="page" [(size)]="size" />
 
 @if (toDelete()) {
-  <app-modal-dialog heading="Zahlungen löschen?" accent="red" (closed)="toDelete.set(false)">
+  <app-modal-dialog
+    heading="Zahlungen löschen?"
+    [compact]="true"
+    accent="red"
+    (closed)="toDelete.set(false)"
+  >
     <p>{{ selected().size }} markierte Zahlungen werden endgültig gelöscht.</p>
     <ng-container dialogActions>
       <button type="button" class="button" (click)="toDelete.set(false)">Abbrechen</button>

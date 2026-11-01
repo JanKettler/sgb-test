@@ -151,6 +151,16 @@
           />
         </div>
         <div>
+          <label class="label" for="p-sex">Geschlecht</label>
+          <div class="select is-fullwidth">
+            <select id="p-sex" (change)="setSex($event)">
+              <option value="W" [selected]="draft().sex === 'W'">weiblich</option>
+              <option value="M" [selected]="draft().sex === 'M'">männlich</option>
+              <option value="X" [selected]="draft().sex === 'X'">divers</option>
+            </select>
+          </div>
+        </div>
+        <div>
           <label class="label" for="p-no">Mitgliedsnummer</label>
           <input
             id="p-no"

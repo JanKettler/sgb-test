@@ -402,6 +402,7 @@
 @if (toDelete(); as task) {
   <app-modal-dialog
     heading="Aufgabe löschen?"
+    [compact]="true"
     [subtitle]="task.title"
     accent="red"
     (closed)="toDelete.set(null)"

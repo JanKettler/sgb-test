@@ -155,7 +155,12 @@
 </section>
 
 @if (toDelete(); as session) {
-  <app-modal-dialog heading="Termin löschen?" accent="red" (closed)="toDelete.set(null)">
+  <app-modal-dialog
+    heading="Termin löschen?"
+    [compact]="true"
+    accent="red"
+    (closed)="toDelete.set(null)"
+  >
     <p>{{ deleteText(session) }}</p>
     <p class="label mt-2">Alle Rückmeldungen zu diesem Termin werden ebenfalls gelöscht.</p>
     <ng-container dialogActions>

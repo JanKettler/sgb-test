@@ -194,7 +194,12 @@
 }
 
 @if (toDelete(); as post) {
-  <app-modal-dialog heading="Mitteilung löschen?" accent="red" (closed)="toDelete.set(null)">
+  <app-modal-dialog
+    heading="Mitteilung löschen?"
+    [compact]="true"
+    accent="red"
+    (closed)="toDelete.set(null)"
+  >
     <p>„{{ titleOf(post) }}“ wird gelöscht und bleibt 30 Tage im Archiv.</p>
     <ng-container dialogActions>
       <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
