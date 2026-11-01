@@ -44,6 +44,29 @@ function slug(text: string): string {
     .replaceAll('ß', 'ss');
 }
 
+const MALE = new Set([
+  'Mats',
+  'Emil',
+  'Paul',
+  'Felix',
+  'Jannik',
+  'Ben',
+  'Oskar',
+  'Leon',
+  'Finn',
+  'Noah',
+  'Theo',
+  'Jonte',
+  'Max',
+  'Ole',
+  'Stefan',
+  'Holger',
+  'Jonas',
+  'Tobias',
+  'Lukas',
+  'Tim',
+]);
+
 function buildMember(person: Person, index: number, today: string): Member {
   const [firstName, ...rest] = person.name.split(' ');
   const member = emptyMember(person.id, 40 + index * 7, today);
@@ -59,6 +82,7 @@ function buildMember(person: Person, index: number, today: string): Member {
   Object.assign(member, {
     firstName,
     lastName: rest.join(' '),
+    sex: MALE.has(firstName) ? 'M' : 'W',
     birthDate: `${birth}-${String(1 + (index % 12)).padStart(2, '0')}-${String(1 + ((index * 5) % 28)).padStart(2, '0')}`,
     entry: `${2014 + (index % 10)}-09-01`,
     swimmer: person.groupId !== null,

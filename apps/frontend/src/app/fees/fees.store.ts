@@ -217,27 +217,13 @@ export class FeesStore {
    * A member who becomes passive leaves the family payment and gets an own passive payment; an
    * active member joins the payment of the family again. The fee type follows automatically.
    */
+  /**
+   * Active or passive applies from the next 1 January: an existing payment is left alone (no new
+   * open amount appears mid-year) and the next "Zahlungen erzeugen" run uses the new membership.
+   */
   syncMembership(member: Member): void {
-    const current = this.payments().find((payment) => payment.memberIds.includes(member.id));
-    const isPassive = current?.feeTypeId === 'passive';
-    if (current && isPassive === !!member.passive) return;
-    if (current) {
-      const rest = current.memberIds.filter((id) => id !== member.id);
-      const group = rest
-        .map((id) => this.people.member(id))
-        .filter((item): item is Member => !!item);
-      this.payments.update((all) =>
-        group.length === 0
-          ? all.filter((payment) => payment.id !== current.id)
-          : all.map((payment) => {
-              if (payment.id !== current.id) return payment;
-              const { typeId, label } = describeGroup(group, this.year);
-              const amount = this.feeType(typeId)?.amount ?? payment.amount;
-              return { ...payment, memberIds: rest, label, feeTypeId: typeId, amount };
-            }),
-      );
-    }
-    this.generate();
+    const hasPayment = this.payments().some((payment) => payment.memberIds.includes(member.id));
+    if (!hasPayment && member.memberNo) this.generate();
   }
 
   saveType(type: FeeType): void {

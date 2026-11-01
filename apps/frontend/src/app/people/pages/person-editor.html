@@ -16,9 +16,23 @@
     </div>
   </div>
   <div class="icon-row">
-    <button type="button" class="button" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
-    <button type="button" class="button is-primary" (click)="save()">
-      <app-icon name="save" /> Speichern
+    <button
+      type="button"
+      class="button is-danger"
+      aria-label="Abbrechen"
+      title="Abbrechen"
+      (click)="cancel()"
+    >
+      <app-icon name="x" />
+    </button>
+    <button
+      type="button"
+      class="button is-success"
+      aria-label="Speichern"
+      title="Speichern"
+      (click)="save()"
+    >
+      <app-icon name="save" />
     </button>
   </div>
 </section>
@@ -135,6 +149,16 @@
             [value]="draft().birthDate"
             (valueChange)="setDate('birthDate', $event)"
           />
+        </div>
+        <div>
+          <label class="label" for="p-sex">Geschlecht</label>
+          <div class="select is-fullwidth">
+            <select id="p-sex" (change)="setSex($event)">
+              <option value="W" [selected]="draft().sex === 'W'">weiblich</option>
+              <option value="M" [selected]="draft().sex === 'M'">männlich</option>
+              <option value="X" [selected]="draft().sex === 'X'">divers</option>
+            </select>
+          </div>
         </div>
         <div>
           <label class="label" for="p-no">Mitgliedsnummer</label>
@@ -652,14 +676,6 @@
           Passiv
         </button>
       </div>
-      <p class="help">
-        @if (draft().passive) {
-          Passive Mitglieder zahlen den Passivbeitrag und zählen nicht zum Familienbeitrag.
-        } @else {
-          Die Beitragsart (Jugend, Erwachsene, 2 Mitglieder, Familie) ergibt sich automatisch aus
-          dem Alter und den Geschwistern.
-        }
-      </p>
     </section>
     <app-pay-account
       [account]="draft().account"

@@ -75,7 +75,7 @@ export class Start {
         icon: 'flag',
         title: competition.title,
         text: `${weekdayShort(competition.date)}, ${fullDate(competition.date)} · ${competition.place}`,
-        route: `/wettkaempfe/${competition.id}`,
+        route: `/wettkampf/wettkaempfe/${competition.id}`,
         days: this.data.daysTo(competition.date),
       });
     }
@@ -110,7 +110,7 @@ export class Start {
           title: `${deadline.label} ${competition.title}`,
           text: `${days === 0 ? 'heute' : `in ${days} Tagen`} · ${fullDate(deadline.date).slice(0, 5)}`,
           tone: days <= PRESSING_DAYS ? 'bad' : 'warn',
-          route: `/wettkaempfe/${competition.id}`,
+          route: `/wettkampf/wettkaempfe/${competition.id}`,
           days,
         });
       }

@@ -50,7 +50,7 @@
         </div>
         @if (nextStarters(); as meet) {
           <p class="has-text-grey mb-3">
-            <a [routerLink]="'/wettkaempfe/' + meet.id"
+            <a [routerLink]="'/wettkampf/wettkaempfe/' + meet.id"
               ><strong>{{ meet.title }}</strong></a
             >
             · {{ fullDate(meet.date).slice(0, 6) }} ({{ countdown(data.daysTo(meet.date)) }}) ·

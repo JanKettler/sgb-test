@@ -49,9 +49,27 @@ export const NAVIGATION: readonly NavSection[] = [
     tone: 'blue',
     icon: 'flag',
     items: [
-      soon('Wettkämpfe', 'wettkaempfe', 'flag', 'blue'),
-      soon('Anmeldung', 'wk-anmeldung', 'check', 'green', 'all'),
-      soon('Auswertung', 'auswertung', 'sheet', 'teal'),
+      {
+        label: 'Anmeldung',
+        path: '/wettkampf/anmeldung',
+        icon: 'check',
+        tone: 'green',
+        access: 'all',
+      },
+      {
+        label: 'Wettkämpfe',
+        path: '/wettkampf/wettkaempfe',
+        icon: 'flag',
+        tone: 'blue',
+        access: 'manage',
+      },
+      {
+        label: 'Auswertung',
+        path: '/wettkampf/auswertung',
+        icon: 'sheet',
+        tone: 'teal',
+        access: 'manage',
+      },
     ],
   },
   {
@@ -144,18 +162,6 @@ export const NAVIGATION: readonly NavSection[] = [
 
 /** Short descriptions on the pages that are not built yet (taken from the old Intranet). */
 export const SOON_PAGES: Record<string, { title: string; text: string }> = {
-  wettkaempfe: {
-    title: 'Wettkämpfe',
-    text: 'Ausschreibungen, Meldungen und Starterlisten der Wettkämpfe.',
-  },
-  'wk-anmeldung': {
-    title: 'Wettkampf-Anmeldung',
-    text: 'Hier melden sich Schwimmerinnen und Schwimmer (oder die Eltern) für Wettkämpfe an.',
-  },
-  auswertung: {
-    title: 'Auswertung',
-    text: 'Ergebnisse und Bestzeiten der Schwimmerinnen und Schwimmer.',
-  },
   jugend: { title: 'Jugend', text: 'Jugendwarte, Jugendordnung und Jugendveranstaltungen.' },
   vorstand: { title: 'Vorstand', text: 'Vorstandssitzungen, Beschlüsse und Zuständigkeiten.' },
   dokumente: { title: 'Dokumente', text: 'Satzung, Formulare und Vorlagen des Vereins.' },

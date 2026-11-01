@@ -20,6 +20,13 @@ const ALLOWED_TAGS = new Set([
   'LI',
   'BLOCKQUOTE',
   'HR',
+  'IMG',
+  'TABLE',
+  'THEAD',
+  'TBODY',
+  'TR',
+  'TD',
+  'TH',
 ]);
 const DROPPED_TAGS = new Set([
   'SCRIPT',
@@ -41,6 +48,9 @@ const MAX_FONT_PX = 64;
 
 /** Links may point to the web, to mail and phone, or to a page of this portal ("/personen"). */
 const LINK = /^(https?:\/\/|mailto:|tel:|\/(?!\/))/i;
+
+/** Pictures are embedded as small data URLs; nothing is loaded from other sites. */
+const IMAGE_SOURCE = /^data:image\/(png|jpe?g|gif|webp);base64,[a-z0-9+/=]+$/i;
 
 /** The CSS properties a message may carry; everything else is dropped. */
 const STYLE_RULES: Record<string, (value: string) => boolean> = {
@@ -78,6 +88,10 @@ function cleanAttributes(element: Element): void {
   for (const attribute of Array.from(element.attributes)) {
     if (element.tagName === 'A' && attribute.name === 'href') {
       if (!LINK.test(attribute.value.trim())) element.removeAttribute('href');
+    } else if (element.tagName === 'IMG' && attribute.name === 'src') {
+      if (!IMAGE_SOURCE.test(attribute.value.trim())) element.remove();
+    } else if (element.tagName === 'IMG' && attribute.name === 'alt') {
+      continue;
     } else if (attribute.name === 'style') {
       const style = cleanStyle(attribute.value);
       if (style) element.setAttribute('style', style);

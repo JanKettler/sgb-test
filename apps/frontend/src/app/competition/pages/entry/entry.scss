@@ -1,0 +1,43 @@
+.person-bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.for-person {
+  display: inline;
+  margin-right: 0.4rem;
+}
+
+.meet {
+  border: 1px solid var(--sgb-line);
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 1rem;
+
+  &.is-open {
+    border-color: var(--sgb-strong);
+  }
+}
+
+.meet-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.meet-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+}
+
+app-entry-form {
+  display: block;
+  margin-top: 0.75rem;
+}

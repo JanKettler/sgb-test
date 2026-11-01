@@ -153,7 +153,7 @@ export class TasksStore {
         due: day(2),
         high: true,
         who: ['Maria', 'Jonas'],
-        link: '/wettkaempfe/c-1',
+        link: '/wettkampf/wettkaempfe/c-1',
         subs: [
           { text: 'Starter abfragen', done: true },
           { text: 'Meldezeiten prüfen', done: false },

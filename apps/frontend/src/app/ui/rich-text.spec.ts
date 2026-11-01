@@ -20,6 +20,15 @@ describe('cleanHtml', () => {
     expect(cleanHtml('<a href="//evil.example">x</a>')).toBe('x');
   });
 
+  it('keeps tables and embedded pictures but not pictures from other sites', () => {
+    const table = '<table><tbody><tr><td>a</td><td>b</td></tr></tbody></table>';
+    expect(cleanHtml(table)).toBe(table);
+    expect(cleanHtml('<img src="data:image/png;base64,iVBORw0=" alt="x">')).toContain(
+      'data:image/png',
+    );
+    expect(cleanHtml('<p>hi</p><img src="https://example.org/a.png">')).toBe('<p>hi</p>');
+  });
+
   it('turns plain text into html and back', () => {
     expect(textToHtml('a <b>\nc')).toBe('a &lt;b&gt;<br>c');
     expect(htmlToText('<div>Eins</div><b>zwei</b>')).toBe('Einszwei');

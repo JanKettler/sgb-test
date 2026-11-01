@@ -64,7 +64,24 @@ small {
 
   th {
     font-size: 0.75rem;
+    text-align: center;
     white-space: nowrap;
+  }
+
+  th.is-left {
+    text-align: left;
+  }
+
+  th app-group-chips {
+    display: block;
+    text-align: center;
+  }
+
+  /* Only a hint of columns, so trainers can follow a date down the list. */
+  th + th,
+  td + td,
+  th + td {
+    border-left: 1px solid color-mix(in srgb, var(--sgb-line) 50%, transparent);
   }
 
   td {

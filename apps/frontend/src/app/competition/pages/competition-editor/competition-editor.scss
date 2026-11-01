@@ -1,0 +1,27 @@
+.wide-table {
+  input,
+  select {
+    min-width: 4.5rem;
+  }
+
+  .narrow {
+    max-width: 4.5rem;
+    text-align: center;
+  }
+
+  .years {
+    max-width: 8rem;
+    text-align: center;
+  }
+}
+
+.mail-text {
+  font-family: inherit;
+  min-height: 18rem;
+}
+
+.group-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+}

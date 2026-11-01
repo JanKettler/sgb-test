@@ -1,3 +1,24 @@
+<div class="icon-row is-pulled-right mb-3">
+  <button
+    type="button"
+    class="button is-danger"
+    aria-label="Abbrechen"
+    title="Abbrechen"
+    (click)="cancel()"
+  >
+    <app-icon name="x" />
+  </button>
+  <button
+    type="button"
+    class="button is-success"
+    aria-label="Speichern"
+    title="Speichern"
+    (click)="save()"
+  >
+    <app-icon name="save" />
+  </button>
+</div>
+<div class="is-clearfix"></div>
 <div class="cols">
   <div class="stack">
     <section class="box">
@@ -138,11 +159,4 @@
       <p class="sub">Im Testportal bitte keine echten Bankdaten eintragen.</p>
     </section>
   </div>
-</div>
-
-<div class="icon-row mt-4">
-  <button type="button" class="button is-primary" (click)="save()">
-    <app-icon name="save" /> Speichern
-  </button>
-  <button type="button" class="button" (click)="cancel()"><app-icon name="x" /> Abbrechen</button>
 </div>
