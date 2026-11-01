@@ -638,6 +638,23 @@ td .button:has(app-icon:only-child),
   text-transform: uppercase;
 }
 
+/* Facts as label and value, e.g. the details of a statement. */
+.facts {
+  display: grid;
+  gap: 0.2rem 1rem;
+  grid-template-columns: max-content 1fr;
+  margin: 0 0 0.5rem;
+
+  dt {
+    color: var(--sgb-soft);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* Something that is late or missing, in the colour of warnings. */
 .is-late {
   color: var(--bad-fg);

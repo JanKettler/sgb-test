@@ -1,0 +1,132 @@
+<div class="toolbar">
+  <p class="item-sub mb-0">Alle Fahrten zum Wettkampftraining, nach Personen geordnet.</p>
+  <app-action kind="add" withText label="Fahrt eintragen" (pressed)="adding.set(true)" />
+</div>
+
+@if (groups().length === 0) {
+  <p class="empty">Noch keine Fahrten.</p>
+} @else {
+  <div class="item-list">
+    @for (group of groups(); track group.owner) {
+      <article class="item">
+        <div class="item-main">
+          <div class="item-title">{{ group.owner }}</div>
+          <div class="item-sub">
+            {{ group.open.length }} offen ({{ euro(group.sum) }}) ·
+            {{ group.drives.length - group.open.length }} abgerechnet
+          </div>
+          @if (isOpen(group.owner)) {
+            @for (drive of group.drives; track drive.id) {
+              <div class="sub-row">
+                <span
+                  >{{ fullDate(drive.date) }}
+                  @if (drive.note) {
+                    <span class="item-sub">· {{ drive.note }}</span>
+                  }
+                </span>
+                <span class="sub-actions">
+                  <b>{{ euro(drive.amount) }}</b>
+                  <span
+                    class="pill"
+                    [class.is-ok]="drive.state === 'settled'"
+                    [class.is-info]="drive.state === 'submitted'"
+                    [class.is-warn]="drive.state === 'open'"
+                    >{{ label[drive.state] }}</span
+                  >
+                  @if (drive.state === 'open') {
+                    <app-action
+                      kind="delete"
+                      small
+                      [label]="group.owner + ': Fahrt ' + fullDate(drive.date) + ' löschen'"
+                      (pressed)="toDelete.set(drive)"
+                    />
+                  }
+                </span>
+              </div>
+            }
+            <div class="sub-actions mt-2">
+              <app-action
+                kind="excel"
+                small
+                withText
+                [disabled]="group.open.length === 0"
+                [label]="'Excel ' + group.owner"
+                (pressed)="excel(group)"
+              />
+              <app-action
+                kind="print"
+                small
+                withText
+                [disabled]="group.open.length === 0"
+                [label]="'Drucken ' + group.owner"
+                (pressed)="print(group)"
+              />
+              <app-action
+                kind="done"
+                small
+                withText
+                [disabled]="group.open.length === 0"
+                [label]="'Als abgerechnet markieren: ' + group.owner"
+                (pressed)="toSettle.set(group)"
+              />
+            </div>
+          }
+        </div>
+        <div class="item-actions">
+          @if (isOpen(group.owner)) {
+            <app-action
+              kind="collapse"
+              [label]="group.owner + ' zuklappen'"
+              (pressed)="toggle(group.owner)"
+            />
+          } @else {
+            <app-action
+              kind="expand"
+              [label]="group.owner + ' aufklappen'"
+              (pressed)="toggle(group.owner)"
+            />
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (adding()) {
+  <app-form-dialog
+    heading="Fahrt eintragen"
+    [fields]="fields()"
+    [values]="newValues()"
+    (saved)="add($event)"
+    (closed)="adding.set(false)"
+  />
+}
+
+@if (toSettle(); as group) {
+  <app-confirm-dialog
+    heading="Als abgerechnet markieren?"
+    [subtitle]="group.owner"
+    [text]="
+      group.open.length +
+      ' ' +
+      word(group.open.length) +
+      ' (' +
+      euro(group.sum) +
+      ') gelten danach als abgerechnet.'
+    "
+    confirmKind="done"
+    confirmLabel="Markieren"
+    (confirmed)="confirmSettle()"
+    (closed)="toSettle.set(null)"
+  />
+}
+
+@if (toDelete(); as drive) {
+  <app-confirm-dialog
+    heading="Fahrt löschen?"
+    [subtitle]="drive.owner + ' · ' + fullDate(drive.date)"
+    text="Die Fahrt verschwindet aus der Liste."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

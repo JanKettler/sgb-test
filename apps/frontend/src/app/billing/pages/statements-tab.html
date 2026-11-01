@@ -1,0 +1,27 @@
+@if (openId(); as id) {
+  <app-statement-editor [statementId]="id" (closed)="openId.set('')" />
+} @else {
+  <div class="toolbar">
+    <p class="item-sub mb-0">
+      Trage einmal deine Angaben ein, dann füllt sich jede neue Abrechnung von selbst.
+    </p>
+    <app-action kind="edit" withText label="Meine Angaben" (pressed)="profileOpen.set(true)" />
+    <app-action kind="add" withText label="Neue Abrechnung" (pressed)="create()" />
+  </div>
+  <app-statement-list
+    [statements]="store.mine()"
+    empty="Noch keine Abrechnung. Tippe auf „Neue Abrechnung“."
+    (opened)="openId.set($event)"
+  />
+}
+
+@if (profileOpen()) {
+  <app-form-dialog
+    heading="Meine Angaben"
+    [subtitle]="store.me()"
+    [fields]="fields"
+    [values]="store.profileOf(store.me())"
+    (saved)="saveProfile($event)"
+    (closed)="profileOpen.set(false)"
+  />
+}

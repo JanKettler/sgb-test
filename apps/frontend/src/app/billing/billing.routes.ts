@@ -4,7 +4,6 @@ export const BILLING_ROUTES: Routes = [
   {
     path: '',
     title: 'Abrechnung – SGB Portal',
-    data: { seite: 'abrechnung' },
-    loadComponent: () => import('../core/soon-page').then((module) => module.SoonPage),
+    loadComponent: () => import('./billing').then((module) => module.Billing),
   },
 ];

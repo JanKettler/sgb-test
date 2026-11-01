@@ -163,7 +163,6 @@ export const NAVIGATION: readonly NavSection[] = [
 
 /** Short descriptions on the pages that are not built yet (taken from the old Intranet). */
 export const SOON_PAGES: Record<string, { title: string; text: string }> = {
-  abrechnung: { title: 'Abrechnung', text: 'Fahrtkosten, Auslagen und Erstattungen.' },
   weihnachtsmarkt: {
     title: 'Weihnachtsmarkt',
     text: 'Planung und Helferplan für den Weihnachtsmarkt.',

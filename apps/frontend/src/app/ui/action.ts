@@ -12,6 +12,7 @@ import { Icon, IconName } from './icon';
 export type ActionKind =
   | 'add'
   | 'edit'
+  | 'view'
   | 'delete'
   | 'copy'
   | 'save'
@@ -43,6 +44,7 @@ export interface ActionLook {
 export const ACTIONS: Readonly<Record<ActionKind, ActionLook>> = {
   add: { icon: 'plus', label: 'Hinzufügen', tone: 'is-success' },
   edit: { icon: 'pencil', label: 'Bearbeiten', tone: 'is-warning' },
+  view: { icon: 'eye', label: 'Ansehen', tone: 'is-info' },
   delete: { icon: 'trash', label: 'Löschen', tone: 'is-danger' },
   copy: { icon: 'copy', label: 'Kopieren', tone: '' },
   save: { icon: 'save', label: 'Speichern', tone: 'is-success' },

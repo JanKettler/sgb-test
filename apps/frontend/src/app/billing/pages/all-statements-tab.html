@@ -1,0 +1,19 @@
+@if (openId(); as id) {
+  <app-statement-editor [statementId]="id" (closed)="openId.set('')" />
+} @else {
+  <div class="chip-row">
+    @for (chip of chips(); track chip.id) {
+      <button
+        type="button"
+        class="chip"
+        [class.is-on]="filter() === chip.id"
+        [attr.aria-pressed]="filter() === chip.id"
+        (click)="filter.set(chip.id)"
+      >
+        {{ chip.label }} <span class="count">{{ chip.count }}</span>
+      </button>
+    }
+    <span class="item-sub is-align-self-center">Summe der Liste: {{ euro(sum()) }}</span>
+  </div>
+  <app-statement-list [statements]="visible()" [showOwner]="true" (opened)="openId.set($event)" />
+}
