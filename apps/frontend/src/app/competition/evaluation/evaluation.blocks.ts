@@ -69,21 +69,19 @@ export function rankTable(
   });
   const rows: Row[] = [
     head(RANK_HEAD),
-    ...data.map(
-      (row): Row => ({
-        cells: [
-          { v: row.place, align: 'r' },
-          { v: row.swimmer.name, align: 'l' },
-          { v: row.swimmer.jg },
-          { v: row.swimmer.sex },
-          best(row.meets, max.meets, row.starts ? row.meets : '–'),
-          best(row.starts, max.starts, row.starts || '–'),
-          best(row.swimmer.n, max.n, row.swimmer.n),
-          best(row.swimmer.ges, max.ges, row.swimmer.ges),
-          best(row.swimmer.avg, max.avg, row.swimmer.avg),
-        ],
-      }),
-    ),
+    ...data.map((row): Row => ({
+      cells: [
+        { v: row.place, align: 'r' },
+        { v: row.swimmer.name, align: 'l' },
+        { v: row.swimmer.jg },
+        { v: row.swimmer.sex },
+        best(row.meets, max.meets, row.starts ? row.meets : '–'),
+        best(row.starts, max.starts, row.starts || '–'),
+        best(row.swimmer.n, max.n, row.swimmer.n),
+        best(row.swimmer.ges, max.ges, row.swimmer.ges),
+        best(row.swimmer.avg, max.avg, row.swimmer.avg),
+      ],
+    })),
   ];
   return [title(heading), { type: 'table', style: 'rank', rows }];
 }
@@ -209,14 +207,12 @@ export function memberBlocks(ev: Evaluation, year: string): Block[] {
         head(['Jahre', 'Name']),
         ...(jubilees.length
           ? jubilees.flatMap((item) =>
-              item.names.map(
-                (name): Row => ({
-                  cells: [
-                    { v: item.years, align: 'r' },
-                    { v: name, align: 'l' },
-                  ],
-                }),
-              ),
+              item.names.map((name): Row => ({
+                cells: [
+                  { v: item.years, align: 'r' },
+                  { v: name, align: 'l' },
+                ],
+              })),
             )
           : [
               {
@@ -258,25 +254,23 @@ export function statBlocks(ev: Evaluation, year: string): Block[] {
         { v: 'Ändern', head: true, screen: true },
       ],
     },
-    ...stat.events.map(
-      (row): Row => ({
-        cells: [
-          { v: shortDate(row.d), align: 'r' },
-          { v: row.title, align: 'l' },
-          { v: row.place, align: 'l' },
-          { v: row.pool, align: 'l' },
-          { v: row.swimmers, align: 'r' },
-          { v: row.singles, align: 'r' },
-          { v: row.relays, align: 'r' },
-          { v: money(row.fee), align: 'r' },
-          {
-            v: '',
-            screen: true,
-            action: { type: 'fee', id: row.id, manual: row.manual, value: row.fee },
-          },
-        ],
-      }),
-    ),
+    ...stat.events.map((row): Row => ({
+      cells: [
+        { v: shortDate(row.d), align: 'r' },
+        { v: row.title, align: 'l' },
+        { v: row.place, align: 'l' },
+        { v: row.pool, align: 'l' },
+        { v: row.swimmers, align: 'r' },
+        { v: row.singles, align: 'r' },
+        { v: row.relays, align: 'r' },
+        { v: money(row.fee), align: 'r' },
+        {
+          v: '',
+          screen: true,
+          action: { type: 'fee', id: row.id, manual: row.manual, value: row.fee },
+        },
+      ],
+    })),
     {
       kind: 'total',
       cells: [
@@ -310,33 +304,31 @@ export function statBlocks(ev: Evaluation, year: string): Block[] {
                 { v: 'Zählt', head: true, screen: true },
               ],
             },
-            ...stat.judges.map(
-              (judge): Row => ({
-                screen: judge.excluded,
-                dim: judge.excluded,
-                cells: [
-                  { v: judge.name, align: 'l' },
-                  { v: judge.club, align: 'l' },
-                  { v: judge.meets, align: 'r' },
-                  { v: judge.sections, align: 'r' },
-                  {
-                    v: judge.events
-                      .map(
-                        (item) =>
-                          `${shortDate(item.d)} ${item.title}${item.sections.length ? ` (Abschnitt ${item.sections.join(', ')})` : ''}`,
-                      )
-                      .join('; '),
-                    align: 'l',
-                    screen: true,
-                  },
-                  {
-                    v: '',
-                    screen: true,
-                    action: { type: 'judge', name: judge.name, excluded: judge.excluded },
-                  },
-                ],
-              }),
-            ),
+            ...stat.judges.map((judge): Row => ({
+              screen: judge.excluded,
+              dim: judge.excluded,
+              cells: [
+                { v: judge.name, align: 'l' },
+                { v: judge.club, align: 'l' },
+                { v: judge.meets, align: 'r' },
+                { v: judge.sections, align: 'r' },
+                {
+                  v: judge.events
+                    .map(
+                      (item) =>
+                        `${shortDate(item.d)} ${item.title}${item.sections.length ? ` (Abschnitt ${item.sections.join(', ')})` : ''}`,
+                    )
+                    .join('; '),
+                  align: 'l',
+                  screen: true,
+                },
+                {
+                  v: '',
+                  screen: true,
+                  action: { type: 'judge', name: judge.name, excluded: judge.excluded },
+                },
+              ],
+            })),
             {
               kind: 'total',
               cells: [
@@ -364,11 +356,9 @@ export function statBlocks(ev: Evaluation, year: string): Block[] {
     style: 'places',
     rows: [
       head([label, 'Platzierung', 'Anzahl']),
-      ...['Platz 1', 'Platz 2', 'Platz 3', 'Andere'].map(
-        (name, index): Row => ({
-          cells: [{ v: '' }, { v: name, align: 'l' }, { v: counts[index], align: 'r' }],
-        }),
-      ),
+      ...['Platz 1', 'Platz 2', 'Platz 3', 'Andere'].map((name, index): Row => ({
+        cells: [{ v: '' }, { v: name, align: 'l' }, { v: counts[index], align: 'r' }],
+      })),
       {
         kind: 'total',
         cells: [
@@ -407,14 +397,12 @@ export function honourBlocks(
         head(['Jahre', 'Name']),
         ...ev.memberStats(year).jubilees.flatMap((item) =>
           item.names.length
-            ? item.names.map(
-                (name): Row => ({
-                  cells: [
-                    { v: item.years, align: 'r' },
-                    { v: name, align: 'l' },
-                  ],
-                }),
-              )
+            ? item.names.map((name): Row => ({
+                cells: [
+                  { v: item.years, align: 'r' },
+                  { v: name, align: 'l' },
+                ],
+              }))
             : [
                 {
                   cells: [
@@ -433,16 +421,14 @@ export function honourBlocks(
     rows: [
       head(['Pokal', 'Name', 'Jahrgang', 'Punkte']),
       ...(honours.cups.length
-        ? honours.cups.map(
-            (cup): Row => ({
-              cells: [
-                { v: cup.title, align: 'l' },
-                { v: cup.swimmer.name, align: 'l' },
-                { v: cup.swimmer.jg },
-                { v: cup.swimmer.ges, align: 'r' },
-              ],
-            }),
-          )
+        ? honours.cups.map((cup): Row => ({
+            cells: [
+              { v: cup.title, align: 'l' },
+              { v: cup.swimmer.name, align: 'l' },
+              { v: cup.swimmer.jg },
+              { v: cup.swimmer.ges, align: 'r' },
+            ],
+          }))
         : [{ cells: [{ v: 'Noch keine Punkte.', align: 'l' as const, span: 4 }] }]),
     ],
   });
@@ -451,15 +437,13 @@ export function honourBlocks(
     style: 'medals',
     rows: [
       head(['Jahrgangsgruppe', 'Personen', 'Gold', 'Silber', 'Bronze']),
-      ...honours.groups.map(
-        (group): Row => ({
-          cells: [
-            { v: group.title + (group.merged ? ' (zusammengelegt)' : ''), align: 'l' },
-            { v: group.members.length, align: 'r' },
-            ...[0, 1, 2].map((index): Cell => ({ v: group.medals > index ? 1 : '–', align: 'r' })),
-          ],
-        }),
-      ),
+      ...honours.groups.map((group): Row => ({
+        cells: [
+          { v: group.title + (group.merged ? ' (zusammengelegt)' : ''), align: 'l' },
+          { v: group.members.length, align: 'r' },
+          ...[0, 1, 2].map((index): Cell => ({ v: group.medals > index ? 1 : '–', align: 'r' })),
+        ],
+      })),
       {
         kind: 'total',
         cells: [
@@ -481,17 +465,15 @@ export function honourBlocks(
       style: 'medals',
       rows: [
         head(['Medaille', 'Platz', 'Schwimmer', 'Jahrgang', 'Erreichte Punkte']),
-        ...group.members.slice(0, group.medals).map(
-          (swimmer, index): Row => ({
-            cells: [
-              { v: MEDALS[index], align: 'l' },
-              { v: index + 1, align: 'r' },
-              { v: swimmer.name, align: 'l' },
-              { v: swimmer.jg },
-              { v: swimmer.ges, align: 'r' },
-            ],
-          }),
-        ),
+        ...group.members.slice(0, group.medals).map((swimmer, index): Row => ({
+          cells: [
+            { v: MEDALS[index], align: 'l' },
+            { v: index + 1, align: 'r' },
+            { v: swimmer.name, align: 'l' },
+            { v: swimmer.jg },
+            { v: swimmer.ges, align: 'r' },
+          ],
+        })),
       ],
     });
   }

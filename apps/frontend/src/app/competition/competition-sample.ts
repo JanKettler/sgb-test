@@ -248,14 +248,12 @@ export function pastSeason(today: string, members: readonly Member[]): PastSeaso
   const season = seasonOf(today);
   const swimmers: Swimmer[] = members
     .filter((member) => member.swimmer && member.competes)
-    .map(
-      (member): Swimmer => ({
-        member,
-        name: `${member.lastName}, ${member.firstName}`,
-        year: birthYear(member),
-        sex: member.sex === 'M' ? 'M' : 'W',
-      }),
-    )
+    .map((member): Swimmer => ({
+      member,
+      name: `${member.lastName}, ${member.firstName}`,
+      year: birthYear(member),
+      sex: member.sex === 'M' ? 'M' : 'W',
+    }))
     .sort((a, b) => a.name.localeCompare(b.name, 'de'));
   const referees = members.filter((member) => member.referee);
   const library = sampleEvents();
