@@ -54,6 +54,10 @@ export class EvidenceTable {
   );
 
   protected readonly kinds = computed(() => EVIDENCE_CATEGORIES[this.category()].kinds);
+  protected readonly hiddenKinds = computed(
+    () => this.hideKinds().filter((item) => item.on).length,
+  );
+
   protected readonly hideKinds = computed(() =>
     this.kinds().map((kind) => ({
       kind,

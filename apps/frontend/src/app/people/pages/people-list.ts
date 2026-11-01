@@ -6,7 +6,6 @@ import { ModalDialog } from '../../ui/modal-dialog';
 import { SortButton, SortState } from '../../ui/sort';
 import { TablePager, pageOf } from '../../ui/table-pager';
 import { Toasts } from '../../ui/toast';
-import { downloadText } from '../../training/training-download';
 import { GROUPS, GroupId } from '../../training/training.models';
 import { birthYear, fullName, Member, ROLES, RoleKey } from '../people.models';
 import { PeopleStore } from '../people.store';
@@ -136,10 +135,6 @@ export class PeopleList {
 
   protected importDemo(): void {
     this.toasts.show('Demo: Der Import aus WebClub ist im Testportal nicht aktiv', 'info');
-  }
-
-  protected exportCsv(): void {
-    downloadText('Mitglieder.csv', this.store.membersCsv(this.rows().map((row) => row.member)));
   }
 
   protected duplicate(member: Member): void {

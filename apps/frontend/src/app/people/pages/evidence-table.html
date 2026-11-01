@@ -15,25 +15,28 @@
   </div>
 </div>
 
-<div class="hide-bar">
-  <span class="label">Fehlende ausblenden:</span>
-  @for (item of hideKinds(); track item.kind) {
-    <button
-      type="button"
-      class="chip"
-      [class.is-on]="item.on"
-      [attr.aria-pressed]="item.on"
-      (click)="toggleHiding(item.kind, item.on)"
-    >
-      {{ item.label }}
-    </button>
-  }
-  @if (store.dismissed().size > 0) {
-    <button type="button" class="button is-small" (click)="store.showDismissed()">
-      {{ store.dismissed().size }} einzeln ausgeblendet · einblenden
-    </button>
-  }
-</div>
+<details class="hide-menu">
+  <summary>
+    <app-icon name="eye-slash" /> Fehlende ausblenden
+    @if (hiddenKinds() > 0) {
+      <span class="tag is-rounded is-info ml-2">{{ hiddenKinds() }}</span>
+    }
+  </summary>
+  <div class="hide-list">
+    <p class="help mb-2">Nachweise, die noch nie eingetragen wurden, verschwinden aus der Liste.</p>
+    @for (item of hideKinds(); track item.kind) {
+      <label class="checkbox">
+        <input type="checkbox" [checked]="item.on" (change)="toggleHiding(item.kind, item.on)" />
+        {{ item.label }}
+      </label>
+    }
+    @if (store.dismissed().size > 0) {
+      <button type="button" class="button is-small mt-2" (click)="store.showDismissed()">
+        {{ store.dismissed().size }} einzeln ausgeblendet · einblenden
+      </button>
+    }
+  </div>
+</details>
 
 <div class="filter-panel">
   <div>
@@ -91,7 +94,7 @@
         <th scope="col"><app-sort-button label="Nachweis" column="kind" [sort]="sort" /></th>
         <th scope="col"><app-sort-button label="Rolle" column="role" [sort]="sort" /></th>
         <th scope="col"><app-sort-button label="Gültig bis" column="date" [sort]="sort" /></th>
-        <th scope="col"><app-sort-button label="Rest" column="rest" [sort]="sort" /></th>
+        <th scope="col"><app-sort-button label="Frist" column="rest" [sort]="sort" /></th>
         <th scope="col"><span class="is-sr-only">Ausblenden</span></th>
       </tr>
     </thead>

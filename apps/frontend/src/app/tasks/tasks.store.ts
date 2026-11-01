@@ -25,7 +25,7 @@ export class TasksStore {
   readonly done = computed(() => this.tasks().filter((task) => task.status === 'done'));
 
   isMine(task: Task): boolean {
-    return task.who.includes(this.me()) || task.by === this.me();
+    return task.who.includes(this.me()) || (task.who.length === 0 && task.by === this.me());
   }
 
   canTick(task: Task): boolean {

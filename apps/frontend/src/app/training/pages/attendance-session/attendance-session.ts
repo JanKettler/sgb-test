@@ -4,7 +4,6 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Icon } from '../../../ui/icon';
 import { PersonPickerDialog } from '../../dialogs/person-picker-dialog';
 import { endTime, fullDate } from '../../training-dates';
-import { downloadText } from '../../training-download';
 import { AttendanceState, Person, PersonRole } from '../../training.models';
 import { TrainingStore } from '../../training.store';
 
@@ -13,12 +12,6 @@ const SEGMENTS: readonly { state: AttendanceState; label: string }[] = [
   { state: 'missing', label: 'Fehlt' },
   { state: 'excused', label: 'Abgemeldet' },
 ];
-
-const WORDS: Record<AttendanceState, string> = {
-  present: 'anwesend',
-  missing: 'fehlt',
-  excused: 'abgemeldet',
-};
 
 interface AttendanceRow {
   person: Person;
@@ -103,25 +96,5 @@ export class AttendanceSession {
     const session = this.session();
     if (session) this.store.addWithoutRegistration(session.id, person);
     this.adding.set(false);
-  }
-
-  protected exportExcel(): void {
-    const session = this.session();
-    if (!session) return;
-    const lines = [
-      ['Name', 'Gruppe', 'Anmeldung', 'Anwesenheit'],
-      ...this.rows().map((row) => [
-        row.person.name,
-        row.group,
-        row.registration === 'none'
-          ? ''
-          : row.registration === 'registered'
-            ? 'angemeldet'
-            : 'abgemeldet',
-        WORDS[row.state],
-      ]),
-    ];
-    const content = '﻿' + lines.map((line) => line.join(';')).join('\r\n');
-    downloadText(`Anwesenheit_${session.date}_${session.time.replace(':', '')}.csv`, content);
   }
 }

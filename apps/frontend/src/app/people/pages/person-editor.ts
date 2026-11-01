@@ -107,7 +107,7 @@ export class PersonEditor {
   protected readonly chips = computed(() => this.store.roleChips(this.draft()));
   protected readonly name = computed(() => fullName(this.draft()) || 'Neue Person');
   protected readonly initials = computed(() => initials(this.draft()) || '+');
-  protected readonly missingRoles = computed(() => ROLES.filter((role) => !this.draft()[role.key]));
+  protected readonly clubRoles = ROLES;
 
   private load(): Member {
     const id = this.id();
@@ -129,6 +129,14 @@ export class PersonEditor {
 
   protected setNumber(key: 'memberNo', event: Event): void {
     this.draft.update((member) => ({ ...member, [key]: Number(this.value(event)) || 0 }));
+  }
+
+  protected setPassive(passive: boolean): void {
+    this.draft.update((member) => ({ ...member, passive }));
+  }
+
+  protected toggleClubRole(key: RoleKey): void {
+    this.setRole(key, !this.draft()[key]);
   }
 
   protected toggleCompetes(): void {
@@ -255,6 +263,7 @@ export class PersonEditor {
       return;
     }
     this.store.save(member);
+    this.fees.syncMembership(this.store.member(member.id) ?? member);
     this.fees.generate();
     this.toasts.saved(`${fullName(member)} gespeichert`);
     void this.router.navigate(['/personen']);

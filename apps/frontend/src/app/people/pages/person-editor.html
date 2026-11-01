@@ -146,27 +146,23 @@
             (change)="setNumber('memberNo', $event)"
           />
         </div>
-        <div>
-          <label class="label" for="p-entry">Eintritt</label>
-          <app-date-field
-            inputId="p-entry"
-            [value]="draft().entry"
-            (valueChange)="setDate('entry', $event)"
-          />
-        </div>
-        <div>
-          <span class="label">Status</span>
-          <span [class]="active() ? 'pill is-ok' : 'pill is-bad'">
-            {{ active() ? 'Aktiv' : 'Inaktiv' }}
-          </span>
-        </div>
-        <div>
-          <label class="label" for="p-exit">Austritt am</label>
-          <app-date-field
-            inputId="p-exit"
-            [value]="draft().exitDate"
-            (valueChange)="setDate('exitDate', $event)"
-          />
+        <div class="range-pair">
+          <div>
+            <label class="label" for="p-entry">Eintritt</label>
+            <app-date-field
+              inputId="p-entry"
+              [value]="draft().entry"
+              (valueChange)="setDate('entry', $event)"
+            />
+          </div>
+          <div>
+            <label class="label" for="p-exit">Austritt am</label>
+            <app-date-field
+              inputId="p-exit"
+              [value]="draft().exitDate"
+              (valueChange)="setDate('exitDate', $event)"
+            />
+          </div>
         </div>
       </div>
     </section>
@@ -284,31 +280,11 @@
       }
     </section>
 
-    @if (missingRoles().length > 0) {
-      <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
-        <span class="label m-0">Rolle hinzufügen</span>
-        @for (item of missingRoles(); track item.key) {
-          <button type="button" class="chip is-solid" (click)="setRole(item.key, true)">
-            + {{ item.label }}
-          </button>
-        }
-      </div>
-    }
-
     <div class="cols">
       @if (draft().swimmer) {
         <section class="box">
           <div class="card-head">
             <span class="pill is-info">Schwimmer</span>
-            <button
-              type="button"
-              class="button is-small is-danger"
-              aria-label="Rolle Schwimmer entfernen"
-              title="Rolle entfernen"
-              (click)="setRole('swimmer', false)"
-            >
-              <app-icon name="x" />
-            </button>
           </div>
           <label class="checkbox mb-3">
             <input type="checkbox" [checked]="draft().competes" (change)="toggleCompetes()" />
@@ -363,16 +339,8 @@
         <section class="box">
           <div class="card-head">
             <span class="pill is-ok">Trainer</span>
-            <button
-              type="button"
-              class="button is-small is-danger"
-              aria-label="Rolle Trainer entfernen"
-              title="Rolle entfernen"
-              (click)="setRole('trainer', false)"
-            >
-              <app-icon name="x" />
-            </button>
           </div>
+          <h4 class="sub-title">Lizenz</h4>
           <div class="form-grid">
             <div>
               <label class="label" for="t-kind">Lizenzart</label>
@@ -404,6 +372,9 @@
                 (valueChange)="setDate('licenseUntil', $event)"
               />
             </div>
+          </div>
+          <h4 class="sub-title">Nachweise</h4>
+          <div class="form-grid">
             <div>
               <label class="label" for="t-aid">Erste Hilfe bis</label>
               <app-date-field
@@ -428,6 +399,9 @@
                 (valueChange)="setDate('codeOfConductOn', $event)"
               />
             </div>
+          </div>
+          <h4 class="sub-title">Honorar und Bankverbindung</h4>
+          <div class="form-grid">
             <div>
               <label class="label" for="t-fee">Honorar in Euro pro Stunde</label>
               <input
@@ -479,15 +453,6 @@
         <section class="box">
           <div class="card-head">
             <span class="pill is-warn">Kampfrichter</span>
-            <button
-              type="button"
-              class="button is-small is-danger"
-              aria-label="Rolle Kampfrichter entfernen"
-              title="Rolle entfernen"
-              (click)="setRole('referee', false)"
-            >
-              <app-icon name="x" />
-            </button>
           </div>
           <div class="form-grid">
             <div>
@@ -531,15 +496,6 @@
         <section class="box">
           <div class="card-head">
             <span class="pill is-violet">Funktionär</span>
-            <button
-              type="button"
-              class="button is-small is-danger"
-              aria-label="Rolle Funktionär entfernen"
-              title="Rolle entfernen"
-              (click)="setRole('official', false)"
-            >
-              <app-icon name="x" />
-            </button>
           </div>
           <label class="label" for="o-function">Funktion</label>
           <input
@@ -563,6 +519,52 @@
                 inputId="o-until"
                 [value]="draft().officialUntil"
                 (valueChange)="setDate('officialUntil', $event)"
+              />
+            </div>
+          </div>
+        </section>
+      }
+
+      @if (draft().helper) {
+        <section class="box">
+          <div class="card-head">
+            <span class="pill is-info">Helfer</span>
+          </div>
+          <label class="label" for="h-prior">Vorherige Ausbildung (falls vorhanden)</label>
+          <input
+            id="h-prior"
+            class="input"
+            placeholder="z. B. Rettungsschwimmer, keine"
+            [value]="draft().priorTraining"
+            (change)="setText('priorTraining', $event)"
+          />
+          <p class="help">Helfer brauchen keinen Trainerschein.</p>
+        </section>
+      }
+
+      @if (draft().driver) {
+        <section class="box">
+          <div class="card-head">
+            <span class="pill is-warn">Fahrer</span>
+          </div>
+          <p class="help mb-3">Die Bankverbindung wird für die Fahrtenabrechnung gebraucht.</p>
+          <div class="form-grid">
+            <div>
+              <label class="label" for="d-iban">IBAN</label>
+              <input
+                id="d-iban"
+                class="input"
+                [value]="draft().iban"
+                (change)="setText('iban', $event)"
+              />
+            </div>
+            <div>
+              <label class="label" for="d-bic">BIC</label>
+              <input
+                id="d-bic"
+                class="input"
+                [value]="draft().bic"
+                (change)="setText('bic', $event)"
               />
             </div>
           </div>
@@ -628,6 +630,37 @@
     </section>
   }
   @case ('payment') {
+    <section class="box">
+      <h3>Mitgliedschaft</h3>
+      <div class="buttons has-addons mb-2">
+        <button
+          type="button"
+          class="button"
+          [class.is-link]="!draft().passive"
+          [attr.aria-pressed]="!draft().passive"
+          (click)="setPassive(false)"
+        >
+          Aktiv
+        </button>
+        <button
+          type="button"
+          class="button"
+          [class.is-link]="draft().passive"
+          [attr.aria-pressed]="draft().passive"
+          (click)="setPassive(true)"
+        >
+          Passiv
+        </button>
+      </div>
+      <p class="help">
+        @if (draft().passive) {
+          Passive Mitglieder zahlen den Passivbeitrag und zählen nicht zum Familienbeitrag.
+        } @else {
+          Die Beitragsart (Jugend, Erwachsene, 2 Mitglieder, Familie) ergibt sich automatisch aus
+          dem Alter und den Geschwistern.
+        }
+      </p>
+    </section>
     <app-pay-account
       [account]="draft().account"
       [payments]="payments()"
@@ -664,7 +697,7 @@
       </div>
       <div class="icon-row mt-3">
         @if (draft().access === 'none') {
-          <button type="button" class="button is-primary" (click)="setAccess('active')">
+          <button type="button" class="button is-primary wide-button" (click)="setAccess('active')">
             <app-icon name="mail" /> Zugang einrichten
           </button>
         } @else {
@@ -691,21 +724,44 @@
       }
     </section>
     <section class="box">
-      <h3>Rollen</h3>
-      <p class="sub">
+      <h3>Vereinsrollen</h3>
+      <p class="sub mb-3">
+        Bestimmen, welche Felder auf der Seite Rollen erscheinen. Fahrer wird nur für die
+        Bankverbindung der Fahrtenabrechnung gebraucht.
+      </p>
+      <div class="role-grid">
+        @for (item of clubRoles; track item.key) {
+          <label class="role-card" [class.is-on]="draft()[item.key]">
+            <input
+              type="checkbox"
+              [checked]="draft()[item.key]"
+              (change)="toggleClubRole(item.key)"
+            />
+            <span [class]="item.css">{{ item.label }}</span>
+          </label>
+        }
+      </div>
+    </section>
+    <section class="box">
+      <h3>Benutzerrollen</h3>
+      <p class="sub mb-3">
         Dieselben Rollen wie in der Benutzerverwaltung. Änderungen gelten an beiden Stellen.
       </p>
-      @for (item of appRoles; track item.key) {
-        <label class="checkbox block">
-          <input
-            type="checkbox"
-            [checked]="draft().appRoles.includes(item.key)"
-            (change)="toggleAppRole(item.key)"
-          />
-          <strong>{{ item.label }}</strong>
-          <small class="sub">{{ item.hint }}</small>
-        </label>
-      }
+      <div class="role-grid">
+        @for (item of appRoles; track item.key) {
+          <label class="role-card" [class.is-on]="draft().appRoles.includes(item.key)">
+            <input
+              type="checkbox"
+              [checked]="draft().appRoles.includes(item.key)"
+              (change)="toggleAppRole(item.key)"
+            />
+            <span>
+              <strong>{{ item.label }}</strong>
+              <small class="sub">{{ item.hint }}</small>
+            </span>
+          </label>
+        }
+      </div>
     </section>
     <section class="box">
       <h3>Sonderrechte</h3>
@@ -735,7 +791,7 @@
         </button>
       </div>
       @for (item of draft().extra; track item.id) {
-        <div class="form-grid">
+        <div class="extra-row">
           <div>
             <label class="label" [for]="'x-l-' + item.id">Bezeichnung</label>
             <input

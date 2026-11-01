@@ -69,6 +69,12 @@ $sidebar-width: 15rem;
   }
 }
 
+.group-title {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
 .group {
   align-items: center;
   background: rgba(255, 255, 255, 0.07);

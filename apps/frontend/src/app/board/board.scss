@@ -100,3 +100,26 @@
     }
   }
 }
+
+.board-table {
+  tr.editing > td {
+    background: var(--sgb-hover);
+    vertical-align: top;
+  }
+
+  .edit-cell {
+    padding: 0.6rem;
+  }
+
+  .edit-options {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 0.75rem 0;
+  }
+
+  .editing .actions {
+    width: 1%;
+  }
+}

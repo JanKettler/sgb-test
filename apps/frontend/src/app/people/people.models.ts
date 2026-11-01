@@ -17,6 +17,12 @@ export interface Member {
   /** Date of the police clearance certificate; needed once per person. */
   criminalRecordOn: string;
   swimmer: boolean;
+  /** Passive members pay the passive fee on their own and do not count for a family fee. */
+  passive: boolean;
+  helper: boolean;
+  driver: boolean;
+  /** Training of a helper before joining, if any. */
+  priorTraining: string;
   /** Starts at competitions, in any group; only these need a medical certificate. */
   competes: boolean;
   swimmerGroupIds: GroupId[];
@@ -146,15 +152,7 @@ export function emptyAccount(): PayAccount {
   };
 }
 
-export type Relation =
-  | 'Mutter'
-  | 'Vater'
-  | 'Großmutter'
-  | 'Großvater'
-  | 'Pflegemutter'
-  | 'Pflegevater'
-  | 'Erziehungsberechtigte'
-  | 'Andere Person';
+export type Relation = 'Mutter' | 'Vater' | 'Erziehungsberechtigte' | 'Andere Person';
 
 /** Parents get their own login and register their children. */
 export interface Parent {
@@ -183,13 +181,15 @@ export interface Parent {
   account: PayAccount;
 }
 
-export type RoleKey = 'swimmer' | 'trainer' | 'referee' | 'official';
+export type RoleKey = 'swimmer' | 'trainer' | 'referee' | 'official' | 'helper' | 'driver';
 
 export const ROLES: readonly { key: RoleKey; label: string; css: string }[] = [
   { key: 'swimmer', label: 'Schwimmer', css: 'pill is-info' },
   { key: 'trainer', label: 'Trainer', css: 'pill is-ok' },
   { key: 'referee', label: 'Kampfrichter', css: 'pill is-warn' },
   { key: 'official', label: 'Funktionär', css: 'pill is-violet' },
+  { key: 'helper', label: 'Helfer', css: 'pill is-info' },
+  { key: 'driver', label: 'Fahrer', css: 'pill is-warn' },
 ];
 
 export const LICENSE_KINDS: readonly string[] = [
@@ -237,6 +237,10 @@ export function emptyMember(id: string, memberNo: number, today: string): Member
     criminalRecordOn: '',
     swimmer: true,
     competes: false,
+    passive: false,
+    helper: false,
+    driver: false,
+    priorTraining: '',
     swimmerGroupIds: [],
     dsvId: '',
     attestUntil: '',

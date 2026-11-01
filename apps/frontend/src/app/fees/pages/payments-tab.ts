@@ -75,16 +75,6 @@ export class PaymentsTab {
 
   protected readonly pageRows = computed(() => pageOf(this.rows(), this.page(), this.size()));
 
-  protected isPassive(payment: Payment): boolean {
-    return payment.feeTypeId === 'passive';
-  }
-
-  protected setPassive(payment: Payment, passive: boolean): void {
-    if (this.isPassive(payment) === passive) return;
-    this.store.setPassive(payment.id, passive);
-    this.notice.emit(`${payment.label}: ${passive ? 'passiv' : 'aktiv'} gestellt`);
-  }
-
   protected value(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }

@@ -453,3 +453,24 @@ td .button:has(app-icon:only-child),
     padding-left: 0.75rem;
   }
 }
+
+/* Two fields (from / to) that always stay in one row, also inside a form grid. */
+.range-pair {
+  display: flex;
+  gap: 0.75rem;
+  grid-column: 1 / -1;
+
+  > div {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Buttons with text breathe the same everywhere, icon and label never touch. */
+.button:not(.is-small):not(:has(app-icon:only-child)) {
+  padding-inline: 1.1rem;
+}
+
+.button app-icon:not(:only-child) {
+  margin-right: 0.4rem;
+}

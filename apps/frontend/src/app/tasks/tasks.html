@@ -6,9 +6,6 @@
     <p class="subtitle is-6 mb-0">Wer macht was bis wann</p>
   </div>
   <div class="buttons">
-    <button type="button" class="button" (click)="exportList()">
-      <app-icon name="sheet" /> Excel
-    </button>
     @if (store.canEdit()) {
       <button type="button" class="button is-primary" (click)="add()">
         <app-icon name="plus" /> Neue Aufgabe

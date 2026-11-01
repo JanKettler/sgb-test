@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { PeopleStore } from '../people/people.store';
-import { Member, fullName } from '../people/people.models';
+import { Member, Parent, fullName } from '../people/people.models';
 import { fullDate } from '../training/training-dates';
 import { FeeSettings, FeeType, Payment, euro } from './fees.models';
 import {
@@ -66,25 +66,6 @@ export class FeesStore {
       });
   });
 
-  /** Switches a payment between passive and active; "active" picks the matching fee type itself. */
-  setPassive(paymentId: string, passive: boolean): void {
-    const payment = this.payments().find((item) => item.id === paymentId);
-    if (!payment) return;
-    const members = payment.memberIds
-      .map((id) => this.people.member(id))
-      .filter((member): member is Member => !!member);
-    const typeId = passive
-      ? 'passive'
-      : members.length > 0
-        ? describeGroup(members, this.year).typeId
-        : undefined;
-    const amount = typeId ? this.feeType(typeId)?.amount : undefined;
-    if (!typeId || amount === undefined) return;
-    this.payments.update((all) =>
-      all.map((item) => (item.id === paymentId ? { ...item, feeTypeId: typeId, amount } : item)),
-    );
-  }
-
   feeType(id: string): FeeType | undefined {
     return this.types().find((type) => type.id === id);
   }
@@ -111,8 +92,12 @@ export class FeesStore {
   fillTemplate(template: string, payment: Payment): string {
     const member = this.people.member(payment.memberIds[0] ?? '');
     const [firstName = '', ...rest] = payment.payerName.split(' ');
+    // A family pays together, so every first name belongs into the purpose.
+    const firstNames = payment.memberIds
+      .map((id) => this.people.member(id)?.firstName ?? '')
+      .filter(Boolean);
     const values: Record<string, string> = {
-      '[VORNAME]': member?.firstName ?? firstName,
+      '[VORNAME]': firstNames.length > 0 ? firstNames.join(', ') : firstName,
       '[NACHNAME]': member?.lastName ?? rest.join(' '),
       '[MITGLIEDNR]': String(member?.memberNo ?? ''),
       '[JAHR]': String(this.year),
@@ -161,8 +146,20 @@ export class FeesStore {
     let created = 0;
     let adjusted = 0;
     for (const member of missing) {
+      const parentOf = this.people.parents().find((item) => member.parentIds.includes(item.id));
+      if (member.passive) {
+        this.payments.update((all) => [
+          ...all,
+          this.newPayment(member, parentOf, 'passive', fullName(member)),
+        ]);
+        created++;
+        continue;
+      }
       const existing = this.payments().find(
-        (payment) => member.parentIds.includes(payment.payerId) && payment.memberIds.length > 0,
+        (payment) =>
+          member.parentIds.includes(payment.payerId) &&
+          payment.memberIds.length > 0 &&
+          payment.feeTypeId !== 'passive',
       );
       if (existing) {
         const group = [...existing.memberIds, member.id]
@@ -186,29 +183,61 @@ export class FeesStore {
         adjusted++;
         continue;
       }
-      const parent = this.people.parents().find((item) => member.parentIds.includes(item.id));
       const { typeId, label } = describeGroup([member], this.year);
-      this.payments.update((all) => [
-        ...all,
-        {
-          id: `z-new-${this.nextId++}`,
-          memberIds: [member.id],
-          label,
-          payerId: parent?.id ?? member.id,
-          payerName: parent?.name ?? fullName(member),
-          feeTypeId: typeId,
-          amount: this.feeType(typeId)?.amount ?? 0,
-          method: (parent?.account ?? member.account).method,
-          dueDate: this.today,
-          paid: false,
-          paidOn: '',
-          dunning: 0,
-          purpose: '',
-        },
-      ]);
+      this.payments.update((all) => [...all, this.newPayment(member, parentOf, typeId, label)]);
       created++;
     }
     return { created, adjusted };
+  }
+
+  private newPayment(
+    member: Member,
+    parent: Parent | undefined,
+    typeId: string,
+    label: string,
+  ): Payment {
+    return {
+      id: `z-new-${this.nextId++}`,
+      memberIds: [member.id],
+      label,
+      payerId: parent?.id ?? member.id,
+      payerName: parent?.name ?? fullName(member),
+      feeTypeId: typeId,
+      amount: this.feeType(typeId)?.amount ?? 0,
+      method: (parent?.account ?? member.account).method,
+      dueDate: this.today,
+      paid: false,
+      paidOn: '',
+      dunning: 0,
+      purpose: '',
+    };
+  }
+
+  /**
+   * A member who becomes passive leaves the family payment and gets an own passive payment; an
+   * active member joins the payment of the family again. The fee type follows automatically.
+   */
+  syncMembership(member: Member): void {
+    const current = this.payments().find((payment) => payment.memberIds.includes(member.id));
+    const isPassive = current?.feeTypeId === 'passive';
+    if (current && isPassive === !!member.passive) return;
+    if (current) {
+      const rest = current.memberIds.filter((id) => id !== member.id);
+      const group = rest
+        .map((id) => this.people.member(id))
+        .filter((item): item is Member => !!item);
+      this.payments.update((all) =>
+        group.length === 0
+          ? all.filter((payment) => payment.id !== current.id)
+          : all.map((payment) => {
+              if (payment.id !== current.id) return payment;
+              const { typeId, label } = describeGroup(group, this.year);
+              const amount = this.feeType(typeId)?.amount ?? payment.amount;
+              return { ...payment, memberIds: rest, label, feeTypeId: typeId, amount };
+            }),
+      );
+    }
+    this.generate();
   }
 
   saveType(type: FeeType): void {

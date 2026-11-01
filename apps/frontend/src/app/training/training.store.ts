@@ -514,14 +514,16 @@ export class TrainingStore {
 
   // --- Calendar -------------------------------------------------------------------------------
 
-  /** Sessions in the next seven days that are relevant for the current demo user. */
+  /** Sessions of the current week (Monday to Sunday) that are relevant for the current demo user. */
   weekEntries(): { session: TrainingSession; labels: string[] }[] {
-    const last = addDays(this.today, 6);
+    const sinceMonday = (parseIsoDate(this.today).getDay() + 6) % 7;
+    const first = addDays(this.today, -sinceMonday);
+    const last = addDays(first, 6);
     const role = this.role();
     const actors = this.actors();
     const entries: { session: TrainingSession; labels: string[] }[] = [];
     for (const session of this.sessions()) {
-      if (session.date < this.today || session.date > last) continue;
+      if (session.date < first || session.date > last) continue;
       if (role === 'admin') {
         entries.push({ session, labels: [] });
         continue;

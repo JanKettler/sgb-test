@@ -7,6 +7,7 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { fullDate } from '../training/training-dates';
 import { DEMO_ROLES, DemoRole, GROUPS, GroupId } from '../training/training.models';
@@ -24,7 +25,16 @@ const SEEN_AFTER_MS = 15000;
 /** The notice board: a short list on the start page, the full list with archive on its own page. */
 @Component({
   selector: 'app-board',
-  imports: [RouterLink, Icon, ModalDialog, DateField, RichEditor, RichText, ColorField],
+  imports: [
+    NgTemplateOutlet,
+    RouterLink,
+    Icon,
+    ModalDialog,
+    DateField,
+    RichEditor,
+    RichText,
+    ColorField,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './board.html',
   styleUrl: './board.scss',
@@ -129,6 +139,11 @@ export class Board {
     }
     this.store.save({ ...post, author: post.author.trim() || this.store.author });
     this.draft.set(null);
+  }
+
+  protected cancel(): void {
+    this.draft.set(null);
+    this.invalid.set(false);
   }
 
   protected remove(): void {

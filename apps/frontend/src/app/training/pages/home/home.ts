@@ -25,7 +25,7 @@ interface CalendarDay {
   events: CalendarEvent[];
 }
 
-/** Start page: the next seven days. The hour range follows the sessions that are shown. */
+/** Start page: the current week. The hour range follows the sessions that are shown. */
 @Component({
   selector: 'app-home',
   imports: [RouterLink, Icon],
@@ -45,9 +45,18 @@ export class Home {
     let first: number = FALLBACK_HOURS[0];
     let last: number = FALLBACK_HOURS[1];
     if (sessions.length > 0) {
-      first = Math.min(...sessions.map((s) => Math.floor(minutesOfDay(s.time) / 60)));
-      last = Math.max(
-        ...sessions.map((s) => Math.ceil(minutesOfDay(endTime(s.time, s.durationMinutes)) / 60)),
+      // Half an hour before and after the sessions of the week.
+      first = Math.max(
+        0,
+        Math.min(...sessions.map((s) => Math.floor((minutesOfDay(s.time) - 30) / 60))),
+      );
+      last = Math.min(
+        24,
+        Math.max(
+          ...sessions.map((s) =>
+            Math.ceil((minutesOfDay(endTime(s.time, s.durationMinutes)) + 30) / 60),
+          ),
+        ),
       );
     }
     return Array.from({ length: Math.max(last - first, 1) }, (_, index) => first + index);

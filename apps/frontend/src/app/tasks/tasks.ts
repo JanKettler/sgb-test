@@ -10,7 +10,6 @@ import { RichEditor } from '../ui/rich-editor';
 import { RichText } from '../ui/rich-text';
 import { Toasts } from '../ui/toast';
 import { addDays, fullDate, weekdayIndex } from '../training/training-dates';
-import { downloadText } from '../training/training-download';
 import { DONE_VISIBLE_DAYS, TasksStore } from './tasks.store';
 import {
   REPEAT_LABEL,
@@ -40,7 +39,6 @@ function plain(html: string): string {
     .trim();
 }
 
-const BOM = String.fromCharCode(0xfeff);
 const REPEATS = Object.entries(REPEAT_LABEL) as [TaskRepeat, string][];
 const STATUSES = Object.entries(STATUS_LABEL) as [TaskStatus, string][];
 
@@ -381,39 +379,5 @@ export class Tasks {
     this.commenting.set(null);
     this.commentText.set('');
     this.toasts.saved('Kommentar gespeichert');
-  }
-
-  protected exportList(): void {
-    const rows = this.store.open();
-    if (rows.length === 0) {
-      this.toasts.failed('Keine offenen Aufgaben');
-      return;
-    }
-    const head = [
-      'Aufgabe',
-      'Beschreibung',
-      'Zuständig',
-      'Bis',
-      'Status',
-      'Wichtig',
-      'Teilschritte',
-    ];
-    const lines = rows
-      .sort(this.byDue)
-      .map((task) =>
-        [
-          task.title,
-          plain(task.text),
-          task.who.join(', '),
-          task.due ? fullDate(task.due) : '',
-          STATUS_LABEL[task.status],
-          task.high ? 'ja' : '',
-          task.subs.map((sub) => `${sub.done ? '✓' : '○'} ${sub.text}`).join(' | '),
-        ]
-          .map((cell) => `"${cell.replace(/"/g, '""')}"`)
-          .join(';'),
-      );
-    downloadText('Offene_Aufgaben.csv', `${BOM}${[head.join(';'), ...lines].join('\n')}`);
-    this.toasts.saved('Liste heruntergeladen');
   }
 }
