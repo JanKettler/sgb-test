@@ -1,0 +1,99 @@
+<header
+  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
+  <div>
+    <h2 class="title is-4 mb-1">Dokumente</h2>
+    <p class="subtitle is-6 mb-0">Satzung, Formulare und Vorlagen des Vereins</p>
+  </div>
+  @if (store.canEdit()) {
+    <app-action kind="add" withText label="Dokument hinzufügen" (pressed)="add()" />
+  }
+</header>
+
+<section class="box">
+  <div class="toolbar">
+    <input
+      class="input search"
+      type="search"
+      placeholder="Titel, Beschreibung oder Bereich suchen …"
+      aria-label="Suche"
+      [value]="query()"
+      (input)="query.set(value($event))"
+    />
+  </div>
+  <div class="chip-row">
+    @for (chip of chips(); track chip.key) {
+      <button
+        type="button"
+        class="chip"
+        [class.is-on]="category() === chip.key"
+        [attr.aria-pressed]="category() === chip.key"
+        (click)="category.set(chip.key)"
+      >
+        {{ chip.label }} <span class="count">{{ chip.count }}</span>
+      </button>
+    }
+  </div>
+
+  @if (visible().length === 0) {
+    <p class="empty">Keine Dokumente gefunden.</p>
+  } @else {
+    <div class="item-list">
+      @for (item of visible(); track item.id) {
+        <article class="item">
+          <div class="item-main">
+            <div class="item-title">
+              {{ item.title }} <span class="pill">{{ item.category }}</span>
+            </div>
+            @if (item.note) {
+              <div class="item-sub">{{ item.note }}</div>
+            }
+            @if (!item.url) {
+              <div class="item-sub">Kein Link hinterlegt.</div>
+            }
+          </div>
+          <div class="item-actions">
+            @if (item.url) {
+              <a class="button is-link" [href]="item.url" target="_blank" rel="noopener noreferrer">
+                <app-icon name="link" /> Öffnen
+              </a>
+            }
+            @if (store.canEdit()) {
+              <app-action
+                kind="edit"
+                [label]="item.title + ' bearbeiten'"
+                (pressed)="editing.set(item)"
+              />
+              <app-action
+                kind="delete"
+                [label]="item.title + ' löschen'"
+                (pressed)="toDelete.set(item)"
+              />
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+@if (editing(); as current) {
+  <app-form-dialog
+    [heading]="current.id ? 'Dokument bearbeiten' : 'Dokument hinzufügen'"
+    [fields]="fields"
+    [values]="current"
+    [check]="check"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (toDelete(); as item) {
+  <app-confirm-dialog
+    heading="Dokument löschen?"
+    [subtitle]="item.title"
+    text="Der Eintrag verschwindet aus der Liste. Die Datei selbst bleibt unberührt."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

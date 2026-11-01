@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
 
-export const ABRECHNUNG_ROUTES: Routes = [
+export const CHRISTMAS_MARKET_ROUTES: Routes = [
   {
     path: '',
-    title: 'Abrechnung – SGB Portal',
-    data: { seite: 'abrechnung' },
+    title: 'Weihnachtsmarkt – SGB Portal',
+    data: { seite: 'weihnachtsmarkt' },
     loadComponent: () => import('../core/soon-page').then((module) => module.SoonPage),
   },
 ];

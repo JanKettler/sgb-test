@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
 
-export const JUGEND_ROUTES: Routes = [
+export const EVENTS_ROUTES: Routes = [
   {
     path: '',
-    title: 'Jugend – SGB Portal',
-    data: { seite: 'jugend' },
+    title: 'Veranstaltungen – SGB Portal',
+    data: { seite: 'veranstaltungen' },
     loadComponent: () => import('../core/soon-page').then((module) => module.SoonPage),
   },
 ];

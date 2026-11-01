@@ -520,3 +520,96 @@ td .button:has(app-icon:only-child),
     margin: 0;
   }
 }
+
+.form-grid .is-wide {
+  grid-column: 1 / -1;
+}
+
+/* Toolbar above a list: search field and filter chips. */
+.toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+
+  .search {
+    flex: 1;
+    min-width: 14rem;
+  }
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+/* A list entry with title, details and the action buttons on the right. */
+.item-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.item {
+  align-items: flex-start;
+  background: var(--sgb-card);
+  border: 1px solid var(--sgb-line);
+  border-radius: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.9rem;
+  justify-content: space-between;
+  padding: 0.7rem 0.9rem;
+
+  &.is-done {
+    opacity: 0.65;
+  }
+
+  &.is-ok {
+    border-left: 4px solid var(--ok-fg);
+  }
+
+  &.is-warn {
+    border-left: 4px solid var(--warn-fg);
+  }
+
+  &.is-bad {
+    border-left: 4px solid var(--bad-fg);
+  }
+
+  .item-main {
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+
+  .item-title {
+    font-weight: 700;
+  }
+
+  .item-sub {
+    color: var(--sgb-soft);
+    font-size: 0.88rem;
+  }
+
+  .item-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+}
+
+/* Filter chips with a number behind the label. */
+.chip .count {
+  background: var(--sgb-hover);
+  border: 0;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+  padding: 0.05rem 0.45rem;
+}
+
+.chip.is-on .count {
+  background: rgb(255 255 255 / 25%);
+}

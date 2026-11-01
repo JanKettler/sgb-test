@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-export const MATERIAL_ROUTES: Routes = [
+export const EQUIPMENT_ROUTES: Routes = [
   {
     path: '',
     title: 'Material – SGB Portal',

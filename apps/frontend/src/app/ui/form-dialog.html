@@ -1,0 +1,122 @@
+<app-modal-dialog
+  [heading]="heading()"
+  [subtitle]="subtitle()"
+  [accent]="accent()"
+  (closed)="closed.emit()"
+>
+  <div class="form-grid" (keydown.enter)="enter($event)">
+    @for (field of fields(); track field.key) {
+      <div class="field" [class.is-wide]="isWide(field)">
+        @if (field.type === 'checkbox') {
+          <label class="checkbox">
+            <input
+              type="checkbox"
+              [id]="idOf(field.key)"
+              [checked]="flag(field.key)"
+              (change)="setFlag(field.key, $event)"
+            />
+            {{ field.label }}
+          </label>
+        } @else {
+          <label class="label" [for]="idOf(field.key)"
+            >{{ field.label }}{{ field.required ? ' *' : '' }}</label
+          >
+          @switch (field.type) {
+            @case ('textarea') {
+              <textarea
+                class="textarea"
+                [id]="idOf(field.key)"
+                [class.is-danger]="bad(field)"
+                [rows]="field.rows ?? 3"
+                [placeholder]="field.placeholder ?? ''"
+                [value]="text(field.key)"
+                (input)="setText(field.key, $event)"
+              ></textarea>
+            }
+            @case ('lines') {
+              <textarea
+                class="textarea"
+                [id]="idOf(field.key)"
+                [class.is-danger]="bad(field)"
+                [rows]="field.rows ?? 5"
+                [placeholder]="field.placeholder ?? ''"
+                [value]="text(field.key)"
+                (input)="setText(field.key, $event)"
+              ></textarea>
+            }
+            @case ('select') {
+              <div class="select is-fullwidth" [class.is-danger]="bad(field)">
+                <select [id]="idOf(field.key)" (change)="setText(field.key, $event)">
+                  @for (option of field.options ?? []; track option.value) {
+                    <option [value]="option.value" [selected]="option.value === text(field.key)">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+              </div>
+            }
+            @case ('date') {
+              <app-date-field
+                [inputId]="idOf(field.key)"
+                [value]="text(field.key)"
+                (valueChange)="set(field.key, $event)"
+              />
+            }
+            @case ('time') {
+              <input
+                class="input"
+                type="time"
+                [id]="idOf(field.key)"
+                [class.is-danger]="bad(field)"
+                [value]="text(field.key)"
+                (input)="setText(field.key, $event)"
+              />
+            }
+            @case ('number') {
+              <input
+                class="input"
+                type="number"
+                inputmode="decimal"
+                step="any"
+                [id]="idOf(field.key)"
+                [class.is-danger]="bad(field)"
+                [placeholder]="field.placeholder ?? ''"
+                [value]="text(field.key)"
+                (input)="setText(field.key, $event)"
+              />
+            }
+            @default {
+              <input
+                class="input"
+                autocomplete="off"
+                [id]="idOf(field.key)"
+                [class.is-danger]="bad(field)"
+                [placeholder]="field.placeholder ?? ''"
+                [attr.list]="field.suggestions ? idOf(field.key) + '-list' : null"
+                [value]="text(field.key)"
+                (input)="setText(field.key, $event)"
+              />
+              @if (field.suggestions; as suggestions) {
+                <datalist [id]="idOf(field.key) + '-list'">
+                  @for (suggestion of suggestions; track suggestion) {
+                    <option [value]="suggestion"></option>
+                  }
+                </datalist>
+              }
+            }
+          }
+        }
+        @if (field.hint) {
+          <p class="help">{{ field.hint }}</p>
+        }
+      </div>
+    }
+  </div>
+  @if (error()) {
+    <p class="help is-danger mt-2" role="alert">{{ error() }}</p>
+  }
+  <ng-container dialogActions>
+    <app-action kind="cancel" withText (pressed)="closed.emit()" />
+    <app-action kind="save" withText [label]="saveLabel()" (pressed)="save()" />
+  </ng-container>
+</app-modal-dialog>
