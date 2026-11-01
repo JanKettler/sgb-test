@@ -77,7 +77,25 @@ export type IconName =
   | 'ellipsis'
   | 'filter'
   | 'stopwatch'
-  | 'search';
+  | 'search'
+  | 'handshake'
+  | 'cart'
+  | 'award'
+  | 'box'
+  | 'utensils'
+  | 'book'
+  | 'clock'
+  | 'eye'
+  | 'gift'
+  | 'hammer'
+  | 'car'
+  | 'building'
+  | 'file-lines'
+  | 'user'
+  | 'plug'
+  | 'receipt'
+  | 'check-double'
+  | 'trophy';
 
 const FONT_AWESOME: Record<IconName, string> = {
   check: 'fa-check',
@@ -157,6 +175,24 @@ const FONT_AWESOME: Record<IconName, string> = {
   filter: 'fa-filter',
   stopwatch: 'fa-stopwatch',
   search: 'fa-magnifying-glass',
+  handshake: 'fa-handshake',
+  cart: 'fa-cart-shopping',
+  award: 'fa-award',
+  box: 'fa-box',
+  utensils: 'fa-utensils',
+  book: 'fa-book',
+  clock: 'fa-clock',
+  eye: 'fa-eye',
+  gift: 'fa-gift',
+  hammer: 'fa-hammer',
+  car: 'fa-car',
+  building: 'fa-building-columns',
+  'file-lines': 'fa-file-lines',
+  user: 'fa-user',
+  plug: 'fa-plug',
+  receipt: 'fa-receipt',
+  'check-double': 'fa-check-double',
+  trophy: 'fa-trophy',
 };
 
 /**

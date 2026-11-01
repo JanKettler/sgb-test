@@ -1,0 +1,93 @@
+<div class="toolbar">
+  <input
+    class="input search"
+    type="search"
+    placeholder="Name oder Mitgliedsnummer suchen …"
+    aria-label="Suche"
+    [value]="query()"
+    (input)="query.set(value($event))"
+  />
+  <app-action kind="excel" withText label="Excel „Wer hat was“" (pressed)="exportExcel()" />
+</div>
+
+@if (store.memberMaterial().length > 0) {
+  <details class="box-note mb-3">
+    <summary>Im Mitgliederverzeichnis eingetragen ({{ store.memberMaterial().length }})</summary>
+    <p class="item-sub">
+      Diese Ausgaben (zum Beispiel Vereinsjacken) werden beim Mitglied eingetragen und dort
+      zurückgenommen.
+    </p>
+    @for (entry of store.memberMaterial(); track $index) {
+      <div class="item-sub">
+        {{ entry.name }} · {{ entry.material }}
+        @if (entry.since) {
+          · seit {{ fullDate(entry.since) }}
+        }
+      </div>
+    }
+  </details>
+}
+
+@if (visible().length === 0) {
+  <p class="empty">
+    {{ query() ? 'Keine Treffer.' : 'Im Moment ist nichts ausgegeben oder verliehen.' }}
+  </p>
+} @else {
+  <div class="item-list">
+    @for (borrower of visible(); track borrower.name) {
+      <article class="item" [class.is-bad]="borrower.overdue">
+        <div class="item-main">
+          <div class="item-title">
+            {{ borrower.name }}
+            @if (borrower.memberNo) {
+              <span class="pill">Nr. {{ borrower.memberNo }}</span>
+            }
+            @if (borrower.overdue) {
+              <span class="pill is-bad">überfällig</span>
+            }
+          </div>
+          @for (entry of borrower.loans; track entry.loan.id) {
+            <div class="sub-row">
+              <span>
+                <b>{{ loanText(entry.item, entry.loan) }}</b>
+                <span class="item-sub">
+                  · Ausgabedatum {{ fullDate(entry.loan.since) }}
+                  @if (entry.loan.until) {
+                    ·
+                    <span [class.is-late]="isOverdue(entry.loan, store.today)">
+                      @if (isOverdue(entry.loan, store.today)) {
+                        überfällig,
+                      }
+                      Rückgabedatum {{ fullDate(entry.loan.until) }}
+                    </span>
+                  }
+                </span>
+              </span>
+              @if (store.canLend()) {
+                <span class="sub-actions">
+                  <app-action
+                    kind="edit"
+                    small
+                    [label]="loanText(entry.item, entry.loan) + ' bearbeiten'"
+                    (pressed)="changing.set(entry)"
+                  />
+                  <app-action
+                    kind="return"
+                    small
+                    withText
+                    [label]="loanText(entry.item, entry.loan) + ' zurücknehmen'"
+                    (pressed)="giveBack(entry.item, entry.loan)"
+                  />
+                </span>
+              }
+            </div>
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (changing(); as change) {
+  <app-loan-dialog [item]="change.item" [loan]="change.loan" (closed)="changing.set(null)" />
+}

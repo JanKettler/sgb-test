@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Action, ActionKind } from './action';
+import { ACTIONS, Action, ActionKind } from './action';
 
 describe('Action', () => {
   function create(kind: ActionKind, inputs: Record<string, unknown> = {}) {
@@ -37,6 +37,14 @@ describe('Action', () => {
       TestBed.resetTestingModule();
       const element = create(kind as ActionKind).nativeElement as HTMLElement;
       expect(button(element).className).toContain(tone);
+    }
+  });
+
+  it('names every action, so that icon-only buttons are readable for screen readers', () => {
+    for (const kind of Object.keys(ACTIONS) as ActionKind[]) {
+      TestBed.resetTestingModule();
+      const element = create(kind).nativeElement as HTMLElement;
+      expect(button(element).getAttribute('aria-label')).toBe(ACTIONS[kind].label);
     }
   });
 

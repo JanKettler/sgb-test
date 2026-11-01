@@ -613,3 +613,89 @@ td .button:has(app-icon:only-child),
 .chip.is-on .count {
   background: rgb(255 255 255 / 25%);
 }
+
+/* A line inside a list entry, e.g. one loan with its buttons. */
+.sub-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.6rem;
+  justify-content: space-between;
+  margin-top: 0.35rem;
+
+  .sub-actions {
+    display: inline-flex;
+    gap: 0.3rem;
+  }
+}
+
+.item-heading {
+  color: var(--sgb-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0.7rem 0 0.1rem;
+  text-transform: uppercase;
+}
+
+/* Something that is late or missing, in the colour of warnings. */
+.is-late {
+  color: var(--bad-fg);
+  font-weight: 700;
+}
+
+/* Small tiles with a number and a bar, e.g. the stock of the badges. */
+.tile-grid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+}
+
+.tile {
+  background: var(--sgb-card);
+  border: 1px solid var(--sgb-line);
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+
+  &.is-bad {
+    border-color: var(--bad-fg);
+  }
+
+  .tile-name {
+    font-weight: 700;
+  }
+
+  .tile-number {
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1.2;
+
+    small {
+      color: var(--sgb-soft);
+      font-size: 0.8rem;
+      font-weight: 400;
+    }
+  }
+
+  .progress {
+    margin: 0.3rem 0;
+  }
+
+  .tile-foot {
+    align-items: center;
+    display: flex;
+    gap: 0.4rem;
+    justify-content: space-between;
+  }
+}
+
+.box-note {
+  background: var(--sgb-hover);
+  border-radius: 10px;
+  padding: 0.5rem 0.8rem;
+
+  summary {
+    cursor: pointer;
+    font-weight: 700;
+  }
+}
