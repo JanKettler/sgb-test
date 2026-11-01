@@ -30,9 +30,6 @@ export class StartStore {
       internalDeadline: meet.internalDeadline,
       deadline: meet.deadline,
       entriesSent: meet.sent,
-      starters: this.meets
-        .starters(meet)
-        .map((row) => ({ name: row.name, starts: row.entries.length })),
     })),
   );
   readonly events = signal<ClubEvent[]>(this.sampleEvents());

@@ -9,7 +9,7 @@ import {
   input,
 } from '@angular/core';
 import { ColorField, MARK_COLORS, TEXT_COLORS } from './color-field';
-import { Icon } from './icon';
+import { Icon, IconName } from './icon';
 import { LinkPicker } from './link-picker';
 import { cleanHtml } from './rich-text';
 
@@ -19,6 +19,40 @@ const MAX_PICTURE_PX = 800;
 
 const MIN_PX = 8;
 const MAX_PX = 64;
+
+interface Tool {
+  command: string;
+  icon: IconName;
+  label: string;
+}
+
+/** The toolbar is kept short: what is needed for a notice, nothing more. */
+const TOOL_GROUPS: readonly { id: string; tools: readonly Tool[] }[] = [
+  { id: 'history', tools: [{ command: 'undo', icon: 'undo', label: 'Rückgängig' }] },
+  {
+    id: 'text',
+    tools: [
+      { command: 'bold', icon: 'bold', label: 'Fett' },
+      { command: 'italic', icon: 'italic', label: 'Kursiv' },
+      { command: 'underline', icon: 'underline', label: 'Unterstrichen' },
+    ],
+  },
+  {
+    id: 'align',
+    tools: [
+      { command: 'justifyLeft', icon: 'align-left', label: 'Linksbündig' },
+      { command: 'justifyCenter', icon: 'align-center', label: 'Zentriert' },
+      { command: 'justifyRight', icon: 'align-right', label: 'Rechtsbündig' },
+    ],
+  },
+  {
+    id: 'lists',
+    tools: [
+      { command: 'insertUnorderedList', icon: 'list-ul', label: 'Aufzählung' },
+      { command: 'insertOrderedList', icon: 'list-ol', label: 'Nummerierung' },
+    ],
+  },
+];
 
 /**
  * Small editor for formatted message text: alignment, free font size, bold/italic/underline, text
@@ -40,6 +74,7 @@ export class RichEditor {
   readonly textColor = input('');
 
   protected readonly area = viewChild<ElementRef<HTMLElement>>('area');
+  protected readonly toolGroups = TOOL_GROUPS;
   protected readonly menu = signal<Menu>(null);
   protected readonly hint = signal('');
   protected readonly textColors = TEXT_COLORS;
@@ -113,8 +148,7 @@ export class RichEditor {
   protected command(name: string): void {
     this.restore();
     document.execCommand('styleWithCSS', false, 'true');
-    if (name === 'quote') document.execCommand('formatBlock', false, 'blockquote');
-    else document.execCommand(name, false);
+    document.execCommand(name, false);
     this.changed();
   }
 
@@ -184,17 +218,6 @@ export class RichEditor {
     );
     this.menu.set(null);
     this.changed();
-  }
-
-  protected pasteFromClipboard(): void {
-    this.restore();
-    navigator.clipboard
-      .readText()
-      .then((text) => {
-        document.execCommand('insertText', false, text);
-        this.changed();
-      })
-      .catch(() => this.hint.set('Zum Einfügen bitte lange auf das Textfeld tippen.'));
   }
 
   protected setLink(href: string): void {

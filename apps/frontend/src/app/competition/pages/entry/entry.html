@@ -1,22 +1,13 @@
-<header
-  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
->
-  <div>
-    <h2 class="title is-4 mb-1">Wettkampf-Anmeldung</h2>
-    <p class="subtitle is-6 mb-0">Wettkämpfe, für die sich Schwimmer anmelden können</p>
-  </div>
+<header class="page-head mb-4">
+  <h2 class="title is-4 mb-0">Wettkampf-Anmeldung</h2>
 </header>
 
 <section class="box">
   @if (person(); as current) {
-    <div class="person-bar">
-      <p class="mb-0">
-        <span class="label for-person">Anmeldung für</span>
-        <strong>{{ nameOf(current.id) }}</strong>
-      </p>
-      @if (store.actors().length > 1) {
-        <div class="select is-small">
-          <select aria-label="Person wechseln" (change)="select($event)">
+    @if (store.actors().length > 1) {
+      <div class="person-bar">
+        <div class="select">
+          <select aria-label="Person wählen" (change)="select($event)">
             @for (actor of store.actors(); track actor.id) {
               <option [value]="actor.id" [selected]="current.id === actor.id">
                 {{ nameOf(actor.id) }}
@@ -24,8 +15,8 @@
             }
           </select>
         </div>
-      }
-    </div>
+      </div>
+    }
 
     @for (row of rows(); track row.competition.id) {
       <article class="meet" [class.is-open]="openId() === row.competition.id">
@@ -35,9 +26,13 @@
             <small class="is-block has-text-grey">
               {{ row.weekday }}, {{ fullDate(row.date) }} · {{ row.competition.place }}
             </small>
-            <small class="is-block has-text-grey">
-              Bis {{ fullDate(row.competition.internalDeadline) }} anmelden
-            </small>
+            @if (row.status !== 'closed') {
+              <span class="deadline" [class]="'deadline is-' + row.tone">
+                <app-icon name="hourglass" />
+                Meldeschluss {{ row.deadlineWeekday }},
+                {{ fullDate(row.competition.internalDeadline) }} · {{ row.left }}
+              </span>
+            }
           </div>
           <div class="meet-actions">
             @switch (row.status) {
@@ -45,7 +40,7 @@
                 <span class="pill is-ok">{{ row.starts }} Starts gemeldet</span>
               }
               @case ('declined') {
-                <span class="pill is-warn">Abgemeldet</span>
+                <span class="pill is-warn">Abgesagt</span>
               }
               @case ('closed') {
                 <span class="pill is-bad">Anmeldung beendet</span>

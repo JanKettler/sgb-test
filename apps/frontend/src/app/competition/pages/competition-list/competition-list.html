@@ -1,10 +1,7 @@
 <header
-  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-center mb-4"
 >
-  <div>
-    <h2 class="title is-4 mb-1">Wettkämpfe</h2>
-    <p class="subtitle is-6 mb-0">Ausschreibungen, Anmeldung freigeben und Meldungen prüfen</p>
-  </div>
+  <h2 class="title is-4 mb-0">Wettkämpfe</h2>
   <div class="icon-row">
     <label class="button is-link" title="Ausschreibung (DSV7-Datei) einlesen">
       <app-icon name="upload" />
@@ -42,7 +39,7 @@
 
 <section class="box">
   <div class="table-container">
-    <table class="table is-fullwidth is-hoverable">
+    <table class="table is-fullwidth is-hoverable meets">
       <thead>
         <tr>
           <th scope="col">Datum</th>
@@ -50,22 +47,35 @@
           <th scope="col">Meldeschluss</th>
           <th scope="col">Meldungen</th>
           <th scope="col">Meldegeld</th>
-          <th scope="col">Anmeldung</th>
           <th scope="col"><span class="is-sr-only">Aktionen</span></th>
         </tr>
       </thead>
       <tbody>
         @for (row of rows(); track row.competition.id) {
-          <tr [class.has-text-grey]="row.past">
-            <td class="has-text-centered">{{ fullDate(row.date) }}</td>
+          @let progress = store.progress(row.competition);
+          <tr [class.is-past]="row.past">
+            <td class="nowrap">
+              <strong>{{ fullDate(row.date) }}</strong>
+            </td>
             <td>
-              <strong>{{ row.competition.title || 'Ohne Namen' }}</strong>
+              <a class="meet-title" [routerLink]="['/wettkampf/wettkaempfe', row.competition.id]">
+                {{ row.competition.title || 'Ohne Namen' }}
+              </a>
+              @if (!row.competition.open) {
+                <span class="tag is-light ml-1" title="Anmeldung im Portal ist gesperrt">
+                  <app-icon name="lock" />
+                </span>
+              }
               <small class="is-block has-text-grey">{{ row.competition.place }}</small>
               @if (!row.past) {
-                <small class="is-block has-text-grey">
-                  {{ store.progress(row.competition).done }} von
-                  {{ store.progress(row.competition).total }} Schritten erledigt
-                </small>
+                <span class="progress-line">
+                  <progress
+                    class="progress is-small is-link"
+                    [value]="progress.done"
+                    [max]="progress.total"
+                  ></progress>
+                  <small class="has-text-grey">{{ progress.done }}/{{ progress.total }}</small>
+                </span>
                 @for (warning of store.warnings(row.competition); track warning.text) {
                   <span
                     class="pill mr-1"
@@ -77,35 +87,23 @@
                 }
               }
             </td>
-            <td class="has-text-centered">
+            <td class="nowrap">
               {{ fullDate(row.competition.deadline) }}
               <small class="is-block has-text-grey">
                 intern {{ fullDate(row.competition.internalDeadline) }}
               </small>
             </td>
-            <td class="has-text-centered">
-              {{ row.counts.swimmers }} Schwimmer
+            <td class="nowrap">
+              <strong>{{ row.counts.swimmers }}</strong> Schwimmer
               <small class="is-block has-text-grey">
                 {{ row.counts.singles }} Einzel · {{ row.counts.relays }} Staffel
               </small>
               @if (row.competition.sent) {
-                <span class="tag is-success is-rounded">gesendet</span>
+                <span class="tag is-success is-light is-rounded">gesendet</span>
               }
             </td>
-            <td class="has-text-centered">{{ euro(row.fee) }}</td>
-            <td class="has-text-centered">
-              <button
-                type="button"
-                class="button is-small is-rounded"
-                [class.is-success]="row.competition.open"
-                [title]="row.competition.open ? 'Anmeldung schließen' : 'Anmeldung freigeben'"
-                (click)="release(row.competition)"
-              >
-                <app-icon [name]="row.competition.open ? 'check' : 'lock'" />
-                {{ row.competition.open ? 'offen' : 'gesperrt' }}
-              </button>
-            </td>
-            <td>
+            <td class="nowrap">{{ euro(row.fee) }}</td>
+            <td class="nowrap">
               <span class="icon-row">
                 <a
                   class="button is-warning"

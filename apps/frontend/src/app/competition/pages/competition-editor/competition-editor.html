@@ -54,8 +54,9 @@
 
   @switch (tab()) {
     @case ('base') {
-      <div class="form-grid">
-        <div>
+      <h3 class="first">Termin</h3>
+      <div class="grid4">
+        <div class="span2">
           <label class="label" for="c-title">Veranstaltung</label>
           <input
             id="c-title"
@@ -73,8 +74,8 @@
           <label class="label" for="c-pool">Bahnlänge</label>
           <div class="select is-fullwidth">
             <select id="c-pool" (change)="patch({ pool: +value($event) })">
-              <option value="25" [selected]="item.pool === 25">Kurzbahn (25 m)</option>
-              <option value="50" [selected]="item.pool === 50">Langbahn (50 m)</option>
+              <option value="25" [selected]="item.pool === 25">Kurzbahn</option>
+              <option value="50" [selected]="item.pool === 50">Langbahn</option>
             </select>
           </div>
         </div>
@@ -90,28 +91,26 @@
             </select>
           </div>
         </div>
-        <div class="range-pair">
-          <div>
-            <label class="label" for="c-deadline">Meldeschluss</label>
-            <app-date-field
-              inputId="c-deadline"
-              [value]="item.deadline"
-              (valueChange)="patch({ deadline: $event })"
-            />
-          </div>
-          <div>
-            <label class="label" for="c-deadline-time">Uhrzeit</label>
-            <input
-              id="c-deadline-time"
-              class="input"
-              placeholder="23:59"
-              [value]="item.deadlineTime"
-              (change)="text('deadlineTime', $event)"
-            />
-          </div>
+        <div>
+          <label class="label" for="c-deadline">Meldeschluss</label>
+          <app-date-field
+            inputId="c-deadline"
+            [value]="item.deadline"
+            (valueChange)="patch({ deadline: $event })"
+          />
         </div>
         <div>
-          <label class="label" for="c-internal">Interner Meldeschluss</label>
+          <label class="label" for="c-deadline-time">Uhrzeit</label>
+          <input
+            id="c-deadline-time"
+            class="input"
+            placeholder="23:59"
+            [value]="item.deadlineTime"
+            (change)="text('deadlineTime', $event)"
+          />
+        </div>
+        <div>
+          <label class="label" for="c-internal">Intern bis</label>
           <app-date-field
             inputId="c-internal"
             [value]="item.internalDeadline"
@@ -120,31 +119,38 @@
         </div>
       </div>
 
-      <h3>Anmeldung im Portal</h3>
-      <label class="checkbox mb-3">
-        <input type="checkbox" [checked]="item.open" (change)="patch({ open: !item.open })" />
-        Anmeldung ist freigegeben
-      </label>
-      <p class="label mb-1">
-        Nur für bestimmte Gruppen
-        <span class="has-text-weight-normal has-text-grey">(nichts angehakt = alle)</span>
-      </p>
-      <div class="group-pick mb-4">
-        @for (group of groups; track group.id) {
-          <label class="checkbox">
-            <input
-              type="checkbox"
-              [checked]="item.groupIds.includes(group.id)"
-              (change)="toggleGroup(group.id)"
-            />
-            {{ group.name }}
-          </label>
+      <h3>Wer darf sich anmelden?</h3>
+      <div class="buttons has-addons mb-3">
+        @for (mode of regModes; track mode.id) {
+          <button
+            type="button"
+            class="button"
+            [class.is-primary]="regMode() === mode.id"
+            [class.is-selected]="regMode() === mode.id"
+            (click)="setRegMode(mode.id)"
+          >
+            <app-icon [name]="mode.icon" /> {{ mode.label }}
+          </button>
         }
       </div>
+      @if (regMode() === 'groups') {
+        <div class="group-pick mb-3">
+          @for (group of groups; track group.id) {
+            <label class="checkbox">
+              <input
+                type="checkbox"
+                [checked]="item.groupIds.includes(group.id)"
+                (change)="toggleGroup(group.id)"
+              />
+              {{ group.name }}
+            </label>
+          }
+        </div>
+      }
 
       <h3>Veranstalter und Meldestelle</h3>
-      <div class="form-grid">
-        <div>
+      <div class="grid4">
+        <div class="span2">
           <label class="label" for="c-org">Veranstalter</label>
           <input
             id="c-org"
@@ -153,7 +159,7 @@
             (change)="text('organiser', $event)"
           />
         </div>
-        <div>
+        <div class="span2">
           <label class="label" for="c-host">Ausrichter</label>
           <input id="c-host" class="input" [value]="item.host" (change)="text('host', $event)" />
         </div>
@@ -167,6 +173,15 @@
           />
         </div>
         <div>
+          <label class="label" for="c-cphone">Telefon</label>
+          <input
+            id="c-cphone"
+            class="input"
+            [value]="item.contactPhone"
+            (change)="text('contactPhone', $event)"
+          />
+        </div>
+        <div class="span2">
           <label class="label" for="c-cmail">Mail für die Meldedatei</label>
           <input
             id="c-cmail"
@@ -176,20 +191,11 @@
             (change)="text('contactEmail', $event)"
           />
         </div>
-        <div>
-          <label class="label" for="c-cphone">Telefon</label>
-          <input
-            id="c-cphone"
-            class="input"
-            [value]="item.contactPhone"
-            (change)="text('contactPhone', $event)"
-          />
-        </div>
       </div>
 
       <h3>Schwimmbad</h3>
-      <div class="form-grid">
-        <div>
+      <div class="grid4">
+        <div class="span2">
           <label class="label" for="c-vname">Name des Bades</label>
           <input
             id="c-vname"
@@ -198,7 +204,7 @@
             (change)="text('venueName', $event)"
           />
         </div>
-        <div>
+        <div class="span2">
           <label class="label" for="c-vstreet">Straße</label>
           <input
             id="c-vstreet"
@@ -216,7 +222,7 @@
             (change)="text('venueZip', $event)"
           />
         </div>
-        <div>
+        <div class="span2">
           <label class="label" for="c-vcity">Ort</label>
           <input
             id="c-vcity"
@@ -228,7 +234,7 @@
       </div>
 
       <h3>Meldegeld</h3>
-      <div class="form-grid">
+      <div class="grid4">
         <div>
           <label class="label" for="c-flat">Pauschale (€)</label>
           <input
@@ -260,11 +266,10 @@
           />
         </div>
       </div>
-      <p class="help mb-4">Das Meldegeld je Wettkampf steht in der Wettkampffolge.</p>
 
       <h3>Bankverbindung für das Meldegeld</h3>
-      <div class="form-grid">
-        <div>
+      <div class="grid4">
+        <div class="span2">
           <label class="label" for="c-bh">Kontoinhaber</label>
           <input
             id="c-bh"
@@ -273,34 +278,39 @@
             (change)="bank('holder', $event)"
           />
         </div>
-        <div>
+        <div class="span2">
           <label class="label" for="c-bb">Bank</label>
           <input id="c-bb" class="input" [value]="item.bank.bank" (change)="bank('bank', $event)" />
         </div>
-        <div>
+        <div class="span3">
           <label class="label" for="c-bi">IBAN</label>
-          <input id="c-bi" class="input" [value]="item.bank.iban" (change)="bank('iban', $event)" />
+          <input
+            id="c-bi"
+            class="input"
+            placeholder="Testdaten, keine echte IBAN"
+            [value]="item.bank.iban"
+            (change)="bank('iban', $event)"
+          />
         </div>
         <div>
           <label class="label" for="c-bc">BIC</label>
           <input id="c-bc" class="input" [value]="item.bank.bic" (change)="bank('bic', $event)" />
         </div>
       </div>
-      <p class="help mb-4">Im Testportal bitte keine echten Bankdaten eintragen.</p>
 
-      <label class="label" for="c-note">Bemerkung</label>
+      <h3>Bemerkung</h3>
       <textarea
-        id="c-note"
         class="textarea"
         rows="3"
+        aria-label="Bemerkung"
         [value]="item.note"
         (change)="text('note', $event)"
       ></textarea>
     }
 
     @case ('sections') {
-      <div class="table-container">
-        <table class="table is-fullwidth wide-table">
+      <div class="rows-wrap">
+        <table class="rows sections">
           <thead>
             <tr>
               <th scope="col">Nr.</th>
@@ -316,58 +326,58 @@
           <tbody>
             @for (section of item.sections; track $index) {
               <tr>
-                <td>
+                <td class="c-nr" data-label="Nr.">
                   <input
-                    class="input narrow"
+                    class="input num"
                     inputmode="numeric"
                     aria-label="Abschnittsnummer"
                     [value]="section.no"
                     (change)="setSection($index, { no: number($event) })"
                   />
                 </td>
-                <td>
+                <td class="c-date" data-label="Datum">
                   <app-date-field
                     [value]="section.date"
                     (valueChange)="setSection($index, { date: $event })"
                   />
                 </td>
-                <td>
+                <td class="c-in" data-label="Einlass">
                   <input
-                    class="input narrow"
+                    class="input num"
                     placeholder="09:00"
                     aria-label="Einlass"
                     [value]="section.entry"
                     (change)="setSection($index, { entry: value($event) })"
                   />
                 </td>
-                <td>
+                <td class="c-warm" data-label="Einschwimmen">
                   <input
-                    class="input narrow"
+                    class="input num"
                     placeholder="09:00"
                     aria-label="Einschwimmen"
                     [value]="section.warmup"
                     (change)="setSection($index, { warmup: value($event) })"
                   />
                 </td>
-                <td>
+                <td class="c-judges" data-label="Kampfrichter">
                   <input
-                    class="input narrow"
+                    class="input num"
                     placeholder="09:30"
                     aria-label="Kampfrichter"
                     [value]="section.judges"
                     (change)="setSection($index, { judges: value($event) })"
                   />
                 </td>
-                <td>
+                <td class="c-start" data-label="Beginn">
                   <input
-                    class="input narrow"
+                    class="input num"
                     placeholder="10:00"
                     aria-label="Beginn"
                     [value]="section.start"
                     (change)="setSection($index, { start: value($event) })"
                   />
                 </td>
-                <td class="has-text-centered">
+                <td class="c-rel center" data-label="nach Abs. davor">
                   <input
                     type="checkbox"
                     aria-label="Zeiten gelten nach dem vorigen Abschnitt"
@@ -375,7 +385,7 @@
                     (change)="setSection($index, { relative: !section.relative })"
                   />
                 </td>
-                <td>
+                <td class="c-del remove">
                   <button
                     type="button"
                     class="button is-danger"
@@ -403,8 +413,8 @@
     }
 
     @case ('events') {
-      <div class="table-container">
-        <table class="table is-fullwidth wide-table">
+      <div class="rows-wrap">
+        <table class="rows events">
           <thead>
             <tr>
               <th scope="col">Wk</th>
@@ -413,52 +423,52 @@
               <th scope="col">Meter</th>
               <th scope="col">Lage</th>
               <th scope="col">Art</th>
-              <th scope="col">M/F</th>
+              <th scope="col">M/W</th>
               <th scope="col">Jahrgang</th>
-              <th scope="col">Geld (€)</th>
+              <th scope="col">Meldegeld</th>
               <th scope="col"><span class="is-sr-only">Aktionen</span></th>
             </tr>
           </thead>
           <tbody>
             @for (event of item.events; track $index) {
               <tr>
-                <td>
+                <td class="c-wk" data-label="Wk">
                   <input
-                    class="input narrow"
+                    class="input num"
                     inputmode="numeric"
                     aria-label="Wettkampfnummer"
                     [value]="event.no"
                     (change)="setEvent($index, { no: number($event) })"
                   />
                 </td>
-                <td>
+                <td class="c-ab" data-label="Abs.">
                   <input
-                    class="input narrow"
+                    class="input num"
                     inputmode="numeric"
                     aria-label="Abschnitt"
                     [value]="event.section"
                     (change)="setEvent($index, { section: number($event) })"
                   />
                 </td>
-                <td>
+                <td class="c-st" data-label="Starter">
                   <input
-                    class="input narrow"
+                    class="input num"
                     inputmode="numeric"
                     aria-label="Anzahl Starter (Staffel: 4)"
                     [value]="event.count"
                     (change)="setEvent($index, { count: number($event) || 1 })"
                   />
                 </td>
-                <td>
+                <td class="c-m" data-label="Meter">
                   <input
-                    class="input narrow"
+                    class="input num"
                     inputmode="numeric"
                     aria-label="Strecke in Metern"
                     [value]="event.distance"
                     (change)="setEvent($index, { distance: number($event) })"
                   />
                 </td>
-                <td>
+                <td class="c-lage" data-label="Lage">
                   <div class="select">
                     <select
                       aria-label="Schwimmart"
@@ -472,7 +482,7 @@
                     </select>
                   </div>
                 </td>
-                <td>
+                <td class="c-art" data-label="Art">
                   <div class="select">
                     <select
                       aria-label="Ausübung"
@@ -486,7 +496,7 @@
                     </select>
                   </div>
                 </td>
-                <td>
+                <td class="c-sex" data-label="M/W">
                   <div class="select">
                     <select
                       aria-label="Geschlecht"
@@ -498,25 +508,25 @@
                     </select>
                   </div>
                 </td>
-                <td>
+                <td class="c-year" data-label="Jahrgang">
                   <input
-                    class="input years"
+                    class="input num"
                     aria-label="Jahrgang"
                     placeholder="offen"
                     [value]="event.birthYears"
                     (change)="setEvent($index, { birthYears: value($event) })"
                   />
                 </td>
-                <td>
+                <td class="c-fee" data-label="Meldegeld">
                   <input
-                    class="input narrow"
+                    class="input num"
                     inputmode="decimal"
                     aria-label="Meldegeld"
                     [value]="event.fee"
                     (change)="setEvent($index, { fee: number($event) })"
                   />
                 </td>
-                <td>
+                <td class="c-del remove">
                   <button
                     type="button"
                     class="button is-danger"
@@ -544,28 +554,24 @@
     }
 
     @case ('entries') {
-      <div class="tiles mb-3">
-        <div class="tile">
-          <span class="label">Schwimmer</span>
-          <strong class="big">{{ counts().swimmers }}</strong>
-        </div>
-        <div class="tile">
-          <span class="label">Einzelstarts</span>
-          <strong class="big">{{ counts().singles }}</strong>
-        </div>
-        <div class="tile">
-          <span class="label">Staffelstarts</span>
-          <strong class="big">{{ counts().relays }}</strong>
-        </div>
-        <div class="tile">
-          <span class="label">Meldegeld</span>
-          <strong class="big">{{ euro(total()) }}</strong>
-        </div>
-      </div>
+      <p class="stats">
+        <span
+          ><strong>{{ counts().swimmers }}</strong> Schwimmer</span
+        >
+        <span
+          ><strong>{{ counts().singles }}</strong> Einzelstarts</span
+        >
+        <span
+          ><strong>{{ counts().relays }}</strong> Staffelstarts</span
+        >
+        <span
+          ><strong>{{ euro(total()) }}</strong> Meldegeld</span
+        >
+      </p>
 
-      <div class="fees-actions">
+      <div class="toolbar">
         @if (addable().length > 0) {
-          <div class="select">
+          <div class="select compact">
             <select aria-label="Person hinzufügen" (change)="startAdding($event)">
               <option value="">Person hinzufügen …</option>
               @for (person of addable(); track person.id) {
@@ -574,187 +580,171 @@
             </select>
           </div>
         }
-        <button
-          type="button"
-          class="button"
-          (click)="mail.set('treasurer')"
-          [disabled]="starters().length === 0 && relays().length === 0"
-        >
-          <app-icon name="mail" /> Info an Kassenwart
-        </button>
-        <button
-          type="button"
-          class="button is-primary"
-          (click)="mail.set('entry')"
-          [disabled]="(starters().length === 0 && relays().length === 0) || isNew"
-        >
-          <app-icon name="mail" /> Per E-Mail senden
-        </button>
-        <button
-          type="button"
-          class="button"
-          (click)="exporting.set(true)"
-          [disabled]="(starters().length === 0 && relays().length === 0) || isNew"
-        >
-          <app-icon name="download" /> Herunterladen
-        </button>
-        <button
-          type="button"
-          class="button"
-          (click)="printEntryList()"
-          [disabled]="starters().length === 0 && relays().length === 0"
-        >
-          <app-icon name="download" /> Meldeliste drucken
-        </button>
-        @if (!isNew) {
-          <button type="button" class="button" [class.is-success]="item.sent" (click)="markSent()">
-            <app-icon name="check" /> {{ item.sent ? 'Gesendet' : 'Als gesendet markieren' }}
+        <div class="buttons has-addons">
+          <button
+            type="button"
+            class="button is-small"
+            title="Info an den Kassenwart"
+            (click)="mail.set('treasurer')"
+            [disabled]="!hasEntries()"
+          >
+            <app-icon name="coins" /> Kassenwart
           </button>
+          <button
+            type="button"
+            class="button is-small"
+            title="Meldeliste drucken"
+            (click)="printEntryList()"
+            [disabled]="!hasEntries()"
+          >
+            <app-icon name="print" /> Drucken
+          </button>
+          <button
+            type="button"
+            class="button is-small"
+            title="Meldedatei herunterladen"
+            (click)="exporting.set(true)"
+            [disabled]="!hasEntries() || isNew"
+          >
+            <app-icon name="download" /> Meldedatei
+          </button>
+        </div>
+        @if (!isNew) {
+          <div class="buttons has-addons">
+            <button
+              type="button"
+              class="button is-small"
+              [class.is-success]="item.sent"
+              [title]="item.sent ? 'Wieder auf „nicht gesendet“ stellen' : 'Als gesendet markieren'"
+              (click)="markSent()"
+            >
+              <app-icon name="check" /> {{ item.sent ? 'Gesendet' : 'Nicht gesendet' }}
+            </button>
+            <button
+              type="button"
+              class="button is-small is-primary"
+              title="Meldung per E-Mail senden"
+              (click)="mail.set('entry')"
+              [disabled]="!hasEntries()"
+            >
+              <app-icon name="send" /> Senden
+            </button>
+          </div>
         }
       </div>
 
+      <h3>Einzelstarts</h3>
       @if (starters().length === 0) {
-        <p class="has-text-grey">
-          Noch keine Meldungen. Die Schwimmer melden sich unter „Anmeldung“.
-        </p>
+        <p class="has-text-grey">Noch keine Meldungen.</p>
       } @else {
-        <div class="table-container">
-          <table class="table is-fullwidth is-hoverable">
-            <thead>
-              <tr>
-                <th scope="col">Schwimmer</th>
-                <th scope="col">Starts</th>
-                <th scope="col">Hinweise</th>
-                <th scope="col">Geld</th>
-                <th scope="col"><span class="is-sr-only">Aktionen</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of starters(); track row.personId) {
-                <tr>
-                  <td>
-                    <strong>{{ row.name }}</strong>
-                  </td>
-                  <td>
-                    @for (entry of row.entries; track entry.eventNo) {
-                      <span class="tag is-rounded mr-1 mb-1">
-                        {{ entry.eventNo }} · {{ entry.time || 'ohne Zeit' }}
-                      </span>
-                    }
-                  </td>
-                  <td>
-                    @for (issue of row.issues; track issue) {
-                      <span class="pill is-warn mr-1">{{ issue }}</span>
-                    } @empty {
-                      <span class="has-text-grey">–</span>
-                    }
-                  </td>
-                  <td class="has-text-centered">{{ euro(row.fee) }}</td>
-                  <td>
-                    <button
-                      type="button"
-                      class="button is-warning"
-                      aria-label="Starts ändern"
-                      title="Starts ändern"
-                      (click)="editing.set(row.personId)"
-                    >
-                      <app-icon name="pencil" />
-                    </button>
-                    <button
-                      type="button"
-                      class="button is-danger ml-1"
-                      aria-label="Meldungen löschen"
-                      title="Meldungen löschen"
-                      (click)="personDelete.set(row.personId)"
-                    >
-                      <app-icon name="trash" />
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+        <ul class="starter-list">
+          @for (row of starters(); track row.personId) {
+            <li class="starter">
+              <div class="head">
+                <strong>{{ row.name }}</strong>
+                <span class="year">Jg. {{ yearOf(row.personId) }}</span>
+                @for (issue of row.issues; track issue) {
+                  <span class="pill is-warn">{{ issue }}</span>
+                }
+                <span class="gap"></span>
+                <button
+                  type="button"
+                  class="button is-warning"
+                  aria-label="Starts ändern"
+                  title="Starts ändern"
+                  (click)="editing.set(row.personId)"
+                >
+                  <app-icon name="pencil" />
+                </button>
+                <button
+                  type="button"
+                  class="button is-danger"
+                  aria-label="Meldungen löschen"
+                  title="Meldungen löschen"
+                  (click)="personDelete.set(row.personId)"
+                >
+                  <app-icon name="trash" />
+                </button>
+              </div>
+              <ul class="starts">
+                @for (entry of row.entries; track entry.eventNo) {
+                  <li>
+                    <span class="wk">Wk {{ entry.eventNo }}</span>
+                    <span class="what">{{ startLabel(entry.eventNo) }}</span>
+                    <span class="time" [class.none]="!showTime(entry.time)">
+                      {{ showTime(entry.time) || 'ohne Zeit' }}
+                    </span>
+                  </li>
+                }
+              </ul>
+            </li>
+          }
+        </ul>
       }
 
-      <h3 class="title is-5 mt-5">Staffeln</h3>
+      <h3>Staffeln</h3>
       @if (relays().length > 0) {
-        <div class="table-container">
-          <table class="table is-fullwidth is-hoverable">
-            <thead>
-              <tr>
-                <th scope="col">Mannschaft</th>
-                <th scope="col">Wettkampf</th>
-                <th scope="col">Jahrgang</th>
-                <th scope="col">Meldezeit</th>
-                <th scope="col">Schwimmer</th>
-                <th scope="col">Hinweise</th>
-                <th scope="col"><span class="is-sr-only">Aktionen</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (relay of relays(); track relay) {
-                <tr>
-                  <td class="has-text-centered">
-                    <strong>{{ relayName(relay) }}</strong>
-                  </td>
-                  <td>{{ relayEvent(relay) }}</td>
-                  <td class="has-text-centered">{{ relay.year || '–' }}</td>
-                  <td class="has-text-centered">{{ relay.time || 'ohne Zeit' }}</td>
-                  <td>
-                    @for (id of relay.memberIds; track id) {
-                      <span class="tag is-rounded mr-1 mb-1">{{ store.nameOf(id) }}</span>
-                    }
-                  </td>
-                  <td>
-                    @for (issue of store.relayIssues(item, relay); track issue) {
-                      <span class="pill is-warn mr-1">{{ issue }}</span>
-                    } @empty {
-                      <span class="has-text-grey">–</span>
-                    }
-                  </td>
-                  <td>
-                    @if (canRelays()) {
-                      <button
-                        type="button"
-                        class="button is-warning"
-                        aria-label="Staffel ändern"
-                        title="Staffel ändern"
-                        (click)="relayEditing.set(relay)"
-                      >
-                        <app-icon name="pencil" />
-                      </button>
-                      <button
-                        type="button"
-                        class="button is-danger ml-1"
-                        aria-label="Staffel löschen"
-                        title="Staffel löschen"
-                        (click)="relayDelete.set(relay)"
-                      >
-                        <app-icon name="trash" />
-                      </button>
-                    }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+        <ul class="starter-list">
+          @for (relay of relays(); track relay) {
+            <li class="starter">
+              <div class="head">
+                <strong>{{ relayName(relay) }}</strong>
+                <span class="year">Jg. {{ relay.year || '–' }}</span>
+                @for (issue of store.relayIssues(item, relay); track issue) {
+                  <span class="pill is-warn">{{ issue }}</span>
+                }
+                <span class="gap"></span>
+                @if (canRelays()) {
+                  <button
+                    type="button"
+                    class="button is-warning"
+                    aria-label="Staffel ändern"
+                    title="Staffel ändern"
+                    (click)="relayEditing.set(relay)"
+                  >
+                    <app-icon name="pencil" />
+                  </button>
+                  <button
+                    type="button"
+                    class="button is-danger"
+                    aria-label="Staffel löschen"
+                    title="Staffel löschen"
+                    (click)="relayDelete.set(relay)"
+                  >
+                    <app-icon name="trash" />
+                  </button>
+                }
+              </div>
+              <ul class="starts">
+                <li>
+                  <span class="wk">Wk {{ relay.eventNo }}</span>
+                  <span class="what">{{ startLabel(relay.eventNo) }}</span>
+                  <span class="time" [class.none]="!showTime(relay.time)">
+                    {{ showTime(relay.time) || 'ohne Zeit' }}
+                  </span>
+                </li>
+              </ul>
+              <div class="team">
+                @for (id of relay.memberIds; track id) {
+                  <span class="tag is-rounded">{{ store.nameOf(id) }}</span>
+                }
+              </div>
+            </li>
+          }
+        </ul>
       } @else {
         <p class="has-text-grey">Noch keine Staffeln gemeldet.</p>
       }
       @if (canRelays() && !isNew) {
         <button
           type="button"
-          class="button is-primary"
+          class="button is-small is-primary"
           aria-label="Staffel hinzufügen"
           title="Staffel hinzufügen"
           (click)="relayEditing.set('new')"
         >
           <app-icon name="plus" /> Staffel
         </button>
-      } @else if (!canRelays()) {
-        <p class="help">Staffeln stellen die Trainer auf.</p>
       }
     }
 
@@ -771,37 +761,62 @@
     }
 
     @case ('staff') {
-      <div class="columns">
-        @for (kind of staffKinds; track kind.id) {
-          <div class="column">
-            <h3 class="title is-5">{{ kind.label }}</h3>
-            <div class="mb-3">
-              @for (person of staffNames(kind.id); track person.id) {
-                <span class="tag is-medium is-rounded mr-1 mb-1">
-                  {{ person.name }}
-                  <button
-                    type="button"
-                    class="delete is-small"
-                    [attr.aria-label]="person.name + ' entfernen'"
-                    (click)="removeStaff(kind.id, person.id)"
-                  ></button>
+      @if (item.sections.length === 0) {
+        <p class="has-text-grey">Bitte zuerst die Abschnitte anlegen.</p>
+      }
+      <div class="staff-grid">
+        @for (section of item.sections; track $index) {
+          <section class="staff-card">
+            <header>
+              <strong>Abschnitt {{ section.no }}</strong>
+              @if (section.date) {
+                <span class="sub">
+                  {{ fullDate(section.date) }}
+                  @if (section.start) {
+                    · {{ section.start }} Uhr
+                  }
                 </span>
-              } @empty {
-                <p class="has-text-grey">Noch niemand eingetragen.</p>
               }
-            </div>
-            <div class="select">
-              <select
-                [attr.aria-label]="kind.label + ' hinzufügen'"
-                (change)="addStaff(kind.id, $event)"
-              >
-                <option value="">Person hinzufügen …</option>
-                @for (person of staffAddable(kind.id); track person.id) {
-                  <option [value]="person.id">{{ person.name }}</option>
-                }
-              </select>
-            </div>
-          </div>
+            </header>
+            @for (kind of staffKinds; track kind.id) {
+              <div class="kind">
+                <div class="kind-head">
+                  <span class="label">{{ kind.label }}</span>
+                  @if (kind.id === 'officials' && judgePill(section.no); as pill) {
+                    <span class="pill" [class.is-ok]="pill.ok" [class.is-warn]="!pill.ok">
+                      {{ pill.text }}
+                    </span>
+                  }
+                </div>
+                <div class="tags">
+                  @for (person of staffNames(kind.id, section.no); track person.id) {
+                    <span class="tag is-medium is-rounded">
+                      {{ person.name }}
+                      <button
+                        type="button"
+                        class="delete is-small"
+                        [attr.aria-label]="person.name + ' entfernen'"
+                        (click)="removeStaff(kind.id, section.no, person.id)"
+                      ></button>
+                    </span>
+                  } @empty {
+                    <span class="has-text-grey">Noch niemand eingetragen.</span>
+                  }
+                </div>
+                <div class="select compact">
+                  <select
+                    [attr.aria-label]="kind.label + ' hinzufügen, Abschnitt ' + section.no"
+                    (change)="addStaff(kind.id, section.no, $event)"
+                  >
+                    <option value="">Person hinzufügen …</option>
+                    @for (person of staffAddable(kind.id, section.no); track person.id) {
+                      <option [value]="person.id">{{ person.name }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            }
+          </section>
         }
       </div>
     }

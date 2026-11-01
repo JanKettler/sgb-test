@@ -2,15 +2,20 @@
   text-align: center;
 }
 
-.is-off {
-  opacity: 0.55;
-}
-
 .is-picked {
   background: var(--sgb-hover);
 }
 
+/* Every row has the same height, with or without the time field. */
+tbody td {
+  height: 2.9rem;
+  padding-block: 0;
+  vertical-align: middle;
+}
+
 .time {
+  font-variant-numeric: tabular-nums;
+  height: 2rem;
   max-width: 7rem;
   text-align: center;
 }
@@ -20,5 +25,5 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  justify-content: space-between;
+  justify-content: flex-end;
 }

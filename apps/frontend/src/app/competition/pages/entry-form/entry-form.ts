@@ -6,7 +6,6 @@ import {
   input,
   linkedSignal,
   output,
-  signal,
 } from '@angular/core';
 import { PeopleStore } from '../../../people/people.store';
 import { Icon } from '../../../ui/icon';
@@ -15,8 +14,9 @@ import {
   CompEvent,
   Competition,
   eventLabel,
-  euro,
-  normalizeTime,
+  isValidTime,
+  maskTime,
+  NO_TIME,
   sexLabel,
   yearFits,
 } from '../../competition.models';
@@ -39,11 +39,8 @@ export class EntryForm {
   readonly personId = input.required<string>();
   readonly saved = output();
 
-  protected readonly euro = euro;
   protected readonly eventLabel = eventLabel;
   protected readonly sexLabel = sexLabel;
-  protected readonly showAll = signal(false);
-  protected readonly bad = signal<ReadonlySet<number>>(new Set());
 
   /** The picks being edited: event number to entry time. Starts from what is saved. */
   protected readonly picks = linkedSignal<Map<number, string>>(() => {
@@ -73,19 +70,23 @@ export class EntryForm {
     return sexOk && yearFits(event.birthYears, Number(member.birthDate.slice(0, 4)));
   }
 
+  /** Only the events that fit the swimmer, plus the ones already picked. */
   protected readonly rows = computed(() => {
     const competition = this.competition();
     const picks = this.picks();
     return competition.events
       .filter((event) => event.count === 1)
-      .filter((event) => this.showAll() || this.fits(event) || picks.has(event.no))
-      .map((event) => ({ event, fits: this.fits(event), picked: picks.has(event.no) }));
+      .filter((event) => this.fits(event) || picks.has(event.no))
+      .map((event) => {
+        const time = picks.get(event.no) ?? '';
+        return {
+          event,
+          picked: picks.has(event.no),
+          time: time || NO_TIME,
+          valid: isValidTime(time),
+        };
+      });
   });
-
-  protected readonly hidden = computed(
-    () =>
-      this.competition().events.filter((event) => event.count === 1).length - this.rows().length,
-  );
 
   protected readonly dirty = computed(() => {
     const saved = this.store.entriesOf(this.competition().id, this.personId());
@@ -95,41 +96,31 @@ export class EntryForm {
     );
   });
 
-  protected readonly fee = computed(() => {
-    const competition = this.competition();
-    const picked = [...this.picks().keys()];
-    const sum = picked.reduce(
-      (total, no) => total + (competition.events.find((event) => event.no === no)?.fee ?? 0),
-      0,
-    );
-    return picked.length > 0 ? sum + competition.perSwimmerFee : 0;
-  });
-
   protected toggle(event: CompEvent): void {
     this.picks.update((current) => {
       const next = new Map(current);
       if (next.has(event.no)) next.delete(event.no);
-      else next.set(event.no, '');
+      else next.set(event.no, this.store.knownTime(this.personId(), this.competition(), event));
       return next;
     });
   }
 
-  protected setTime(event: CompEvent, input: Event): void {
+  /** The field only takes digits; colon and comma are set while typing. */
+  protected typeTime(event: CompEvent, input: Event): void {
     const field = input.target as HTMLInputElement;
-    const time = normalizeTime(field.value);
-    this.bad.update((set) => {
-      const next = new Set(set);
-      if (time === null) next.add(event.no);
-      else next.delete(event.no);
-      return next;
-    });
-    if (time === null) return;
-    field.value = time;
-    this.picks.update((current) => new Map(current).set(event.no, time));
+    const masked = maskTime(field.value);
+    field.value = masked;
+    this.picks.update((current) =>
+      new Map(current).set(event.no, masked === NO_TIME ? '' : masked),
+    );
+  }
+
+  protected selectAll(input: Event): void {
+    (input.target as HTMLInputElement).select();
   }
 
   protected save(): void {
-    if (this.bad().size > 0) {
+    if (this.rows().some((row) => row.picked && !row.valid)) {
       this.toasts.show('Bitte die rot markierten Meldezeiten prüfen.', 'bad');
       return;
     }
@@ -147,13 +138,12 @@ export class EntryForm {
           .map((entry) => [entry.eventNo, entry.time] as const),
       ),
     );
-    this.bad.set(new Set());
     this.toasts.cancelled();
   }
 
   protected decline(): void {
     this.store.setDeclined(this.competition().id, this.personId(), true);
-    this.toasts.show('Abgemeldet', 'info');
+    this.toasts.show('Absage gespeichert', 'info');
     this.saved.emit();
   }
 

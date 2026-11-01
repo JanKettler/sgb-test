@@ -7,9 +7,30 @@
   margin-bottom: 1rem;
 }
 
-.for-person {
-  display: inline;
-  margin-right: 0.4rem;
+.deadline {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+  padding: 0.15rem 0.7rem;
+
+  &.is-danger {
+    background: var(--bad-bg);
+    color: var(--bad-fg);
+  }
+
+  &.is-warning {
+    background: var(--warn-bg);
+    color: var(--warn-fg);
+  }
+
+  &.is-info {
+    background: var(--info-bg);
+    color: var(--info-fg);
+  }
 }
 
 .meet {
