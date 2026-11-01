@@ -113,9 +113,14 @@ export class AttendanceSession {
     this.toasts.cancelled();
   }
 
-  protected add(person: Person): void {
+  protected add(people: Person[]): void {
     const session = this.session();
-    if (session) this.store.addWithoutRegistration(session.id, person);
+    if (session) {
+      for (const person of people) this.store.addWithoutRegistration(session.id, person);
+      this.toasts.saved(
+        people.length === 1 ? 'Person hinzugefügt' : `${people.length} Personen hinzugefügt`,
+      );
+    }
     this.adding.set(false);
   }
 }

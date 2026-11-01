@@ -283,6 +283,7 @@
 @if (picker(); as kind) {
   <app-person-picker-dialog
     [heading]="kind === 'trainer' ? 'Trainer hinzufügen' : 'Schwimmer hinzufügen'"
+    hint="Die Personen gelten nur für diesen Termin."
     [candidates]="pickerCandidates()"
     (picked)="pick($event)"
     (closed)="picker.set(null)"

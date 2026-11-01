@@ -170,12 +170,13 @@ export class SessionEditor {
     this.patch({ extraSwimmerIds: this.draft().extraSwimmerIds.filter((item) => item !== id) });
   }
 
-  protected pick(person: Person): void {
+  protected pick(people: Person[]): void {
     const draft = this.draft();
+    const ids = people.map((person) => person.id);
     if (this.picker() === 'trainer') {
-      this.patch({ trainerIds: [...new Set([...draft.trainerIds, person.id])] });
+      this.patch({ trainerIds: [...new Set([...draft.trainerIds, ...ids])] });
     } else {
-      this.patch({ extraSwimmerIds: [...new Set([...draft.extraSwimmerIds, person.id])] });
+      this.patch({ extraSwimmerIds: [...new Set([...draft.extraSwimmerIds, ...ids])] });
     }
     this.picker.set(null);
   }
