@@ -83,12 +83,7 @@ export class EquipmentStore {
   );
 
   /** Names that may be typed into the "who" field. */
-  readonly memberNames = computed(() =>
-    this.people
-      .activeMembers()
-      .map((member) => fullName(member))
-      .sort((a, b) => a.localeCompare(b, 'de')),
-  );
+  readonly memberNames = this.people.memberNames;
 
   /** Everybody who has something lent, with the loans sorted by name. */
   readonly borrowers = computed<Borrower[]>(() => {
@@ -98,7 +93,7 @@ export class EquipmentStore {
         const found = byName.get(key(loan.who));
         const borrower = found ?? {
           name: loan.who,
-          memberNo: this.memberNoOf(loan.who),
+          memberNo: this.people.memberNoOf(loan.who),
           loans: [],
           until: '',
           overdue: false,
@@ -137,25 +132,9 @@ export class EquipmentStore {
       ),
   );
 
-  /**
-   * The name as it is written in the member list, for a typed name or a member number; null
-   * when nobody matches. `keep` is a name that stays valid, e.g. of a loan that already exists.
-   */
+  /** The name as written in the member list for a typed name or number; null if nobody matches. */
   memberName(typed: string, keep = ''): string | null {
-    const text = typed.trim();
-    if (!text) return null;
-    if (keep && key(keep) === key(text)) return keep;
-    const members = this.people.activeMembers();
-    const byNumber = /^\d+$/.test(text)
-      ? members.find((member) => String(member.memberNo) === text)
-      : undefined;
-    const member = byNumber ?? members.find((entry) => key(fullName(entry)) === key(text));
-    return member ? fullName(member) : null;
-  }
-
-  private memberNoOf(name: string): string {
-    const member = this.people.activeMembers().find((entry) => key(fullName(entry)) === key(name));
-    return member ? String(member.memberNo) : '';
+    return this.people.resolveName(typed, keep);
   }
 
   /** The reason a loan cannot be saved, or an empty text when it can. */

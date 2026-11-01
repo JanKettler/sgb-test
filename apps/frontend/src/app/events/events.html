@@ -1,0 +1,20 @@
+<header
+  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
+  <div>
+    <h2 class="title is-4 mb-1">Veranstaltungen</h2>
+    <p class="subtitle is-6 mb-0">Termine, Checklisten und Helfer des Vereins</p>
+  </div>
+</header>
+
+<section class="box">
+  <app-tabs [tabs]="tabs()" [active]="shown()" (activeChange)="tab.set($event)" />
+  @switch (shown()) {
+    @case ('events') {
+      <app-events-list />
+    }
+    @case ('templates') {
+      <app-event-templates />
+    }
+  }
+</section>

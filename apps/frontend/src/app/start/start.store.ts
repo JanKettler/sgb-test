@@ -1,7 +1,8 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
 import { CompetitionStore } from '../competition/competition.store';
 import { dateOf } from '../competition/competition.models';
-import { addDays, parseIsoDate } from '../training/training-dates';
+import { EventsStore } from '../events/events.store';
+import { parseIsoDate } from '../training/training-dates';
 import { TrainingStore } from '../training/training.store';
 import { ClubEvent, Competition } from './start.models';
 
@@ -13,6 +14,7 @@ const DEMO_NAMES = { admin: 'Maria', trainer: 'Jonas', parent: 'Sabine' } as con
 export class StartStore {
   private readonly training = inject(TrainingStore);
   private readonly meets = inject(CompetitionStore);
+  private readonly plans = inject(EventsStore);
   readonly today = this.training.today;
 
   readonly userName = computed(() => DEMO_NAMES[this.training.role()]);
@@ -32,7 +34,20 @@ export class StartStore {
       entriesSent: meet.sent,
     })),
   );
-  readonly events = signal<ClubEvent[]>(this.sampleEvents());
+  /** The events of the events page, as the start page shows them. */
+  readonly events = computed<ClubEvent[]>(() =>
+    this.plans
+      .events()
+      .filter((plan) => plan.date !== '' && plan.state !== 'Abgeschlossen')
+      .map((plan) => ({
+        id: plan.id,
+        title: plan.title,
+        date: plan.date,
+        info: [plan.time ? `${plan.time} Uhr` : '', plan.place].filter(Boolean).join(', '),
+        icon: plan.title.toLocaleLowerCase('de').includes('markt') ? 'tree' : 'calendar',
+        route: '/veranstaltungen',
+      })),
+  );
 
   readonly upcomingCompetitions = computed(() =>
     this.competitions()
@@ -44,24 +59,5 @@ export class StartStore {
     return Math.round(
       (parseIsoDate(iso).getTime() - parseIsoDate(this.today).getTime()) / (24 * 60 * 60 * 1000),
     );
-  }
-
-  private sampleEvents(): ClubEvent[] {
-    return [
-      {
-        id: 'e-1',
-        title: 'Weihnachtsmarkt',
-        date: addDays(this.today, 30),
-        info: 'Stand am Marktplatz',
-        icon: 'tree',
-      },
-      {
-        id: 'e-2',
-        title: 'Jahreshauptversammlung',
-        date: addDays(this.today, 52),
-        info: 'Vereinsheim, 19 Uhr',
-        icon: 'calendar',
-      },
-    ];
   }
 }

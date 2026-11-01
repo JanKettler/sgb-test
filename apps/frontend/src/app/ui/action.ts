@@ -23,7 +23,9 @@ export type ActionKind =
   | 'lend'
   | 'return'
   | 'done'
-  | 'stock';
+  | 'stock'
+  | 'expand'
+  | 'collapse';
 
 export interface ActionLook {
   icon: IconName;
@@ -49,11 +51,13 @@ export const ACTIONS: Readonly<Record<ActionKind, ActionLook>> = {
   return: { icon: 'restore', label: 'Rückgabe', tone: 'is-info' },
   done: { icon: 'check', label: 'Erledigt', tone: 'is-success' },
   stock: { icon: 'box', label: 'Bestand ändern', tone: '' },
+  expand: { icon: 'chevron-down', label: 'Details anzeigen', tone: '' },
+  collapse: { icon: 'chevron-up', label: 'Details ausblenden', tone: '' },
 };
 
 /**
  * The button for the recurring actions: add, edit, delete, copy, save, cancel, back, download,
- * print, Excel, lend, return, done and stock. Icon only by default (with the name as tooltip and for screen readers); with
+ * print, Excel, lend, return, done, stock, expand and collapse. Icon only by default (with the name as tooltip and for screen readers); with
  * `withText` the name is shown next to the icon. With `link` it renders a router link instead.
  */
 @Component({

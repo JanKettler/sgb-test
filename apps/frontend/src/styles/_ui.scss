@@ -699,3 +699,14 @@ td .button:has(app-icon:only-child),
     font-weight: 700;
   }
 }
+
+/* A finished entry of a checklist. */
+.is-struck {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+/* Several pills in a row. */
+.item-title .pill {
+  margin-left: 0.3rem;
+}
