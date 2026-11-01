@@ -1,7 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { PeopleStore } from '../people/people.store';
 import { addDays } from '../training/training-dates';
-import { GroupId } from '../training/training.models';
 import { TrainingStore } from '../training/training.store';
 import {
   CompEvent,
@@ -10,9 +9,7 @@ import {
   Entry,
   RelayEntry,
   RunResult,
-  emptyPlan,
   emptyResult,
-  emptySchedule,
   sameName,
   startKey,
   FeeStatus,
@@ -36,6 +33,7 @@ import {
   parseDsv7,
 } from './dsv7';
 import { createZip } from './zip';
+import { pastSeason, sampleMeet } from './competition-sample';
 import { ParsedResults, ParsedSchedule } from './wk-parse';
 
 /** The club as it appears in the entry file; editable in the settings later. */
@@ -84,103 +82,6 @@ export interface ImportResult {
   warnings: string[];
 }
 
-function sampleEvents(): CompEvent[] {
-  const list: CompEvent[] = [];
-  let no = 1;
-  const add = (distance: number, stroke: CompEvent['stroke'], fee: number, count = 1) => {
-    for (const sex of count > 1 ? (['X'] as const) : (['M', 'W'] as const)) {
-      list.push({
-        no: no++,
-        section: no <= 7 ? 1 : 2,
-        count,
-        distance,
-        stroke,
-        style: 'GL',
-        sex,
-        birthYears: 'offen',
-        fee,
-      });
-    }
-  };
-  add(50, 'F', 5);
-  add(100, 'F', 5);
-  add(50, 'R', 5);
-  add(50, 'B', 5);
-  add(50, 'S', 5);
-  add(50, 'F', 8, 4);
-  return list;
-}
-
-function sampleMeet(
-  id: string,
-  title: string,
-  place: string,
-  venue: string,
-  inDays: number,
-  groupIds: GroupId[],
-  open: boolean,
-  today: string,
-): Competition {
-  const date = addDays(today, inDays);
-  return {
-    id,
-    title,
-    place,
-    pool: 25,
-    timing: 'HANDZEIT',
-    venueName: venue,
-    venueStreet: 'Badstraße 1',
-    venueZip: '26121',
-    venueCity: place,
-    organiser: 'Beispielverein e. V.',
-    host: 'Beispielverein e. V.',
-    contactName: 'Meldestelle Beispielverein',
-    contactEmail: 'meldungen@beispielverein.example',
-    contactPhone: '',
-    note: '',
-    deadline: addDays(date, -10),
-    deadlineTime: '23:59',
-    internalDeadline: addDays(date, -14),
-    open,
-    groupIds,
-    flatFee: 0,
-    perSwimmerFee: 0,
-    discount: 0,
-    bank: {
-      holder: 'Beispielverein e. V.',
-      bank: 'Beispielbank',
-      iban: 'DE00 0000 0000 0000 0000 00',
-      bic: 'BEISPDE00XXX',
-    },
-    sent: false,
-    officials: {},
-    coaches: {},
-    plan: emptyPlan(),
-    schedule: emptySchedule(),
-    sections: [
-      {
-        no: 1,
-        date,
-        entry: '09:00',
-        warmup: '09:00',
-        judges: '09:30',
-        start: '10:00',
-        relative: false,
-      },
-      {
-        no: 2,
-        date,
-        entry: '00:00',
-        warmup: '00:00',
-        judges: '00:00',
-        start: '01:00',
-        relative: true,
-      },
-    ],
-    events: sampleEvents(),
-  };
-}
-
 /** In-memory stand-in for the future competition API. */
 @Injectable({ providedIn: 'root' })
 export class CompetitionStore {
@@ -189,6 +90,8 @@ export class CompetitionStore {
   readonly today = this.training.today;
   readonly club = CLUB;
   private nextId = 4;
+  /** Three finished meets with invented results, for the evaluation. */
+  private readonly past = pastSeason(this.today, this.people.members());
 
   readonly competitions = signal<Competition[]>([
     sampleMeet('c-1', 'Hunte-Pokal', 'Oldenburg', 'Hallenbad Oldenburg', 16, [], true, this.today),
@@ -212,6 +115,7 @@ export class CompetitionStore {
       false,
       this.today,
     ),
+    ...this.past.competitions,
   ]);
   readonly entries = signal<Entry[]>([
     ...[
@@ -232,6 +136,7 @@ export class CompetitionStore {
       eventNo: eventNo as number,
       time: time as string,
     })),
+    ...this.past.entries,
   ]);
   readonly relays = signal<RelayEntry[]>([
     {
@@ -242,6 +147,7 @@ export class CompetitionStore {
       time: '02:15,00',
       memberIds: ['p-mats', 'p-emil', 'p-nele', 'p-sophie'],
     },
+    ...this.past.relays,
   ]);
   readonly declines = signal<Decline[]>([]);
   readonly outbox = signal<SentMail[]>([]);
