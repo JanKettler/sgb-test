@@ -1,17 +1,262 @@
-.wide-table {
-  input,
+h3 {
+  border-bottom: 1px solid var(--sgb-line);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 1.6rem 0 0.7rem;
+  padding-bottom: 0.3rem;
+
+  &.first {
+    margin-top: 0;
+  }
+}
+
+/* Base data: four columns, two on a narrow screen, one on a phone. */
+.grid4 {
+  display: grid;
+  gap: 0.75rem 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  .span2 {
+    grid-column: span 2;
+  }
+
+  .span3 {
+    grid-column: span 3;
+  }
+
+  app-date-field {
+    width: 100%;
+  }
+}
+
+@media (max-width: 40rem) {
+  .grid4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 24rem) {
+  .grid4 {
+    grid-template-columns: minmax(0, 1fr);
+
+    .span2,
+    .span3 {
+      grid-column: auto;
+    }
+  }
+}
+
+/*
+ * Editable rows (sections, events): one line per row where there is room, otherwise two lines
+ * with the label above each field. The wrapper is the container, so the sidebar is taken into
+ * account.
+ */
+.rows-wrap {
+  container-type: inline-size;
+  margin-bottom: 1rem;
+}
+
+.rows {
+  display: block;
+  width: 100%;
+
+  thead,
+  tbody {
+    display: block;
+  }
+
+  tr {
+    align-items: center;
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: var(--cols);
+  }
+
+  tbody tr {
+    border-top: 1px solid var(--sgb-line);
+    padding: 0.5rem 0;
+  }
+
+  thead tr {
+    padding-bottom: 0.4rem;
+  }
+
+  th {
+    background: none;
+    color: var(--sgb-soft);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0;
+    text-align: left;
+  }
+
+  td {
+    min-width: 0;
+    padding: 0;
+
+    &::before {
+      color: var(--sgb-soft);
+      content: attr(data-label);
+      display: none;
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin-bottom: 0.1rem;
+    }
+  }
+
+  .input,
   select {
-    min-width: 4.5rem;
+    width: 100%;
   }
 
-  .narrow {
-    max-width: 4.5rem;
+  .input.num {
+    padding-inline: 0.3rem;
     text-align: center;
   }
 
-  .years {
-    max-width: 8rem;
+  .select {
+    display: block;
+
+    select {
+      padding-inline: 0.6rem 1.9rem;
+    }
+
+    &:not(.is-multiple)::after {
+      inset-inline-end: 0.75rem;
+    }
+  }
+
+  app-date-field {
+    width: 100%;
+  }
+
+  .center {
     text-align: center;
+  }
+
+  .remove {
+    justify-self: end;
+  }
+
+  &.sections {
+    --cols: 3.2rem minmax(9rem, 1.4fr) repeat(4, minmax(4.6rem, 1fr)) 4.5rem 2.6rem;
+  }
+
+  &.events {
+    --cols: 3.2rem 3.2rem 3.2rem 4.4rem minmax(9rem, 1.3fr) minmax(7.8rem, 1fr) 5.6rem
+      minmax(7rem, 1fr) 5rem 2.6rem;
+  }
+}
+
+@container (max-width: 46rem) {
+  .rows.sections {
+    thead {
+      display: none;
+    }
+
+    tr {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    td::before {
+      display: block;
+    }
+
+    tbody tr:first-child {
+      border-top: 0;
+    }
+
+    .c-nr {
+      grid-area: 1 / 1 / 2 / 3;
+    }
+
+    .c-date {
+      grid-area: 1 / 3 / 2 / 8;
+    }
+
+    .c-rel {
+      grid-area: 1 / 8 / 2 / 11;
+    }
+
+    .c-del {
+      grid-area: 1 / 11 / 2 / 13;
+    }
+
+    .c-in {
+      grid-area: 2 / 1 / 3 / 4;
+    }
+
+    .c-warm {
+      grid-area: 2 / 4 / 3 / 7;
+    }
+
+    .c-judges {
+      grid-area: 2 / 7 / 3 / 10;
+    }
+
+    .c-start {
+      grid-area: 2 / 10 / 3 / 13;
+    }
+  }
+}
+
+@container (max-width: 58rem) {
+  .rows.events {
+    thead {
+      display: none;
+    }
+
+    tr {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    td::before {
+      display: block;
+    }
+
+    tbody tr:first-child {
+      border-top: 0;
+    }
+
+    .c-wk {
+      grid-area: 1 / 1 / 2 / 3;
+    }
+
+    .c-ab {
+      grid-area: 1 / 3 / 2 / 5;
+    }
+
+    .c-st {
+      grid-area: 1 / 5 / 2 / 7;
+    }
+
+    .c-m {
+      grid-area: 1 / 7 / 2 / 9;
+    }
+
+    .c-lage {
+      grid-area: 1 / 9 / 2 / 13;
+    }
+
+    .c-art {
+      grid-area: 2 / 1 / 3 / 4;
+    }
+
+    .c-sex {
+      grid-area: 2 / 4 / 3 / 6;
+    }
+
+    .c-year {
+      grid-area: 2 / 6 / 3 / 9;
+    }
+
+    .c-fee {
+      grid-area: 2 / 9 / 3 / 11;
+    }
+
+    .c-del {
+      grid-area: 2 / 11 / 3 / 13;
+    }
   }
 }
 
@@ -24,4 +269,161 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem 1rem;
+}
+
+/* Entries: one thin line of numbers, one row of small buttons, then the list. */
+.stats {
+  color: var(--sgb-soft);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  gap: 0.2rem 1rem;
+  margin-bottom: 0.6rem;
+
+  strong {
+    color: var(--sgb-ink);
+  }
+}
+
+.toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  margin-bottom: 0.9rem;
+
+  .buttons {
+    margin: 0;
+  }
+
+  .button {
+    margin: 0;
+  }
+}
+
+.starter-list {
+  margin-bottom: 0.5rem;
+}
+
+.starter {
+  border-top: 1px solid var(--sgb-line);
+  padding: 0.55rem 0 0.65rem;
+
+  &:first-child {
+    border-top: 0;
+  }
+
+  .head {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.6rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .head .button {
+    font-size: 0.85rem;
+    height: 2.2rem;
+    margin: 0;
+    min-width: 2.2rem;
+    padding: 0;
+  }
+
+  .gap {
+    flex: 1;
+  }
+
+  .year {
+    color: var(--sgb-soft);
+    font-size: 0.8rem;
+  }
+}
+
+.starts {
+  display: grid;
+  gap: 0.15rem 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+
+  li {
+    align-items: baseline;
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: 3.2rem minmax(0, 1fr) 5rem;
+  }
+
+  .wk {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+
+  .time {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .none {
+    color: var(--sgb-soft);
+  }
+}
+
+.team {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.3rem;
+}
+
+/* Judges and coaches: one card per section. */
+.staff-grid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+}
+
+.staff-card {
+  border: 1px solid var(--sgb-line);
+  border-radius: 10px;
+  padding: 0.8rem 0.9rem;
+
+  header {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.7rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .kind {
+    margin-bottom: 0.8rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .kind-head {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .kind-head .label {
+    margin: 0;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.4rem;
+  }
+}
+
+/* A select as high as a small button, but with a font size that keeps iOS from zooming in. */
+.compact select {
+  font-size: 0.9rem;
+  height: 1.9rem;
+  padding-block: 0;
 }

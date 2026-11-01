@@ -97,10 +97,10 @@ export interface Competition {
   sent: boolean;
   sections: CompSection[];
   events: CompEvent[];
-  /** Persons of the club who act as judges at the meet. */
-  officials: string[];
-  /** Persons of the club who coach at the meet. */
-  coaches: string[];
+  /** Persons of the club who act as judges, per section number. */
+  officials: Record<number, string[]>;
+  /** Persons of the club who coach, per section number. */
+  coaches: Record<number, string[]>;
   plan: Plan;
   schedule: Schedule;
 }
@@ -245,6 +245,11 @@ export function sexLabel(sex: Sex): string {
   return sex === 'M' ? 'männlich' : sex === 'W' ? 'weiblich' : 'mixed';
 }
 
+/** Number of assignments in a per-section list: a person in two sections counts twice. */
+export function staffCount(lists: Record<number, string[]>): number {
+  return Object.values(lists).reduce((sum, ids) => sum + ids.length, 0);
+}
+
 /** The first day of the meet. */
 export function dateOf(competition: Competition): string {
   const dates = competition.sections.map((section) => section.date).filter(Boolean);
@@ -278,6 +283,45 @@ export function normalizeTime(value: string): string | null {
   if (seconds >= 60 || minutes > 59) return null;
   const hundredths = match[3] === undefined ? '00' : match[3].padEnd(2, '0');
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')},${hundredths}`;
+}
+
+/** An entry time of zero: "no time known". */
+export const NO_TIME = '00:00,00';
+
+/**
+ * Digits typed into a time field become "mm:ss,hh" from the right, like on a calculator:
+ * "13852" gives "01:38,52" and "000000" gives "00:00,00".
+ */
+export function maskTime(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(-6).padStart(6, '0');
+  return `${digits.slice(0, 2)}:${digits.slice(2, 4)},${digits.slice(4)}`;
+}
+
+/** True for "" and for "mm:ss,hh" with fewer than 60 seconds. */
+export function isValidTime(time: string): boolean {
+  if (!time) return true;
+  const match = /^(\d{2}):(\d{2}),(\d{2})$/.exec(time);
+  return !!match && Number(match[2]) < 60;
+}
+
+/** Milliseconds of "mm:ss,hh", "m:ss,hh" or "ss,hh"; null when it is no time. */
+export function timeMs(time: string): number | null {
+  const match = /^(?:(\d{1,2}):)?(\d{1,2}),(\d{2})$/.exec(time.trim());
+  if (!match) return null;
+  return (Number(match[1] ?? 0) * 60 + Number(match[2])) * 1000 + Number(match[3]) * 10;
+}
+
+/** "01:57,66" is shown as "1:57,66" and "00:39,80" as "39,80", like in the result lists. */
+export function showTime(time: string): string {
+  const ms = timeMs(time);
+  if (ms === null || ms === 0) return '';
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  const hundredths = Math.round((ms % 1000) / 10);
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return minutes > 0
+    ? `${minutes}:${pad(seconds)},${pad(hundredths)}`
+    : `${seconds},${pad(hundredths)}`;
 }
 
 export function euro(amount: number): string {

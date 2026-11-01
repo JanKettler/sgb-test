@@ -1,25 +1,13 @@
-<header
-  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
->
-  <div>
-    <h2 class="title is-4 mb-1">Trainingsanmeldung</h2>
-    <p class="subtitle is-6 mb-0">Rückmeldungen zu den Trainingseinheiten</p>
-  </div>
+<header class="page-head mb-4">
+  <h2 class="title is-4 mb-0">Trainingsanmeldung</h2>
 </header>
 
 <section class="box">
   @if (person(); as current) {
-    <div class="person-bar">
-      <p class="mb-0">
-        <span class="label for-person">Anmeldung für</span>
-        <strong>{{ current.name }}</strong>
-        @if (groupNamesOf(current)) {
-          <span class="has-text-grey"> · {{ groupNamesOf(current) }}</span>
-        }
-      </p>
-      @if (actors().length > 1) {
-        <div class="select is-small">
-          <select aria-label="Person wechseln" (change)="select(value($event))">
+    @if (actors().length > 1) {
+      <div class="person-bar">
+        <div class="select">
+          <select aria-label="Person wählen" (change)="select(value($event))">
             @for (actor of actors(); track actor.id) {
               <option [value]="actor.id" [selected]="current.id === actor.id">
                 {{ actor.name }}
@@ -30,8 +18,8 @@
             }
           </select>
         </div>
-      }
-    </div>
+      </div>
+    }
 
     @let data = rows();
     <h3 class="band is-ok">

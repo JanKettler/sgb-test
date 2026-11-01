@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { fullDate } from '../../../training/training-dates';
-import { dateOf, euro } from '../../competition.models';
+import { dateOf, euro, staffCount } from '../../competition.models';
 import { CompetitionStore } from '../../competition.store';
 
 @Component({
@@ -12,6 +12,7 @@ export class CompetitionEvaluation {
   protected readonly store = inject(CompetitionStore);
   protected readonly fullDate = fullDate;
   protected readonly euro = euro;
+  protected readonly staffCount = staffCount;
 
   protected readonly years = computed(() =>
     [...new Set(this.store.competitions().map((item) => dateOf(item).slice(0, 4)))].sort(),
@@ -38,11 +39,11 @@ export class CompetitionEvaluation {
   protected readonly staff = computed(() => {
     const tally = new Map<string, { judge: number; coach: number }>();
     for (const { competition } of this.rows()) {
-      for (const id of competition.officials) {
+      for (const id of Object.values(competition.officials).flat()) {
         const entry = tally.get(id) ?? { judge: 0, coach: 0 };
         tally.set(id, { ...entry, judge: entry.judge + 1 });
       }
-      for (const id of competition.coaches) {
+      for (const id of Object.values(competition.coaches).flat()) {
         const entry = tally.get(id) ?? { judge: 0, coach: 0 };
         tally.set(id, { ...entry, coach: entry.coach + 1 });
       }

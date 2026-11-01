@@ -20,6 +20,8 @@ import {
   euro,
   eventLabel,
   yearFits,
+  normalizeTime,
+  timeMs,
 } from './competition.models';
 import {
   FileClub,
@@ -148,8 +150,8 @@ function sampleMeet(
       bic: 'BEISPDE00XXX',
     },
     sent: false,
-    officials: [],
-    coaches: [],
+    officials: {},
+    coaches: {},
     plan: emptyPlan(),
     schedule: emptySchedule(),
     sections: [
@@ -274,6 +276,17 @@ export class CompetitionStore {
       .sort((a, b) => dateOf(a).localeCompare(dateOf(b)));
   }
 
+  /** Meets for the calendar: all for trainers and the board, else those of the user's groups. */
+  calendarMeets(): Competition[] {
+    if (this.canManage()) return this.competitions();
+    const groups = new Set(
+      this.actors().flatMap((person) => this.people.member(person.id)?.swimmerGroupIds ?? []),
+    );
+    return this.competitions().filter(
+      (item) => item.groupIds.length === 0 || item.groupIds.some((group) => groups.has(group)),
+    );
+  }
+
   canRegister(competition: Competition): boolean {
     return competition.open && !competition.sent && this.today <= competition.internalDeadline;
   }
@@ -282,6 +295,49 @@ export class CompetitionStore {
     return this.entries()
       .filter((item) => item.competitionId === competitionId && item.personId === personId)
       .sort((a, b) => a.eventNo - b.eventNo);
+  }
+
+  /**
+   * The time to suggest as entry time: the best result of the person over the same distance and
+   * stroke, else the best entry time they used before. Empty when nothing is known.
+   */
+  knownTime(personId: string, competition: Competition, event: CompEvent): string {
+    const sameEvent = (other: CompEvent | undefined) =>
+      !!other &&
+      other.count === 1 &&
+      other.distance === event.distance &&
+      other.stroke === event.stroke &&
+      other.style === event.style;
+    const best = (times: string[]) =>
+      times
+        .map((time) => ({ time, ms: timeMs(time) }))
+        .filter((item): item is { time: string; ms: number } => !!item.ms)
+        .sort((a, b) => a.ms - b.ms)[0]?.time ?? '';
+    const name = this.nameOf(personId);
+    const results: string[] = [];
+    for (const meet of this.competitions()) {
+      if (meet.id === competition.id) continue;
+      for (const start of meet.schedule.starts) {
+        if (!sameName(start.n, name) || !sameEvent(meet.events.find((e) => e.no === start.e))) {
+          continue;
+        }
+        const result = meet.schedule.results[startKey(start)];
+        const time = result && !result.status ? normalizeTime(result.t) : null;
+        if (time) results.push(time);
+      }
+    }
+    const fromResults = best(results);
+    if (fromResults) return fromResults;
+    return best(
+      this.entries()
+        .filter((item) => item.personId === personId && item.competitionId !== competition.id)
+        .filter((item) =>
+          sameEvent(
+            this.competition(item.competitionId)?.events.find((e) => e.no === item.eventNo),
+          ),
+        )
+        .map((item) => item.time),
+    );
   }
 
   isDeclined(competitionId: string, personId: string): boolean {

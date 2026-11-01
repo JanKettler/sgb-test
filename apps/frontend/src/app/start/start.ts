@@ -42,7 +42,6 @@ export class Start {
   protected readonly data = inject(StartStore);
   protected readonly store = inject(TasksStore);
 
-  protected readonly fullDate = fullDate;
   protected readonly noticeIcon = NOTICE_ICON;
   protected readonly canManage = this.training.canManage;
   protected readonly canSeeClub = this.data.canSeeClub;
@@ -137,12 +136,6 @@ export class Start {
       }
     }
     return list.sort((a, b) => a.days - b.days).slice(0, NOTICE_LIMIT);
-  });
-
-  protected readonly nextStarters = computed(() => this.data.upcomingCompetitions()[0] ?? null);
-  protected readonly startCount = computed(() => {
-    const meet = this.nextStarters();
-    return meet ? meet.starters.reduce((sum, starter) => sum + starter.starts, 0) : 0;
   });
 
   protected readonly tasks = computed(() => {

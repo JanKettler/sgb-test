@@ -42,8 +42,8 @@
             <td class="has-text-centered">{{ row.singles }}</td>
             <td class="has-text-centered">{{ row.relays }}</td>
             <td class="has-text-centered">{{ euro(row.fee) }}</td>
-            <td class="has-text-centered">{{ row.competition.officials.length }}</td>
-            <td class="has-text-centered">{{ row.competition.coaches.length }}</td>
+            <td class="has-text-centered">{{ staffCount(row.competition.officials) }}</td>
+            <td class="has-text-centered">{{ staffCount(row.competition.coaches) }}</td>
           </tr>
         } @empty {
           <tr>

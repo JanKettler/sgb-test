@@ -1,9 +1,9 @@
 @if (declined()) {
   <div class="notification is-link is-light">
-    <p class="mb-2">Für diesen Wettkampf ist abgemeldet.</p>
+    <p class="mb-2">Teilnahme an diesem Wettkampf abgesagt.</p>
     @if (editable()) {
       <button type="button" class="button is-small" (click)="rejoin()">
-        <app-icon name="check" /> Doch wieder dabei
+        <app-icon name="check" /> Doch teilnehmen
       </button>
     }
   </div>
@@ -17,13 +17,12 @@
           <th scope="col">Strecke</th>
           <th scope="col">M/F</th>
           <th scope="col">Jahrgang</th>
-          <th scope="col">Geld</th>
           <th scope="col">Meldezeit</th>
         </tr>
       </thead>
       <tbody>
         @for (row of rows(); track row.event.no) {
-          <tr [class.is-picked]="row.picked" [class.is-off]="!row.fits">
+          <tr [class.is-picked]="row.picked">
             <td class="is-centered">
               <input
                 type="checkbox"
@@ -37,18 +36,18 @@
             <td>{{ eventLabel(row.event) }}</td>
             <td class="is-centered">{{ sexLabel(row.event.sex) }}</td>
             <td class="is-centered">{{ row.event.birthYears }}</td>
-            <td class="is-centered">{{ euro(row.event.fee) }}</td>
             <td class="is-centered">
               @if (row.picked) {
                 <input
                   class="input is-small time"
-                  [class.is-danger]="bad().has(row.event.no)"
-                  inputmode="decimal"
-                  placeholder="mm:ss,hh"
+                  [class.is-danger]="!row.valid"
+                  inputmode="numeric"
+                  autocomplete="off"
                   [attr.aria-label]="'Meldezeit Wk ' + row.event.no"
-                  [value]="picks().get(row.event.no)"
+                  [value]="row.time"
                   [disabled]="!editable()"
-                  (change)="setTime(row.event, $event)"
+                  (input)="typeTime(row.event, $event)"
+                  (focus)="selectAll($event)"
                 />
               }
             </td>
@@ -57,27 +56,14 @@
       </tbody>
     </table>
   </div>
-  @if (hidden() > 0 || showAll()) {
-    <label class="checkbox is-size-7 mb-3">
-      <input type="checkbox" [checked]="showAll()" (change)="showAll.set(!showAll())" />
-      Auch Wettkämpfe zeigen, die nicht zu Jahrgang oder Geschlecht passen
-      @if (!showAll()) {
-        ({{ hidden() }})
-      }
-    </label>
-  }
   <div class="foot">
-    <p class="mb-0">
-      <strong>{{ picks().size }}</strong> Starts · Meldegeld <strong>{{ euro(fee()) }}</strong>
-      <span class="has-text-grey is-size-7"> · Meldezeit leer lassen, wenn es keine gibt</span>
-    </p>
     @if (editable()) {
       <div class="icon-row">
         <button
           type="button"
           class="button is-warning"
-          title="Abmelden"
-          aria-label="Abmelden"
+          title="Nicht teilnehmen"
+          aria-label="Nicht teilnehmen"
           (click)="decline()"
         >
           <app-icon name="minus" />

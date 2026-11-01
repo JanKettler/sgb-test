@@ -68,7 +68,14 @@ export type IconName =
   | 'sort-up'
   | 'sort-down'
   | 'image'
-  | 'upload';
+  | 'upload'
+  | 'print'
+  | 'send'
+  | 'file-excel'
+  | 'unlock'
+  | 'user-plus'
+  | 'ellipsis'
+  | 'filter';
 
 const FONT_AWESOME: Record<IconName, string> = {
   check: 'fa-check',
@@ -139,6 +146,13 @@ const FONT_AWESOME: Record<IconName, string> = {
   'sort-down': 'fa-sort-down',
   image: 'fa-image',
   upload: 'fa-upload',
+  print: 'fa-print',
+  send: 'fa-paper-plane',
+  'file-excel': 'fa-file-excel',
+  unlock: 'fa-lock-open',
+  'user-plus': 'fa-user-plus',
+  ellipsis: 'fa-ellipsis',
+  filter: 'fa-filter',
 };
 
 /**

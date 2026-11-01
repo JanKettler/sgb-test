@@ -1,0 +1,36 @@
+.meets {
+  th,
+  td {
+    vertical-align: middle;
+  }
+
+  /* Dates, counts and money never break into two lines. */
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  th:not(:nth-child(2)) {
+    text-align: left;
+  }
+}
+
+.is-past {
+  opacity: 0.65;
+}
+
+.meet-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.progress-line {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+
+  .progress {
+    margin: 0;
+    max-width: 8rem;
+  }
+}

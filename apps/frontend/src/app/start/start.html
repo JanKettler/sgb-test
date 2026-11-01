@@ -40,42 +40,6 @@
         }
       </section>
     }
-
-    @if (canSeeClub()) {
-      <section class="box">
-        <div class="level is-mobile mb-2">
-          <h3 class="title is-5 mb-0">
-            <app-icon name="flag" class="has-text-link" /> Wer startet beim nächsten WK?
-          </h3>
-        </div>
-        @if (nextStarters(); as meet) {
-          <p class="has-text-grey mb-3">
-            <a [routerLink]="'/wettkampf/wettkaempfe/' + meet.id"
-              ><strong>{{ meet.title }}</strong></a
-            >
-            · {{ fullDate(meet.date).slice(0, 6) }} ({{ countdown(data.daysTo(meet.date)) }}) ·
-            {{ meet.place }}
-          </p>
-          @if (meet.starters.length > 0) {
-            <p class="has-text-grey mb-2">
-              {{ meet.starters.length }} Schwimmer:innen · {{ startCount() }} Starts
-            </p>
-            <div class="chips">
-              @for (starter of meet.starters; track starter.name) {
-                <span class="chip is-solid">
-                  {{ starter.name }}
-                  @if (starter.starts > 1) {
-                    <i>{{ starter.starts }}</i>
-                  }
-                </span>
-              }
-            </div>
-          } @else {
-            <p class="has-text-grey">Noch keine Meldung hochgeladen.</p>
-          }
-        }
-      </section>
-    }
   </div>
 
   <div class="area-right">
