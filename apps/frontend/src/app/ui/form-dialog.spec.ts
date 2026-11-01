@@ -73,7 +73,7 @@ describe('FormDialog', () => {
   it('hands back text, numbers, lists and flags', () => {
     const { saved, save, type, control } = create();
     type('title', '  Neue Halle ');
-    type('amount', '3,5');
+    type('amount', '3.5');
     type('who', 'Anna, Ben;Carla');
     type('steps', 'eins\n\n zwei ');
     const kind = control<HTMLSelectElement>('kind');
@@ -106,6 +106,13 @@ describe('FormDialog', () => {
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
     );
     expect(saved).toHaveLength(1);
+  });
+
+  it('reads numbers typed with a comma or a dot, and anything else as 0', () => {
+    expect(numberOf({ amount: '3,5' }, 'amount')).toBe(3.5);
+    expect(numberOf({ amount: ' 12.25 ' }, 'amount')).toBe(12.25);
+    expect(numberOf({ amount: 'abc' }, 'amount')).toBe(0);
+    expect(numberOf({}, 'amount')).toBe(0);
   });
 
   it('reads empty or missing values as nothing', () => {

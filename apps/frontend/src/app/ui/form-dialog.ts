@@ -10,16 +10,19 @@ import { Action } from './action';
 import { DateField } from './date-field';
 import { DialogAccent, ModalDialog } from './modal-dialog';
 
-export type FieldType =
-  | 'text'
-  | 'textarea'
-  | 'date'
-  | 'time'
-  | 'number'
-  | 'select'
-  | 'checkbox'
-  | 'tags'
-  | 'lines';
+export const FIELD_TYPES = [
+  'text',
+  'textarea',
+  'date',
+  'time',
+  'number',
+  'select',
+  'checkbox',
+  'tags',
+  'lines',
+] as const;
+
+export type FieldType = (typeof FIELD_TYPES)[number];
 
 export interface FieldOption {
   value: string;
@@ -84,6 +87,9 @@ let nextDialog = 0;
   imports: [ModalDialog, Action, DateField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './form-dialog.html',
+  // Enter in a single line field saves; a listener on the host keeps the template free of
+  // handlers on elements that cannot take the focus.
+  host: { '(keydown.enter)': 'enter($event)' },
 })
 export class FormDialog {
   readonly heading = input.required<string>();
@@ -137,7 +143,7 @@ export class FormDialog {
   }
 
   /** Enter in a single line field saves, like the button does. */
-  protected enter(event: Event): void {
+  enter(event: Event): void {
     const target = event.target as HTMLElement;
     if (target.tagName === 'INPUT' && (target as HTMLInputElement).type !== 'checkbox') {
       event.preventDefault();

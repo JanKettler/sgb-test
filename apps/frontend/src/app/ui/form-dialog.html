@@ -4,7 +4,7 @@
   [accent]="accent()"
   (closed)="closed.emit()"
 >
-  <div class="form-grid" (keydown.enter)="enter($event)">
+  <div class="form-grid">
     @for (field of fields(); track field.key) {
       <div class="field" [class.is-wide]="isWide(field)">
         @if (field.type === 'checkbox') {
