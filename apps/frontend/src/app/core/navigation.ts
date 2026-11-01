@@ -106,7 +106,7 @@ export const NAVIGATION: readonly NavSection[] = [
       { label: 'Personen', path: '/personen', icon: 'users', tone: 'rose', access: 'manage' },
       { label: 'Beiträge', path: '/beitraege', icon: 'coins', tone: 'green', access: 'manage' },
       { label: 'Jugend', path: '/jugend', icon: 'swim', tone: 'blue', access: 'manage' },
-      { label: 'Vorstand', path: '/vorstand', icon: 'users', tone: 'violet', access: 'manage' },
+      { label: 'Vorstand', path: '/vorstand', icon: 'users', tone: 'violet', access: 'admin' },
       { label: 'Dokumente', path: '/dokumente', icon: 'sheet', tone: 'amber', access: 'manage' },
     ],
   },
@@ -164,14 +164,7 @@ export const NAVIGATION: readonly NavSection[] = [
 /** Short descriptions on the pages that are not built yet (taken from the old Intranet). */
 export const SOON_PAGES: Record<string, { title: string; text: string }> = {
   jugend: { title: 'Jugend', text: 'Jugendwarte, Jugendordnung und Jugendveranstaltungen.' },
-  vorstand: { title: 'Vorstand', text: 'Vorstandssitzungen, Beschlüsse und Zuständigkeiten.' },
-  dokumente: { title: 'Dokumente', text: 'Satzung, Formulare und Vorlagen des Vereins.' },
   abrechnung: { title: 'Abrechnung', text: 'Fahrtkosten, Auslagen und Erstattungen.' },
-  material: { title: 'Material', text: 'Ausleihe und Bestand von Vereinsmaterial.' },
-  veranstaltungen: {
-    title: 'Veranstaltungen',
-    text: 'Vereinsfeiern, Helferlisten und Termine. Mitglieder können sich anmelden, sobald die Veranstaltung dafür freigegeben ist.',
-  },
   weihnachtsmarkt: {
     title: 'Weihnachtsmarkt',
     text: 'Planung und Helferplan für den Weihnachtsmarkt.',

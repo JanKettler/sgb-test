@@ -710,3 +710,16 @@ td .button:has(app-icon:only-child),
 .item-title .pill {
   margin-left: 0.3rem;
 }
+
+/* Free text keeps the line breaks that were typed. */
+.keep-lines {
+  white-space: pre-line;
+}
+
+/* A name in [square brackets] of minutes or a decision stands out. */
+.mark {
+  background: var(--sgb-hover);
+  border-radius: 4px;
+  font-weight: 600;
+  padding: 0 0.25rem;
+}

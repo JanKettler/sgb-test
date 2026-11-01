@@ -1,0 +1,34 @@
+<p class="item-sub mb-3">
+  Offene Beschlüsse mit Frist und geplante Sitzungen, der nächste Termin steht oben.
+</p>
+
+@if (store.deadlines().length === 0) {
+  <p class="empty">Keine offenen Fristen.</p>
+} @else {
+  <div class="item-list">
+    @for (entry of store.deadlines(); track entry.kind + entry.id) {
+      <article class="item" [class.is-bad]="entry.overdue">
+        <div class="item-main">
+          <div class="item-title">
+            {{ entry.title }}
+            <span
+              class="pill"
+              [class.is-violet]="entry.kind === 'meeting'"
+              [class.is-info]="entry.kind === 'resolution'"
+              >{{ entry.kind === 'meeting' ? 'Sitzung' : 'Beschluss' }}</span
+            >
+          </div>
+          <div class="item-sub">
+            {{ fullDate(entry.date) }}
+            @if (entry.who) {
+              · zuständig: {{ entry.who }}
+            }
+          </div>
+        </div>
+        <div class="item-actions">
+          <span [class.is-late]="entry.overdue">{{ whenText(entry) }}</span>
+        </div>
+      </article>
+    }
+  </div>
+}
