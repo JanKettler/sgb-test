@@ -229,6 +229,8 @@ export class YouthStore {
   private bookPayment(record: BadgeRecord): string {
     const price = this.priceOf(record);
     if (price <= 0) return '';
+    const closed = this.payProblem(price);
+    if (closed) return closed;
     return this.cash.book({
       kind: 'in',
       amount: price,
