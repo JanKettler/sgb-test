@@ -1,0 +1,134 @@
+@let item = competition();
+@if (item) {
+  <div class="head">
+    <progress
+      class="progress is-success"
+      [value]="progress().done"
+      [max]="progress().total"
+    ></progress>
+    <div class="head-line">
+      <span class="sub">{{ progress().done }} von {{ progress().total }} erledigt</span>
+      @for (warning of warnings(); track warning.text) {
+        <span
+          class="pill"
+          [class.is-warn]="warning.tone === 'warn'"
+          [class.is-bad]="warning.tone === 'bad'"
+        >
+          {{ warning.text }}
+        </span>
+      }
+    </div>
+  </div>
+
+  @if (item.deadline) {
+    <p class="facts">
+      <span
+        ><strong>Meldeschluss</strong> {{ date(item.deadline) }}, {{ item.deadlineTime }} Uhr</span
+      >
+      @if (item.internalDeadline) {
+        <span><strong>Intern bis</strong> {{ date(item.internalDeadline) }}</span>
+      }
+      @if (item.contactName) {
+        <span><strong>Meldeanschrift</strong> {{ item.contactName }} {{ item.contactEmail }}</span>
+      }
+    </p>
+  }
+
+  @for (phase of phases; track phase.id) {
+    <h4 class="section-title">
+      {{ phase.label }}
+      <span class="count">{{ phaseDone(item, phase) }}/{{ phase.items.length }}</span>
+    </h4>
+    @for (step of phase.items; track step[0]) {
+      @let done = store.isStepDone(item, step[0]);
+      <article class="step" [class.is-done]="done">
+        <button
+          type="button"
+          class="tick"
+          [class.is-on]="done"
+          [disabled]="!store.canManage()"
+          [attr.aria-label]="step[1]"
+          [attr.aria-pressed]="done"
+          (click)="store.toggleStep(item.id, step[0])"
+        >
+          @if (done) {
+            <app-icon name="check" />
+          }
+        </button>
+        <div class="main">
+          <div class="name">{{ step[1] }}</div>
+          @if (item.plan.done[step[0]]; as who) {
+            <div class="meta">{{ who.by }}, {{ date(who.at) }}</div>
+          }
+        </div>
+      </article>
+    }
+    @if (phase.id === 'entry') {
+      <article class="step" [class.is-done]="item.plan.fee === 'paid'">
+        <div class="main">
+          <div class="name">Meldegeld</div>
+        </div>
+        <div class="buttons has-addons">
+          @for (option of feeOptions; track option.id) {
+            <button
+              type="button"
+              class="button is-small"
+              [class.is-primary]="item.plan.fee === option.id"
+              [disabled]="!store.canManage()"
+              (click)="store.setFeeStatus(item.id, option.id)"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+      </article>
+    }
+  }
+
+  <h4 class="section-title">Wettkampf</h4>
+  <article class="step" [class.is-done]="item.plan.participation !== ''">
+    <div class="main">
+      <div class="name">Teilnahme</div>
+    </div>
+    <div class="buttons has-addons">
+      @for (option of participationOptions; track option.id) {
+        <button
+          type="button"
+          class="button is-small"
+          [class.is-primary]="item.plan.participation === option.id"
+          [disabled]="!store.canManage()"
+          (click)="store.setParticipation(item.id, option.id)"
+        >
+          {{ option.label }}
+        </button>
+      }
+    </div>
+  </article>
+  @for (section of item.sections; track section.no) {
+    <article class="step">
+      <div class="main">
+        <label class="name" [for]="'judges-' + section.no">
+          Kampfrichter{{ item.sections.length > 1 ? ' Abschnitt ' + section.no : '' }}
+        </label>
+        <div class="meta">
+          @if (named(item, section.no) > 0) {
+            {{ named(item, section.no) }} eingetragen
+          } @else {
+            noch niemand eingetragen
+          }
+        </div>
+      </div>
+      <input
+        [id]="'judges-' + section.no"
+        class="input is-small count-input"
+        type="number"
+        min="0"
+        inputmode="numeric"
+        placeholder="Anzahl"
+        [value]="item.plan.judges[section.no] ?? ''"
+        [disabled]="!store.canManage()"
+        (change)="setJudges(section.no, $event)"
+      />
+    </article>
+  }
+}

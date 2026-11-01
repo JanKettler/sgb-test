@@ -1,0 +1,143 @@
+.bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.total {
+  margin-left: auto;
+}
+
+.section-title {
+  color: var(--sgb-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin: 1.1rem 0 0.4rem;
+  text-transform: uppercase;
+
+  .begin {
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+}
+
+/* One card per start: who, when and where on the left, the times to type on the right. */
+.start {
+  align-items: center;
+  background: var(--sgb-card);
+  border: 1px solid var(--sgb-line);
+  border-left: 5px solid var(--sgb-line);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+  padding: 0.6rem 0.8rem;
+
+  &.is-done {
+    border-left-color: var(--ok-fg);
+  }
+
+  .info {
+    flex: 1 1 15rem;
+    min-width: 0;
+  }
+
+  .who {
+    align-items: center;
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .year {
+    color: var(--sgb-soft);
+    font-size: 0.85rem;
+  }
+
+  .ok {
+    color: var(--ok-fg);
+  }
+
+  .when {
+    font-size: 0.85rem;
+  }
+
+  .fields {
+    align-items: center;
+    display: flex;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+
+  .splits,
+  .laps {
+    flex: 1 0 100%;
+  }
+
+  .splits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .laps {
+    margin: 0;
+  }
+
+  .button {
+    margin: 0;
+  }
+}
+
+.time {
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  width: 6.8rem;
+}
+
+.compact select {
+  font-size: 0.9rem;
+  height: 2.5rem;
+  padding-block: 0;
+}
+
+.is-small.compact select {
+  height: 1.9rem;
+}
+
+/* Stopwatch */
+.watch-event {
+  text-align: center;
+}
+
+.clock {
+  font-family: ui-monospace, monospace;
+  font-size: 3.2rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  margin: 0.6rem 0;
+  text-align: center;
+}
+
+.watch-buttons {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-bottom: 0.8rem;
+}
+
+.lap {
+  border-top: 1px solid var(--sgb-line);
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0.2rem;
+}

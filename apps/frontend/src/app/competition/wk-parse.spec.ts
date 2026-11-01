@@ -44,6 +44,17 @@ describe('parseMeldeergebnis', () => {
     expect(parsed.eventNames[1]).toBe('50 m Freistil weiblich');
   });
 
+  it('marks relay teams with "Staffel" in the year column', () => {
+    const lines = [
+      ...SCHEDULE.split('\n'),
+      'Wettkampf 2 - 4 x 50 m Lagen mixed (1 Lauf)',
+      'Lauf 1/1 - ca. 10:40 Uhr',
+      'Bahn 5   1. Mannschaft (X)   2008   SG Muster   00:00,00',
+    ];
+    const relay = parseMeldeergebnis(lines, 'SG Muster').starts.find((start) => start.e === 2);
+    expect(relay).toMatchObject({ n: '1. Mannschaft', j: 'Staffel', m: '', b: 5 });
+  });
+
   it('warns when the club is not in the file', () => {
     const parsed = parseMeldeergebnis(SCHEDULE.split('\n'), 'Unbekannt');
     expect(parsed.starts).toHaveLength(0);

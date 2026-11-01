@@ -9,7 +9,9 @@ import {
   Decline,
   Entry,
   RelayEntry,
+  RunResult,
   emptyPlan,
+  emptyResult,
   emptySchedule,
   sameName,
   startKey,
@@ -19,6 +21,7 @@ import {
   dateOf,
   euro,
   eventLabel,
+  eventTitle,
   yearFits,
   normalizeTime,
   timeMs,
@@ -772,6 +775,22 @@ export class CompetitionStore {
     }));
   }
 
+  /** Sets (a part of) the result of one start, as typed on the pool deck. */
+  setResult(id: string, key: string, change: Partial<RunResult>): void {
+    this.patchSchedule(id, (old) => {
+      const next = { ...(old.results[key] ?? emptyResult()), ...change };
+      const results = { ...old.results };
+      if (!next.t && !next.status && !next.ok && next.sp.every((time) => !time))
+        delete results[key];
+      else results[key] = next;
+      return { ...old, results };
+    });
+  }
+
+  setNote(id: string, note: string): void {
+    this.patchSchedule(id, (old) => ({ ...old, note }));
+  }
+
   assignDuty(id: string, index: number, name: string): void {
     this.patchSchedule(id, (old) => ({
       ...old,
@@ -814,6 +833,7 @@ export class CompetitionStore {
         const key = startKey(start);
         if (results[key] && (results[key].t || results[key].status) && !overwrite) continue;
         results[key] = {
+          ...results[key],
           t: found.time,
           sp: found.splits,
           status: found.status,
@@ -845,10 +865,7 @@ export class CompetitionStore {
 
   /** Name of an event: from the Meldeergebnis, else from the event list. */
   eventName(competition: Competition, no: number): string {
-    const fromFile = competition.schedule.eventNames[no];
-    if (fromFile) return fromFile;
-    const event = competition.events.find((item) => item.no === no);
-    return event ? eventLabel(event) : `Wettkampf ${no}`;
+    return eventTitle(competition, no);
   }
 
   /** Keeps the mail in the outbox. A real mail server comes with the backend. */

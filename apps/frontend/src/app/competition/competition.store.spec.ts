@@ -125,4 +125,29 @@ describe('CompetitionStore', () => {
     expect(store.openDuties(after)).toBe(0);
     expect(after.plan.judges[1]).toBe(1);
   });
+
+  it('keeps what is typed on the pool deck and drops results that became empty', () => {
+    const store = TestBed.inject(CompetitionStore);
+    store.setResult('c-1', '1-1-3', { t: '00:40,00' });
+    store.setResult('c-1', '1-1-3', { ok: true });
+    expect(store.competition('c-1')!.schedule.results['1-1-3']).toMatchObject({
+      t: '00:40,00',
+      ok: true,
+    });
+    store.setResult('c-1', '1-1-3', { sp: ['', ''] });
+    store.setResult('c-1', '1-1-3', { t: '', ok: false });
+    expect(store.competition('c-1')!.schedule.results['1-1-3']).toBeUndefined();
+    store.setNote('c-1', 'Halle kalt');
+    expect(store.competition('c-1')!.schedule.note).toBe('Halle kalt');
+  });
+
+  it('names an event from the Meldeergebnis first, then from the event list', () => {
+    const store = TestBed.inject(CompetitionStore);
+    const meet = store.competition('c-1')!;
+    expect(store.eventName(meet, 1)).toBe('50m Freistil');
+    expect(store.eventName(meet, 99)).toBe('Wettkampf 99');
+    expect(
+      store.eventName({ ...meet, schedule: { ...meet.schedule, eventNames: { 1: 'x' } } }, 1),
+    ).toBe('x');
+  });
 });
