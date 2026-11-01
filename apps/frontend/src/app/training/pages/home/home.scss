@@ -89,3 +89,19 @@
 .title app-icon {
   color: var(--info-fg);
 }
+
+.week-bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.week-label {
+  color: var(--sgb-soft);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}

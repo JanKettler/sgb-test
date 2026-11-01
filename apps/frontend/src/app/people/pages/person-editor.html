@@ -724,37 +724,16 @@
       }
     </section>
     <section class="box">
-      <h3>Vereinsrollen</h3>
+      <h3>Rollen</h3>
       <p class="sub mb-3">
-        Bestimmen, welche Felder auf der Seite Rollen erscheinen. Fahrer wird nur für die
-        Bankverbindung der Fahrtenabrechnung gebraucht.
+        Dieselben Rollen wie in der Benutzerverwaltung, in derselben Reihenfolge. Änderungen gelten
+        an beiden Stellen. Wer eine Rolle ankreuzt, bekommt auf der Seite Rollen die passenden
+        Felder.
       </p>
       <div class="role-grid">
-        @for (item of clubRoles; track item.key) {
-          <label class="role-card" [class.is-on]="draft()[item.key]">
-            <input
-              type="checkbox"
-              [checked]="draft()[item.key]"
-              (change)="toggleClubRole(item.key)"
-            />
-            <span [class]="item.css">{{ item.label }}</span>
-          </label>
-        }
-      </div>
-    </section>
-    <section class="box">
-      <h3>Benutzerrollen</h3>
-      <p class="sub mb-3">
-        Dieselben Rollen wie in der Benutzerverwaltung. Änderungen gelten an beiden Stellen.
-      </p>
-      <div class="role-grid">
-        @for (item of appRoles; track item.key) {
-          <label class="role-card" [class.is-on]="draft().appRoles.includes(item.key)">
-            <input
-              type="checkbox"
-              [checked]="draft().appRoles.includes(item.key)"
-              (change)="toggleAppRole(item.key)"
-            />
+        @for (item of roleCards; track item.id) {
+          <label class="role-card" [class.is-on]="roleOn(item.id)">
+            <input type="checkbox" [checked]="roleOn(item.id)" (change)="toggleRoleCard(item.id)" />
             <span>
               <strong>{{ item.label }}</strong>
               <small class="sub">{{ item.hint }}</small>

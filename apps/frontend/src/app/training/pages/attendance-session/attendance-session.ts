@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Icon } from '../../../ui/icon';
+import { Toasts } from '../../../ui/toast';
 import { PersonPickerDialog } from '../../dialogs/person-picker-dialog';
 import { endTime, fullDate } from '../../training-dates';
 import { AttendanceState, Person, PersonRole } from '../../training.models';
@@ -32,9 +33,12 @@ interface AttendanceRow {
 })
 export class AttendanceSession {
   private readonly store = inject(TrainingStore);
+  private readonly toasts = inject(Toasts);
   private readonly params = toSignal(inject(ActivatedRoute).paramMap);
   protected readonly segments = SEGMENTS;
   protected readonly adding = signal(false);
+  /** Changes that are only stored when "Speichern" is pressed, by "personId:role". */
+  protected readonly pending = signal<ReadonlyMap<string, AttendanceState>>(new Map());
 
   protected readonly session = computed(() => {
     const id = this.params()?.get('id');
@@ -58,7 +62,9 @@ export class AttendanceSession {
         role,
         group:
           role === 'trainer' || !person.groupId ? 'Trainer' : this.store.groupName(person.groupId),
-        state: this.store.stateOf(session, person.id, role),
+        state:
+          this.pending().get(`${person.id}:${role}`) ??
+          this.store.stateOf(session, person.id, role),
         registration: response?.status ?? 'none',
         reason: response?.reason ?? '',
       };
@@ -88,8 +94,23 @@ export class AttendanceSession {
   });
 
   protected set(row: AttendanceRow, state: AttendanceState): void {
+    this.pending.update((current) => new Map(current).set(`${row.person.id}:${row.role}`, state));
+  }
+
+  protected save(): void {
     const session = this.session();
-    if (session) this.store.setAttendance(session.id, row.person.id, row.role, state);
+    if (!session) return;
+    for (const [key, state] of this.pending()) {
+      const [personId, role] = key.split(':');
+      this.store.setAttendance(session.id, personId, role as PersonRole, state);
+    }
+    this.pending.set(new Map());
+    this.toasts.saved('Anwesenheit gespeichert');
+  }
+
+  protected cancel(): void {
+    this.pending.set(new Map());
+    this.toasts.cancelled();
   }
 
   protected add(person: Person): void {

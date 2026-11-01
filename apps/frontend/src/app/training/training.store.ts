@@ -515,9 +515,9 @@ export class TrainingStore {
   // --- Calendar -------------------------------------------------------------------------------
 
   /** Sessions of the current week (Monday to Sunday) that are relevant for the current demo user. */
-  weekEntries(): { session: TrainingSession; labels: string[] }[] {
+  weekEntries(weekOffset = 0): { session: TrainingSession; labels: string[] }[] {
     const sinceMonday = (parseIsoDate(this.today).getDay() + 6) % 7;
-    const first = addDays(this.today, -sinceMonday);
+    const first = addDays(this.today, -sinceMonday + weekOffset * 7);
     const last = addDays(first, 6);
     const role = this.role();
     const actors = this.actors();

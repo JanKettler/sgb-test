@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Icon } from '../../../ui/icon';
 import { addDays, endTime, minutesOfDay, parseIsoDate, weekdayShort } from '../../training-dates';
@@ -38,7 +38,10 @@ export class Home {
   protected readonly role = this.store.role;
   protected readonly hourHeight = HOUR_HEIGHT;
 
-  private readonly entries = computed(() => this.store.weekEntries());
+  /** 0 = current week, -1 = last week, 1 = next week, ... */
+  protected readonly weekOffset = signal(0);
+
+  private readonly entries = computed(() => this.store.weekEntries(this.weekOffset()));
 
   protected readonly hours = computed(() => {
     const sessions = this.entries().map((entry) => entry.session);
@@ -62,12 +65,21 @@ export class Home {
     return Array.from({ length: Math.max(last - first, 1) }, (_, index) => first + index);
   });
 
+  protected readonly weekLabel = computed(() => {
+    const days = this.days();
+    return `${days[0].label} – ${days[6].label}`;
+  });
+
+  protected shiftWeek(step: number): void {
+    this.weekOffset.update((offset) => offset + step);
+  }
+
   protected readonly bodyHeight = computed(() => this.hours().length * HOUR_HEIGHT);
 
   protected readonly days = computed<CalendarDay[]>(() => {
     const firstMinute = this.hours()[0] * 60;
     const sinceMonday = (parseIsoDate(this.store.today).getDay() + 6) % 7;
-    const monday = addDays(this.store.today, -sinceMonday);
+    const monday = addDays(this.store.today, -sinceMonday + this.weekOffset() * 7);
     return Array.from({ length: 7 }, (_, offset) => {
       const iso = addDays(monday, offset);
       const events = this.entries()
