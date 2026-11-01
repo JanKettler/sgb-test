@@ -294,7 +294,7 @@ export function parseResultsDsv7(text: string, club: string): ParsedResults {
   const splits = new Map<string, { d: number; t: string }[]>();
   const rows: string[][] = [];
   for (const raw of text.split(/\r?\n/)) {
-    const line = raw.replace(/^﻿/, '').replace(/\(\*.*\*\)\s*$/, '');
+    const line = raw.replace(/^\uFEFF/, '').replace(/\(\*.*\*\)\s*$/, '');
     const colon = line.indexOf(':');
     if (!line || colon < 0) continue;
     const key = line.slice(0, colon).trim().toUpperCase();
