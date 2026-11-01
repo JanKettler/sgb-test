@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PeopleStore } from '../../../people/people.store';
 import { GROUPS, GroupId } from '../../../training/training.models';
 import { DateField } from '../../../ui/date-field';
@@ -41,7 +41,7 @@ type MoneyKey = 'flatFee' | 'perSwimmerFee' | 'discount';
 
 @Component({
   selector: 'app-competition-editor',
-  imports: [RouterLink, Icon, DateField, ModalDialog, EntryForm],
+  imports: [Icon, DateField, ModalDialog, EntryForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './competition-editor.html',
   styleUrl: './competition-editor.scss',
