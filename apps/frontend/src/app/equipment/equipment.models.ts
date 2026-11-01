@@ -1,3 +1,5 @@
+import { DEFAULT_CATALOG } from '../youth/youth.models';
+
 export type Condition = 'gut' | 'gebraucht' | 'defekt';
 
 export const CONDITIONS: readonly Condition[] = ['gut', 'gebraucht', 'defekt'];
@@ -56,17 +58,13 @@ export interface BadgeStock {
   minimum: number | null;
 }
 
-export const BADGE_NAMES: readonly string[] = [
-  'DSA Bronze',
-  'DSA Silber',
-  'DSA Gold',
-  'DLA Hai',
-  'DLA Silber',
-  'DLA Gold',
-  'Totenkopf 1 Std.',
-  'Totenkopf 1,5 Std.',
-  'Totenkopf 2 Std.',
-];
+/** The badges of the club: the stock is kept here, prices and requirements on the youth page. */
+export const BADGE_NAMES: readonly string[] = DEFAULT_CATALOG.map((kind) => kind.name);
+
+/** The stock of the badge is at or below the minimum that was set. */
+export function isBadgeLow(badge: BadgeStock): boolean {
+  return badge.stock !== null && badge.minimum !== null && badge.stock <= badge.minimum;
+}
 
 /** How many of the item can be lent right now. */
 export function availableOf(item: EquipmentItem): number {

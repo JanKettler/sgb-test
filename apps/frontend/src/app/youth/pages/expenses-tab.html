@@ -1,0 +1,95 @@
+<div class="toolbar">
+  <p class="item-sub mb-0">
+    Wer etwas vorgestreckt hat, trägt es hier ein. Der Vorstand genehmigt und erstattet.
+  </p>
+  @if (store.canBook()) {
+    <app-action kind="add" withText label="Auslage beantragen" (pressed)="adding.set(true)" />
+  }
+</div>
+
+@if (list().length === 0) {
+  <p class="empty">Keine Anträge.</p>
+} @else {
+  <div class="item-list">
+    @for (expense of list(); track expense.id) {
+      <article
+        class="item"
+        [class.is-ok]="expense.state === 'refunded'"
+        [class.is-bad]="expense.state === 'rejected'"
+      >
+        <div class="item-main">
+          <div class="item-title">
+            {{ expense.text }}
+            <span
+              class="pill"
+              [class.is-ok]="expense.state === 'refunded'"
+              [class.is-info]="expense.state === 'approved'"
+              [class.is-bad]="expense.state === 'rejected'"
+              [class.is-warn]="expense.state === 'requested'"
+              >{{ label[expense.state] }}</span
+            >
+          </div>
+          <div class="item-sub">{{ subline(expense) }}</div>
+        </div>
+        <div class="item-actions">
+          <b>{{ euro(expense.amount) }}</b>
+          @if (store.canConfirm()) {
+            @if (expense.state === 'requested') {
+              <app-action
+                kind="done"
+                small
+                withText
+                label="Genehmigen"
+                (pressed)="setState(expense, 'approved')"
+              />
+              <app-action
+                kind="cancel"
+                small
+                withText
+                label="Ablehnen"
+                (pressed)="setState(expense, 'rejected')"
+              />
+            }
+            @if (expense.state === 'approved') {
+              <app-action
+                kind="done"
+                small
+                withText
+                label="Erstattet (als Ausgabe buchen)"
+                (pressed)="setState(expense, 'refunded')"
+              />
+            }
+          }
+          @if (store.canBook() && expense.state === 'requested') {
+            <app-action
+              kind="delete"
+              [label]="expense.text + ' löschen'"
+              (pressed)="toDelete.set(expense)"
+            />
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (adding()) {
+  <app-form-dialog
+    heading="Auslage beantragen"
+    [fields]="fields"
+    [values]="newExpense()"
+    [check]="check"
+    (saved)="request($event)"
+    (closed)="adding.set(false)"
+  />
+}
+
+@if (toDelete(); as expense) {
+  <app-confirm-dialog
+    heading="Antrag löschen?"
+    [subtitle]="expense.text"
+    text="Der Antrag verschwindet aus der Liste."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

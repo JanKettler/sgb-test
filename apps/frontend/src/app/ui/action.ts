@@ -17,6 +17,7 @@ export type ActionKind =
   | 'save'
   | 'cancel'
   | 'back'
+  | 'next'
   | 'download'
   | 'print'
   | 'excel'
@@ -25,7 +26,10 @@ export type ActionKind =
   | 'done'
   | 'stock'
   | 'expand'
-  | 'collapse';
+  | 'collapse'
+  | 'lock'
+  | 'unlock'
+  | 'settings';
 
 export interface ActionLook {
   icon: IconName;
@@ -44,6 +48,7 @@ export const ACTIONS: Readonly<Record<ActionKind, ActionLook>> = {
   save: { icon: 'save', label: 'Speichern', tone: 'is-success' },
   cancel: { icon: 'x', label: 'Abbrechen', tone: 'is-danger' },
   back: { icon: 'chevron-left', label: 'Zurück', tone: '' },
+  next: { icon: 'chevron-right', label: 'Weiter', tone: '' },
   download: { icon: 'download', label: 'Herunterladen', tone: '' },
   print: { icon: 'print', label: 'Drucken', tone: '' },
   excel: { icon: 'sheet', label: 'Excel', tone: '' },
@@ -53,11 +58,14 @@ export const ACTIONS: Readonly<Record<ActionKind, ActionLook>> = {
   stock: { icon: 'box', label: 'Bestand ändern', tone: '' },
   expand: { icon: 'chevron-down', label: 'Details anzeigen', tone: '' },
   collapse: { icon: 'chevron-up', label: 'Details ausblenden', tone: '' },
+  lock: { icon: 'lock', label: 'Abschließen', tone: '' },
+  unlock: { icon: 'unlock', label: 'Öffnen', tone: '' },
+  settings: { icon: 'gear', label: 'Einstellungen', tone: '' },
 };
 
 /**
- * The button for the recurring actions: add, edit, delete, copy, save, cancel, back, download,
- * print, Excel, lend, return, done, stock, expand and collapse. Icon only by default (with the name as tooltip and for screen readers); with
+ * The button for the recurring actions of the pages (add, edit, delete, print, Excel, lend, done,
+ * lock, ...). Icon only by default, with the name as tooltip and for screen readers; with
  * `withText` the name is shown next to the icon. With `link` it renders a router link instead.
  */
 @Component({

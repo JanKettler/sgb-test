@@ -4,7 +4,7 @@ import { Action } from '../../ui/action';
 import { FieldDef, FormDialog, FormValues, textOf } from '../../ui/form-dialog';
 import { Icon } from '../../ui/icon';
 import { Toasts } from '../../ui/toast';
-import { BadgeStock } from '../equipment.models';
+import { BadgeStock, isBadgeLow } from '../equipment.models';
 import { EquipmentStore } from '../equipment.store';
 
 const FIELDS: readonly FieldDef[] = [
@@ -37,6 +37,7 @@ function countOf(values: FormValues, key: string): number | null {
   templateUrl: './badges-tab.html',
 })
 export class BadgesTab {
+  protected readonly isLow = isBadgeLow;
   protected readonly store = inject(EquipmentStore);
   private readonly toasts = inject(Toasts);
   protected readonly fields = FIELDS;
@@ -48,10 +49,6 @@ export class BadgesTab {
       .badges()
       .reduce((most, badge) => Math.max(most, badge.stock ?? 0, (badge.minimum ?? 0) * 2), 10),
   );
-
-  protected isLow(badge: BadgeStock): boolean {
-    return badge.stock !== null && badge.minimum !== null && badge.stock <= badge.minimum;
-  }
 
   protected save(values: FormValues): void {
     const badge = this.editing();

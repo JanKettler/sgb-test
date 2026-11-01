@@ -1,0 +1,50 @@
+<app-modal-dialog
+  heading="Kassensturz"
+  [subtitle]="'Soll laut Kassenbuch (bestätigt): ' + euro(expected())"
+  accent="green"
+  (closed)="closed.emit()"
+>
+  <div class="field">
+    <label class="label" for="count-date">Datum</label>
+    <app-date-field inputId="count-date" [(value)]="date" />
+    <p class="help">Leer lassen für heute.</p>
+  </div>
+  <p class="item-sub mb-2">
+    Anzahl der Scheine und Münzen eintragen. Die Summe wird automatisch berechnet.
+  </p>
+  @for (value of denominations; track value) {
+    <div class="sub-row">
+      <label class="piece-label" [for]="'count-' + value">{{ label(value) }}</label>
+      <input
+        class="input piece-input"
+        type="number"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        [id]="'count-' + value"
+        [value]="shown(value)"
+        (input)="setPieces(value, $event)"
+      />
+      <span class="item-sub piece-sum">{{ euro(subtotal(value)) }}</span>
+    </div>
+  }
+  <div class="sub-row">
+    <b class="piece-label">Summe</b>
+    <b>{{ euro(total()) }}</b>
+  </div>
+  <p class="help" [class.is-danger]="difference() !== 0">
+    @if (difference() === 0) {
+      Stimmt mit dem Kassenbuch überein.
+    } @else {
+      Differenz zum Soll: <b>{{ euro(difference()) }}</b>
+    }
+  </p>
+  <div class="field mt-3">
+    <label class="label" for="count-note">Notiz</label>
+    <input class="input" id="count-note" autocomplete="off" (input)="setNote($event)" />
+  </div>
+  <ng-container dialogActions>
+    <app-action kind="cancel" withText (pressed)="closed.emit()" />
+    <app-action kind="save" withText (pressed)="save()" />
+  </ng-container>
+</app-modal-dialog>

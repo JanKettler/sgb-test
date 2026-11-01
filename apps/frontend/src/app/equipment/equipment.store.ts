@@ -10,6 +10,7 @@ import {
   Loan,
   ReturnedLoan,
   availableOf,
+  isBadgeLow,
   isOverdue,
   needsBuying,
 } from './equipment.models';
@@ -76,11 +77,7 @@ export class EquipmentStore {
         .flatMap((item) => item.loans)
         .filter((loan) => isOverdue(loan, this.today)).length,
   );
-  readonly lowBadges = computed(() =>
-    this.badges().filter(
-      (badge) => badge.stock !== null && badge.minimum !== null && badge.stock <= badge.minimum,
-    ),
-  );
+  readonly lowBadges = computed(() => this.badges().filter(isBadgeLow));
 
   /** Names that may be typed into the "who" field. */
   readonly memberNames = this.people.memberNames;
@@ -218,6 +215,12 @@ export class EquipmentStore {
 
   saveBadge(badge: BadgeStock): void {
     this.badges.update((list) => list.map((entry) => (entry.name === badge.name ? badge : entry)));
+  }
+
+  /** A new kind of badge from the youth page shows up in the stock, without a count. */
+  addBadge(name: string): void {
+    if (this.badges().some((entry) => entry.name === name)) return;
+    this.badges.update((list) => [...list, { name, stock: null, minimum: null }]);
   }
 
   /** One badge less on the shelf, e.g. when it was paid on the youth page. */
