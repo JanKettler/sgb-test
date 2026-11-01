@@ -79,6 +79,15 @@ function splitHeading(body: string): { line2: string; line3: string; rest: strin
   };
 }
 
+/** A new tab, or null where pop-ups are blocked. */
+function openTab(): Window | null {
+  try {
+    return window.open('', '_blank');
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Opens a print page for a list: the club header (logo left, club, title and meet right) and the
  * table. A separate tab works on the iPad as well; where pop-ups are blocked the page covers the
@@ -97,12 +106,7 @@ export function printHtml(title: string, body: string, options: PrintOptions = {
     (options.landscape ? '@page{size:A4 landscape;margin:10mm}' : '') +
     (options.css ?? '');
 
-  let popup: Window | null = null;
-  try {
-    popup = window.open('', '_blank');
-  } catch {
-    popup = null;
-  }
+  const popup = openTab();
   if (popup?.document) {
     popup.document.open();
     popup.document.write(
