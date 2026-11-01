@@ -144,6 +144,8 @@ export interface RunResult {
   status: string;
   place: number;
   ageGroup: string;
+  /** Ticked as done on the pool deck. */
+  ok?: boolean;
 }
 
 /** What the Meldeergebnis and the result list tell about the club at the meet. */
@@ -155,6 +157,8 @@ export interface Schedule {
   results: Record<string, RunResult>;
   stand: string;
   relayResults: { e: number; place: number; time: string; status: string }[];
+  /** Notes typed on the pool deck. */
+  note: string;
 }
 
 export type FeeStatus = '' | 'mail' | 'paid';
@@ -241,6 +245,14 @@ export function eventLabel(event: CompEvent): string {
   return `${relay}${event.distance}m ${strokeName(event)}`;
 }
 
+/** Name of an event: from the Meldeergebnis, else from the event list. */
+export function eventTitle(competition: Competition, no: number): string {
+  const fromFile = competition.schedule.eventNames[no];
+  if (fromFile) return fromFile;
+  const event = competition.events.find((item) => item.no === no);
+  return event ? eventLabel(event) : `Wettkampf ${no}`;
+}
+
 export function sexLabel(sex: Sex): string {
   return sex === 'M' ? 'männlich' : sex === 'W' ? 'weiblich' : 'mixed';
 }
@@ -311,6 +323,19 @@ export function timeMs(time: string): number | null {
   return (Number(match[1] ?? 0) * 60 + Number(match[2])) * 1000 + Number(match[3]) * 10;
 }
 
+/** "mm:ss,hh" for a number of milliseconds, cut to hundredths: 98520 gives "01:38,52". */
+export function msToTime(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 10));
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${pad(Math.floor(total / 6000))}:${pad(Math.floor(total / 100) % 60)},${pad(total % 100)}`;
+}
+
+/** Difference of two times for the pool deck: "−0,52" when faster, "+1,07" when slower. */
+export function diffText(ms: number): string {
+  const text = showTime(msToTime(Math.abs(ms))) || '0,00';
+  return `${ms < 0 ? '−' : '+'}${text}`;
+}
+
 /** "01:57,66" is shown as "1:57,66" and "00:39,80" as "39,80", like in the result lists. */
 export function showTime(time: string): string {
   const ms = timeMs(time);
@@ -333,7 +358,37 @@ export function emptyPlan(): Plan {
 }
 
 export function emptySchedule(): Schedule {
-  return { starts: [], duties: [], eventNames: {}, results: {}, stand: '', relayResults: [] };
+  return {
+    starts: [],
+    duties: [],
+    eventNames: {},
+    results: {},
+    stand: '',
+    relayResults: [],
+    note: '',
+  };
+}
+
+export function emptyResult(): RunResult {
+  return { t: '', sp: [], status: '', place: 0, ageGroup: '' };
+}
+
+/** Relay teams are listed as "1. Mannschaft" and carry "Staffel" in the year column. */
+export function isRelayStart(start: Pick<RunStart, 'j'>): boolean {
+  return start.j === 'Staffel';
+}
+
+/**
+ * Number of intermediate times asked for at a distance: one per 100 m before the finish, from
+ * 200 m on. Relays have none.
+ */
+export function splitCount(distance: number, relay: boolean): number {
+  return !relay && distance >= 200 ? Math.floor((distance - 1) / 100) : 0;
+}
+
+/** "Anna Muster" for "Muster, Anna". */
+export function displayName(name: string): string {
+  return name.replace(/^([^,]+),\s*(.+)$/, '$2 $1');
 }
 
 /** Key of a start in `Schedule.results`. */

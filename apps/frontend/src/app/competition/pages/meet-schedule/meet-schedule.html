@@ -1,0 +1,219 @@
+@let item = competition();
+@if (item) {
+  <div class="top">
+    @if (store.canManage()) {
+      <div class="file is-small">
+        <label class="file-label">
+          <input
+            class="file-input"
+            type="file"
+            accept="application/pdf,.pdf"
+            (change)="read($event)"
+          />
+          <span class="file-cta">
+            <span class="file-icon"><app-icon name="upload" /></span>
+            <span class="file-label">Meldeergebnis (PDF)</span>
+          </span>
+        </label>
+      </div>
+    }
+    @if (item.schedule.stand) {
+      <span class="sub">Stand {{ stand() }}</span>
+    }
+  </div>
+  @if (message()) {
+    <p class="help" [class.is-danger]="failed()">{{ message() }}</p>
+  }
+
+  @if (lines().length === 0) {
+    <p class="has-text-grey">Noch kein Meldeergebnis hochgeladen.</p>
+  } @else {
+    <h4 class="section-title">Listen</h4>
+    <ul class="lists">
+      @for (list of lists; track list.id) {
+        <li>
+          <span class="list-name">{{ list.label }}</span>
+          <span class="list-buttons">
+            @if (list.excel) {
+              <button type="button" class="button is-small" (click)="excel(list.id)">
+                <app-icon name="file-excel" /> Excel
+              </button>
+            }
+            <button type="button" class="button is-small" (click)="print(list.id)">
+              <app-icon name="print" /> Drucken
+            </button>
+          </span>
+        </li>
+      }
+    </ul>
+
+    <h4 class="section-title">Starts</h4>
+    <div class="views">
+      <div class="buttons has-addons">
+        <button
+          type="button"
+          class="button is-small"
+          [class.is-primary]="view() === 'swimmer'"
+          (click)="view.set('swimmer')"
+        >
+          Nach Schwimmer
+        </button>
+        <button
+          type="button"
+          class="button is-small"
+          [class.is-primary]="view() === 'time'"
+          (click)="view.set('time')"
+        >
+          Nach Uhrzeit
+        </button>
+      </div>
+      @if (view() === 'swimmer') {
+        <input
+          class="input is-small search"
+          type="search"
+          placeholder="Schwimmer suchen …"
+          aria-label="Schwimmer suchen"
+          [value]="query()"
+          (input)="query.set(value($event))"
+        />
+      }
+    </div>
+
+    @if (view() === 'swimmer') {
+      @for (swimmer of swimmers(); track swimmer.key) {
+        <article class="swimmer">
+          <h5>
+            {{ swimmer.name }}
+            <span class="sub-inline">({{ swimmer.year }})</span>
+          </h5>
+          <table class="table is-narrow is-fullwidth">
+            <thead>
+              <tr>
+                <th>Uhr</th>
+                <th class="is-left">Strecke</th>
+                <th>Lauf / Bahn</th>
+                <th>Meldezeit</th>
+                @if (hasResults()) {
+                  <th>Ergebnis</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of swimmer.lines; track line.key) {
+                <tr>
+                  <td class="has-text-centered">
+                    <strong>{{ line.time }}</strong>
+                  </td>
+                  <td>Wk {{ line.event }} · {{ line.distance }}</td>
+                  <td class="has-text-centered">Lauf {{ line.heat }} · Bahn {{ line.lane }}</td>
+                  <td class="has-text-centered">{{ line.entry }}</td>
+                  @if (hasResults()) {
+                    <td class="has-text-centered">{{ resultOf(line) }}</td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </article>
+      } @empty {
+        <p class="has-text-grey">Kein Schwimmer gefunden.</p>
+      }
+    } @else {
+      @for (section of item.sections; track section.no) {
+        @if (sectionInfo(section); as info) {
+          <p class="sub info">
+            <strong>Abschnitt {{ section.no }}</strong> · {{ info }}
+          </p>
+        }
+      }
+      <table class="table is-narrow is-fullwidth">
+        <thead>
+          <tr>
+            <th>Uhr</th>
+            <th class="is-left">Schwimmer / Strecke</th>
+            <th>Lauf / Bahn</th>
+            <th>Meldezeit</th>
+          </tr>
+        </thead>
+        @for (group of timeGroups(); track group.section) {
+          <tbody>
+            @if (item.sections.length > 1) {
+              <tr class="band-row">
+                <td colspan="4">Abschnitt {{ group.section }}</td>
+              </tr>
+            }
+            @for (line of group.lines; track line.key) {
+              <tr>
+                <td class="has-text-centered">
+                  <strong>{{ line.time }}</strong>
+                </td>
+                <td>
+                  <strong>{{ line.swimmer }}</strong>
+                  <span class="sub-inline">({{ line.year }})</span>
+                  <span class="sub">Wk {{ line.event }} · {{ line.distance }}</span>
+                </td>
+                <td class="has-text-centered">Lauf {{ line.heat }} · Bahn {{ line.lane }}</td>
+                <td class="has-text-centered">{{ line.entry }}</td>
+              </tr>
+            }
+          </tbody>
+        }
+      </table>
+    }
+  }
+
+  @if (item.schedule.duties.length > 0) {
+    <h4 class="section-title">
+      Kampfgericht für {{ clubName }}
+      <span
+        class="pill"
+        [class.is-warn]="store.openDuties(item) > 0"
+        [class.is-ok]="store.openDuties(item) === 0"
+      >
+        {{ store.openDuties(item) }} offen
+      </span>
+    </h4>
+    <table class="table is-fullwidth is-hoverable">
+      <thead>
+        <tr>
+          <th>Abschnitt</th>
+          <th class="is-left">Position</th>
+          <th class="is-left">Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (duty of item.schedule.duties; track $index) {
+          <tr>
+            <td class="has-text-centered">{{ duty.a }}</td>
+            <td>
+              {{ duty.pos }}
+              <span class="sub">{{ duty.g }}</span>
+            </td>
+            <td>
+              @if (store.canManage()) {
+                <div class="select is-small compact">
+                  <select
+                    [attr.aria-label]="'Name für ' + duty.pos"
+                    (change)="assign($index, $event)"
+                  >
+                    <option value="" [selected]="isOpen(duty.name)">offen</option>
+                    @if (!isOpen(duty.name) && !known(duty.name)) {
+                      <option [value]="duty.name" selected>{{ duty.name }}</option>
+                    }
+                    @for (person of people; track person.id) {
+                      <option [value]="person.name" [selected]="person.name === duty.name">
+                        {{ person.name }}
+                      </option>
+                    }
+                  </select>
+                </div>
+              } @else {
+                {{ isOpen(duty.name) ? 'offen' : duty.name }}
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+}

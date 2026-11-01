@@ -75,7 +75,9 @@ export type IconName =
   | 'unlock'
   | 'user-plus'
   | 'ellipsis'
-  | 'filter';
+  | 'filter'
+  | 'stopwatch'
+  | 'search';
 
 const FONT_AWESOME: Record<IconName, string> = {
   check: 'fa-check',
@@ -153,6 +155,8 @@ const FONT_AWESOME: Record<IconName, string> = {
   'user-plus': 'fa-user-plus',
   ellipsis: 'fa-ellipsis',
   filter: 'fa-filter',
+  stopwatch: 'fa-stopwatch',
+  search: 'fa-magnifying-glass',
 };
 
 /**

@@ -24,12 +24,22 @@ import { CompetitionStore, MailDraft } from '../../competition.store';
 import { downloadBytes, escapeHtml, printHtml } from '../../competition-download';
 import { EntryForm } from '../entry-form/entry-form';
 import { MeetChecklist } from '../meet-checklist/meet-checklist';
+import { MeetOnsite } from '../meet-onsite/meet-onsite';
 import { MeetResults } from '../meet-results/meet-results';
 import { MeetSchedule } from '../meet-schedule/meet-schedule';
 import { MailDialog } from '../mail-dialog/mail-dialog';
 import { RelayForm } from '../relay-form/relay-form';
 
-type Tab = 'base' | 'sections' | 'events' | 'entries' | 'check' | 'schedule' | 'results' | 'staff';
+type Tab =
+  | 'base'
+  | 'sections'
+  | 'events'
+  | 'entries'
+  | 'check'
+  | 'schedule'
+  | 'onsite'
+  | 'results'
+  | 'staff';
 type Staff = 'officials' | 'coaches';
 type RegMode = 'all' | 'groups' | 'locked';
 type TextKey =
@@ -59,6 +69,7 @@ type MoneyKey = 'flatFee' | 'perSwimmerFee' | 'discount';
     RelayForm,
     MeetChecklist,
     MeetSchedule,
+    MeetOnsite,
     MeetResults,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -87,11 +98,12 @@ export class CompetitionEditor {
     { id: 'events', label: 'Wettkampffolge' },
     { id: 'entries', label: 'Meldungen' },
     { id: 'check', label: 'Checkliste', saved: true },
-    { id: 'schedule', label: 'Ablauf', saved: true },
+    { id: 'schedule', label: 'Meldeergebnis', saved: true },
+    { id: 'onsite', label: 'Vor Ort', saved: true },
     { id: 'results', label: 'Ergebnisse', saved: true },
     { id: 'staff', label: 'Kampfrichter & Trainer' },
   ];
-  /** Checklist, schedule and results need a saved meet. */
+  /** Checklist, Meldeergebnis, pool deck and results need a saved meet. */
   protected readonly tabs = this.allTabs.filter(
     (tab) => !tab.saved || !!this.store.competition(this.id),
   );

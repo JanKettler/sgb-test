@@ -756,6 +756,10 @@
       <app-meet-schedule [id]="item.id" />
     }
 
+    @case ('onsite') {
+      <app-meet-onsite [id]="item.id" />
+    }
+
     @case ('results') {
       <app-meet-results [id]="item.id" />
     }

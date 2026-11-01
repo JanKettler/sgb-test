@@ -1,0 +1,103 @@
+.top {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.8rem;
+  margin-bottom: 0.3rem;
+
+  .file {
+    margin: 0;
+  }
+}
+
+.section-title {
+  align-items: center;
+  color: var(--sgb-soft);
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 800;
+  gap: 0.5rem;
+  letter-spacing: 0.04em;
+  margin: 1.2rem 0 0.5rem;
+  text-transform: uppercase;
+}
+
+/* The lists for the pool deck: one line each with two small buttons. */
+.lists {
+  border: 1px solid var(--sgb-line);
+  border-radius: 10px;
+
+  li {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1rem;
+    justify-content: space-between;
+    padding: 0.4rem 0.7rem;
+
+    & + li {
+      border-top: 1px solid var(--sgb-line);
+    }
+  }
+
+  .list-name {
+    font-weight: 600;
+  }
+
+  .list-buttons {
+    display: inline-flex;
+    gap: 0.4rem;
+  }
+}
+
+.views {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.8rem;
+  margin-bottom: 0.8rem;
+
+  .buttons {
+    margin: 0;
+  }
+
+  .search {
+    flex: 1;
+    max-width: 18rem;
+    min-width: 10rem;
+  }
+}
+
+.swimmer {
+  margin-bottom: 0.9rem;
+
+  h5 {
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+
+  table {
+    margin-bottom: 0;
+  }
+}
+
+.sub-inline {
+  color: var(--sgb-soft);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.info {
+  margin: 0 0 0.2rem;
+}
+
+.band-row td {
+  background: var(--sgb-hover);
+  font-weight: 700;
+}
+
+.compact select {
+  font-size: 0.9rem;
+  height: 1.9rem;
+  padding-block: 0;
+}
