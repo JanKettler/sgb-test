@@ -1,6 +1,6 @@
 import { GroupId } from '../training/training.models';
 
-export type Stroke = 'F' | 'R' | 'B' | 'S' | 'L';
+export type Stroke = 'F' | 'R' | 'B' | 'S' | 'L' | 'X';
 export type Style = 'GL' | 'BE' | 'AR' | 'ST';
 export type Sex = 'M' | 'W' | 'X';
 
@@ -10,6 +10,7 @@ export const STROKES: readonly { key: Stroke; label: string; short: string }[] =
   { key: 'B', label: 'Brust', short: 'B' },
   { key: 'S', label: 'Schmetterling', short: 'S' },
   { key: 'L', label: 'Lagen', short: 'L' },
+  { key: 'X', label: 'Sonderstrecke', short: 'X' },
 ];
 
 export const STYLES: readonly { key: Style; label: string }[] = [
@@ -47,10 +48,12 @@ export interface CompEvent {
   stroke: Stroke;
   style: Style;
   sex: Sex;
-  /** Free text: "2019 - 2025", "2019" or "offen". */
+  /** Free text: "2019 - 2025", "2019", "bis 2006" or "offen". */
   birthYears: string;
   /** Entry fee in euro. */
   fee: number;
+  /** Name from the announcement for special events (stroke "X"), e.g. "4x50m T-Shirt-Staffel". */
+  name?: string;
 }
 
 export interface BankData {
@@ -94,6 +97,10 @@ export interface Competition {
   sent: boolean;
   sections: CompSection[];
   events: CompEvent[];
+  /** Persons of the club who act as judges at the meet. */
+  officials: string[];
+  /** Persons of the club who coach at the meet. */
+  coaches: string[];
 }
 
 /** One start of one swimmer. `time` is the entry time as "mm:ss,hh", empty without one. */
@@ -104,12 +111,24 @@ export interface Entry {
   time: string;
 }
 
+/** A relay team: four swimmers, one entry time and the age class (birth year) of the team. */
+export interface RelayEntry {
+  competitionId: string;
+  eventNo: number;
+  /** Number of the team in the club: 1 = "1. Mannschaft". */
+  team: number;
+  year: number;
+  time: string;
+  memberIds: string[];
+}
+
 export interface Decline {
   competitionId: string;
   personId: string;
 }
 
-export function strokeName(event: Pick<CompEvent, 'stroke' | 'style'>): string {
+export function strokeName(event: Pick<CompEvent, 'stroke' | 'style' | 'name'>): string {
+  if (event.stroke === 'X') return event.name || 'Sonderstrecke';
   const stroke = STROKES.find((item) => item.key === event.stroke);
   if (!stroke) return event.stroke;
   if (event.style === 'BE') return `${stroke.short}-Beine`;
@@ -119,6 +138,7 @@ export function strokeName(event: Pick<CompEvent, 'stroke' | 'style'>): string {
 
 /** "50m Freistil", "4x50m Freistil", "25m K-Beine". */
 export function eventLabel(event: CompEvent): string {
+  if (event.stroke === 'X' && event.name) return event.name;
   const relay = event.count > 1 ? `${event.count}x` : '';
   return `${relay}${event.distance}m ${strokeName(event)}`;
 }
@@ -137,6 +157,8 @@ export function dateOf(competition: Competition): string {
 export function yearFits(birthYears: string, year: number): boolean {
   const text = birthYears.trim().toLowerCase();
   if (!text || text === 'offen') return true;
+  const until = /^bis\s*(\d{4})$/.exec(text);
+  if (until) return year <= Number(until[1]);
   const years = text.match(/\d{4}/g)?.map(Number) ?? [];
   if (years.length === 0) return true;
   if (years.length === 1) return years[0] === year;

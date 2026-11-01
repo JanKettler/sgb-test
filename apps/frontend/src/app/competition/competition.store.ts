@@ -8,12 +8,21 @@ import {
   Competition,
   Decline,
   Entry,
+  RelayEntry,
   dateOf,
   euro,
   eventLabel,
   yearFits,
 } from './competition.models';
-import { FileClub, buildEntryFile, decodeDsv7, entryFileName, parseDsv7 } from './dsv7';
+import {
+  FileClub,
+  FileSwimmer,
+  buildControlSheet,
+  buildEntryFile,
+  decodeDsv7,
+  entryFileName,
+  parseDsv7,
+} from './dsv7';
 import { createZip } from './zip';
 
 /** The club as it appears in the entry file; editable in the settings later. */
@@ -34,6 +43,27 @@ export interface StarterRow {
   entries: Entry[];
   issues: string[];
   fee: number;
+}
+
+/** A mail the portal "sent". The test portal has no mail server yet, so it only keeps them. */
+export interface SentMail {
+  id: number;
+  at: string;
+  competitionId: string;
+  to: string;
+  cc: string;
+  subject: string;
+  html: string;
+  attachments: string[];
+}
+
+/** What the mail dialog starts with. */
+export interface MailDraft {
+  to: string;
+  cc: string;
+  subject: string;
+  html: string;
+  attachments: string[];
 }
 
 export interface ImportResult {
@@ -110,6 +140,8 @@ function sampleMeet(
       bic: 'BEISPDE00XXX',
     },
     sent: false,
+    officials: [],
+    coaches: [],
     sections: [
       {
         no: 1,
@@ -186,11 +218,34 @@ export class CompetitionStore {
       time: time as string,
     })),
   ]);
+  readonly relays = signal<RelayEntry[]>([
+    {
+      competitionId: 'c-1',
+      eventNo: 11,
+      team: 1,
+      year: 2012,
+      time: '02:15,00',
+      memberIds: ['p-mats', 'p-emil', 'p-nele', 'p-sophie'],
+    },
+  ]);
   readonly declines = signal<Decline[]>([]);
+  readonly outbox = signal<SentMail[]>([]);
+  private nextMail = 1;
 
   /** The persons the current demo user registers: the child(ren) of a parent, else the user. */
   readonly actors = this.training.actors;
   readonly canManage = this.training.canManage;
+
+  /** Single entries: trainers and the board always; swimmers and parents for their own persons until the internal deadline. */
+  canEditEntries(competition: Competition, personId: string): boolean {
+    if (this.canManage()) return true;
+    return this.actors().some((person) => person.id === personId) && this.canRegister(competition);
+  }
+
+  /** Relay teams are put together by trainers and the board only. */
+  canEditRelays(): boolean {
+    return this.canManage();
+  }
 
   competition(id: string | null): Competition | undefined {
     return this.competitions().find((item) => item.id === id);
@@ -250,6 +305,61 @@ export class CompetitionStore {
     if (declined) this.setEntries(competitionId, personId, []);
   }
 
+  relaysOf(competitionId: string): RelayEntry[] {
+    return this.relays()
+      .filter((item) => item.competitionId === competitionId)
+      .sort((a, b) => a.eventNo - b.eventNo || a.team - b.team);
+  }
+
+  /** Saves a relay team; `previous` is the team as it was when editing started. */
+  saveRelay(relay: RelayEntry, previous?: RelayEntry): void {
+    this.relays.update((all) => [...all.filter((item) => item !== previous), relay]);
+  }
+
+  removeRelay(relay: RelayEntry): void {
+    this.relays.update((all) => all.filter((item) => item !== relay));
+  }
+
+  /** Problems of a relay team: wrong number of swimmers, sex or age that does not fit. */
+  relayIssues(competition: Competition, relay: RelayEntry): string[] {
+    const event = competition.events.find((item) => item.no === relay.eventNo);
+    const issues: string[] = [];
+    if (!event) return ['Wettkampf nicht gefunden'];
+    if (relay.memberIds.length !== event.count) {
+      issues.push(`${event.count} Schwimmer nötig, ${relay.memberIds.length} eingetragen`);
+    }
+    for (const id of relay.memberIds) {
+      const member = this.people.member(id);
+      if (!member) continue;
+      const name = `${member.firstName} ${member.lastName}`;
+      if (event.sex !== 'X' && member.sex !== 'X' && event.sex !== member.sex) {
+        issues.push(`${name}: Geschlecht passt nicht`);
+      }
+      if (!yearFits(event.birthYears, Number(member.birthDate.slice(0, 4)))) {
+        issues.push(`${name}: Jahrgang passt nicht`);
+      }
+    }
+    return issues;
+  }
+
+  /** Persons who can swim in a relay: active members who compete. */
+  relayCandidates(): { id: string; name: string }[] {
+    return this.people
+      .members()
+      .filter((member) => member.swimmer && member.competes && member.active)
+      .map((member) => ({ id: member.id, name: `${member.firstName} ${member.lastName}` }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  }
+
+  /** Active members who may be named as judge or coach. */
+  staffCandidates(): { id: string; name: string }[] {
+    return this.people
+      .members()
+      .filter((member) => member.active)
+      .map((member) => ({ id: member.id, name: `${member.firstName} ${member.lastName}` }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  }
+
   nameOf(personId: string): string {
     const member = this.people.member(personId);
     return member ? `${member.firstName} ${member.lastName}` : personId;
@@ -306,18 +416,21 @@ export class CompetitionStore {
   /** All entry fees to be paid: events, per-swimmer amounts, flat fee, minus the discount. */
   totalFee(competition: Competition): number {
     const rows = this.starters(competition);
-    const sum = rows.reduce((total, row) => total + row.fee, 0);
-    return Math.max(0, sum + (rows.length > 0 ? competition.flatFee - competition.discount : 0));
+    const relayFees = this.relaysOf(competition.id).reduce(
+      (total, relay) =>
+        total + (competition.events.find((event) => event.no === relay.eventNo)?.fee ?? 0),
+      0,
+    );
+    const sum = rows.reduce((total, row) => total + row.fee, 0) + relayFees;
+    const any = rows.length > 0 || relayFees > 0;
+    return Math.max(0, sum + (any ? competition.flatFee - competition.discount : 0));
   }
 
   counts(competition: Competition): { singles: number; relays: number; swimmers: number } {
     const mine = this.entries().filter((item) => item.competitionId === competition.id);
-    const relayNos = new Set(
-      competition.events.filter((item) => item.count > 1).map((item) => item.no),
-    );
     return {
-      singles: mine.filter((item) => !relayNos.has(item.eventNo)).length,
-      relays: mine.filter((item) => relayNos.has(item.eventNo)).length,
+      singles: mine.length,
+      relays: this.relaysOf(competition.id).length,
       swimmers: new Set(mine.map((item) => item.personId)).size,
     };
   }
@@ -350,6 +463,7 @@ export class CompetitionStore {
   remove(id: string): void {
     this.competitions.update((all) => all.filter((item) => item.id !== id));
     this.entries.update((all) => all.filter((item) => item.competitionId !== id));
+    this.relays.update((all) => all.filter((item) => item.competitionId !== id));
   }
 
   /** Creates a meet from an announcement or other DSV7 file; it stays closed until released. */
@@ -361,10 +475,8 @@ export class CompetitionStore {
     return { id, warnings };
   }
 
-  /** The entry file as a ZIP, ready for the download. */
-  entryZip(competition: Competition): { name: string; bytes: Uint8Array<ArrayBuffer> } {
-    const rows = this.starters(competition);
-    const swimmers = rows.flatMap((row) => {
+  private fileSwimmers(competition: Competition): FileSwimmer[] {
+    return this.starters(competition).flatMap((row) => {
       const member = this.people.member(row.personId);
       return member
         ? [
@@ -379,45 +491,105 @@ export class CompetitionStore {
           ]
         : [];
     });
-    const base = entryFileName(competition, this.club.name);
-    const text = buildEntryFile(
-      competition,
-      swimmers,
-      this.entries().filter((item) => item.competitionId === competition.id),
-      this.club,
-      new Date(),
-    );
-    const bytes = createZip([{ name: `${base}.DSV7`, data: new TextEncoder().encode(text) }]);
-    return { name: `${base}.zip`, bytes };
   }
 
-  /** Mail text for the treasurer: how much to pay, to whom, and for which swimmers. */
-  treasurerText(competition: Competition): string {
-    const rows = this.starters(competition);
+  /** File base name and the texts of the entry file and the control sheet. */
+  entryFiles(competition: Competition): { base: string; entryFile: string; control: string } {
+    const swimmers = this.fileSwimmers(competition);
+    const entries = this.entries().filter((item) => item.competitionId === competition.id);
+    const relays = this.relaysOf(competition.id);
+    return {
+      base: entryFileName(competition, this.club.name),
+      entryFile: buildEntryFile(competition, swimmers, entries, this.club, new Date(), relays),
+      control: buildControlSheet(competition, swimmers, entries, relays, this.club),
+    };
+  }
+
+  /** Download of the entries: entry file and control sheet in one ZIP, or one of them alone. */
+  entryDownload(
+    competition: Competition,
+    kind: 'zip' | 'dsv7' | 'control',
+  ): { name: string; bytes: Uint8Array<ArrayBuffer>; type: string } {
+    const { base, entryFile, control } = this.entryFiles(competition);
+    const encode = (text: string) => new TextEncoder().encode(text);
+    if (kind === 'dsv7') {
+      return { name: `${base}.DSV7`, bytes: encode(entryFile), type: 'text/plain' };
+    }
+    if (kind === 'control') {
+      return { name: `Kontrolle_${base}.txt`, bytes: encode(control), type: 'text/plain' };
+    }
+    return {
+      name: `${base}.zip`,
+      bytes: createZip([
+        { name: `${base}.DSV7`, data: encode(entryFile) },
+        { name: `Kontrolle_${base}.txt`, data: encode(control) },
+      ]),
+      type: 'application/zip',
+    };
+  }
+
+  private germanDate(iso: string): string {
+    return iso.split('-').reverse().join('.');
+  }
+
+  /** The mail to the host with the entry file; the person may edit it before sending. */
+  entryMailDraft(competition: Competition): MailDraft {
+    const when = `${this.germanDate(dateOf(competition))} in ${competition.place}`;
+    const counts = this.counts(competition);
+    return {
+      to: competition.contactEmail,
+      cc: this.club.contactMail,
+      subject: `Meldung ${this.club.name}: ${competition.title}`,
+      html: [
+        `<p>Guten Tag${competition.contactName ? ` ${this.firstName(competition.contactName)}` : ''},</p>`,
+        `<p>anbei die Meldung der ${this.club.name} für „${competition.title}“ am ${when}: ${counts.swimmers} Schwimmer, ${counts.singles} Einzel- und ${counts.relays} Staffelstarts.</p>`,
+        `<p>Das Meldegeld von ${euro(this.totalFee(competition))} überweisen wir fristgerecht.</p>`,
+        `<p>Mit sportlichem Gruß<br>${this.signature()}</p>`,
+      ].join(''),
+      attachments: [this.entryDownload(competition, 'zip').name],
+    };
+  }
+
+  /** The mail to the treasurer: how much to pay, to whom, for which meet. */
+  treasurerMailDraft(competition: Competition): MailDraft {
     const bank = competition.bank;
-    const lines = [
-      `Meldegeld für ${competition.title} (${competition.place})`,
-      '',
-      `Bitte überweise ${euro(this.totalFee(competition))} an:`,
-      `${bank.holder}, ${bank.bank}`,
-      `IBAN: ${bank.iban}`,
-      `BIC: ${bank.bic}`,
-      `Verwendungszweck: ${competition.title} ${this.club.name}`,
-      `Überweisen bis: ${competition.deadline.split('-').reverse().join('.')}`,
-      '',
-      'Aufstellung:',
-      ...rows.map((row) => `${row.name}: ${row.entries.length} Starts, ${euro(row.fee)}`),
-    ];
-    if (competition.flatFee > 0) lines.push(`Pauschale: ${euro(competition.flatFee)}`);
-    if (competition.discount > 0) lines.push(`Rabatt: -${euro(competition.discount)}`);
-    return lines.join('\n');
+    const when = `${this.germanDate(dateOf(competition))} in ${competition.place}`;
+    const treasurer = this.treasurer();
+    return {
+      to: treasurer?.email1 ?? '',
+      cc: '',
+      subject: `Meldegeld ${competition.title}`,
+      html: [
+        `<p>Hallo${treasurer ? ` ${treasurer.firstName}` : ''},</p>`,
+        `<p>unsere Meldungen von ${this.club.name} für die Veranstaltung „${competition.title}“ ${when} sind verschickt. Bitte überweise das zu zahlende Meldegeld.</p>`,
+        `<p>Kontoinhaber: ${bank.holder}<br>Bank: ${bank.bank}<br>IBAN: <b>${bank.iban}</b><br>BIC: ${bank.bic}<br>Höhe Meldegeld: <b>${euro(this.totalFee(competition))}</b><br>Verwendungszweck: Meldegeld ${competition.title} ${this.club.name}<br>Überweisen bis: ${this.germanDate(competition.deadline)}</p>`,
+        `<p>Bitte kurze Rückinfo, wenn es überwiesen ist.</p>`,
+        `<p>Mit sportlichem Gruß<br>${this.signature()}</p>`,
+      ].join(''),
+      attachments: [],
+    };
   }
 
-  treasurerMail(): string {
-    const member = this.people
-      .members()
-      .find((item) => item.appRoles.includes('treasurer') && item.email1);
-    return member?.email1 ?? '';
+  /** "Mustermann, Max" -> "Max". */
+  private firstName(name: string): string {
+    const parts = name.split(',').map((part) => part.trim());
+    return parts[1] || parts[0];
+  }
+
+  private signature(): string {
+    return this.firstName(this.club.contactName);
+  }
+
+  private treasurer() {
+    return this.people.members().find((item) => item.appRoles.includes('treasurer') && item.email1);
+  }
+
+  /** Keeps the mail in the outbox. A real mail server comes with the backend. */
+  sendMail(competitionId: string, draft: MailDraft): void {
+    this.outbox.update((all) => [
+      ...all,
+      { ...draft, id: this.nextMail++, at: new Date().toISOString(), competitionId },
+    ]);
   }
 
   eventLabel(event: CompEvent): string {

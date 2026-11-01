@@ -9,7 +9,7 @@ import { CompetitionStore } from '../../competition.store';
   templateUrl: './evaluation.html',
 })
 export class CompetitionEvaluation {
-  private readonly store = inject(CompetitionStore);
+  protected readonly store = inject(CompetitionStore);
   protected readonly fullDate = fullDate;
   protected readonly euro = euro;
 
@@ -33,6 +33,24 @@ export class CompetitionEvaluation {
         };
       }),
   );
+
+  /** Who served as judge or coach at how many meets of the year. */
+  protected readonly staff = computed(() => {
+    const tally = new Map<string, { judge: number; coach: number }>();
+    for (const { competition } of this.rows()) {
+      for (const id of competition.officials) {
+        const entry = tally.get(id) ?? { judge: 0, coach: 0 };
+        tally.set(id, { ...entry, judge: entry.judge + 1 });
+      }
+      for (const id of competition.coaches) {
+        const entry = tally.get(id) ?? { judge: 0, coach: 0 };
+        tally.set(id, { ...entry, coach: entry.coach + 1 });
+      }
+    }
+    return [...tally]
+      .map(([id, count]) => ({ id, name: this.store.nameOf(id), ...count }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  });
 
   protected readonly totals = computed(() => {
     const rows = this.rows();

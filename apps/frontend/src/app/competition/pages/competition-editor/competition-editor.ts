@@ -12,17 +12,21 @@ import {
   CompEvent,
   CompSection,
   Competition,
+  RelayEntry,
   STROKES,
   STYLES,
   TIMINGS,
   eventLabel,
   euro,
 } from '../../competition.models';
-import { CompetitionStore } from '../../competition.store';
+import { CompetitionStore, MailDraft } from '../../competition.store';
 import { downloadBytes } from '../../competition-download';
 import { EntryForm } from '../entry-form/entry-form';
+import { MailDialog } from '../mail-dialog/mail-dialog';
+import { RelayForm } from '../relay-form/relay-form';
 
-type Tab = 'base' | 'sections' | 'events' | 'entries';
+type Tab = 'base' | 'sections' | 'events' | 'entries' | 'staff';
+type Staff = 'officials' | 'coaches';
 type TextKey =
   | 'title'
   | 'place'
@@ -41,7 +45,7 @@ type MoneyKey = 'flatFee' | 'perSwimmerFee' | 'discount';
 
 @Component({
   selector: 'app-competition-editor',
-  imports: [Icon, DateField, ModalDialog, EntryForm],
+  imports: [Icon, DateField, ModalDialog, EntryForm, MailDialog, RelayForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './competition-editor.html',
   styleUrl: './competition-editor.scss',
@@ -66,6 +70,7 @@ export class CompetitionEditor {
     { id: 'sections', label: 'Abschnitte' },
     { id: 'events', label: 'Wettkampffolge' },
     { id: 'entries', label: 'Meldungen' },
+    { id: 'staff', label: 'Kampfrichter & Trainer' },
   ];
   protected readonly tab = signal<Tab>('base');
   protected readonly isNew = !this.store.competition(this.id);
@@ -75,11 +80,36 @@ export class CompetitionEditor {
   protected readonly invalid = signal(false);
   protected readonly editing = signal('');
   protected readonly adding = signal('');
-  protected readonly mailText = signal('');
+  protected readonly mail = signal<'entry' | 'treasurer' | null>(null);
+  protected readonly exporting = signal(false);
+  protected readonly exportKind = signal<'zip' | 'dsv7' | 'control'>('zip');
+  protected readonly relayEditing = signal<RelayEntry | 'new' | null>(null);
+  protected readonly relayDelete = signal<RelayEntry | null>(null);
+  protected readonly personDelete = signal('');
+  protected readonly exportKinds = [
+    { id: 'zip', label: 'Meldedatei und Kontrollausdruck (ZIP)' },
+    { id: 'dsv7', label: 'Nur die Meldedatei (DSV7)' },
+    { id: 'control', label: 'Nur der Kontrollausdruck (Text)' },
+  ] as const;
+  protected readonly staffKinds: readonly { id: Staff; label: string }[] = [
+    { id: 'officials', label: 'Kampfrichter' },
+    { id: 'coaches', label: 'Trainer' },
+  ];
+  protected readonly canRelays = computed(() => this.store.canEditRelays());
 
   protected readonly starters = computed(() => this.store.starters(this.draft()));
   protected readonly counts = computed(() => this.store.counts(this.draft()));
   protected readonly total = computed(() => this.store.totalFee(this.draft()));
+  protected readonly relays = computed(() => {
+    this.store.relays();
+    return this.store.relaysOf(this.draft().id);
+  });
+  protected readonly mailDraft = computed<MailDraft | null>(() => {
+    const kind = this.mail();
+    if (kind === 'entry') return this.store.entryMailDraft(this.draft());
+    if (kind === 'treasurer') return this.store.treasurerMailDraft(this.draft());
+    return null;
+  });
 
   /** Swimmers who are not in the meet yet, for "Person hinzufügen". */
   protected readonly addable = computed(() => {
@@ -211,15 +241,28 @@ export class CompetitionEditor {
 
   // Entries
   protected download(): void {
-    const { name, bytes } = this.store.entryZip(this.draft());
-    downloadBytes(name, bytes, 'application/zip');
-    this.toasts.show('Meldedatei erstellt', 'info');
+    const { name, bytes, type } = this.store.entryDownload(this.draft(), this.exportKind());
+    downloadBytes(name, bytes, type);
+    this.exporting.set(false);
+    this.toasts.show('Datei erstellt', 'info');
+  }
+
+  protected sendMail(draft: MailDraft): void {
+    const kind = this.mail();
+    this.store.sendMail(this.draft().id, draft);
+    this.mail.set(null);
+    this.toasts.show('E-Mail im Postausgang vermerkt', 'info');
+    if (kind === 'entry') this.setSent(true);
   }
 
   protected markSent(): void {
     const stored = this.store.competition(this.draft().id);
+    if (stored) this.setSent(!stored.sent);
+  }
+
+  private setSent(sent: boolean): void {
+    const stored = this.store.competition(this.draft().id);
     if (!stored) return;
-    const sent = !stored.sent;
     this.store.save({ ...stored, sent });
     this.patch({ sent });
     this.toasts.show(
@@ -228,21 +271,48 @@ export class CompetitionEditor {
     );
   }
 
-  protected showMail(): void {
-    this.mailText.set(this.store.treasurerText(this.draft()));
+  protected removePerson(): void {
+    const id = this.personDelete();
+    this.store.setEntries(this.draft().id, id, []);
+    this.personDelete.set('');
+    this.toasts.show('Meldungen der Person gelöscht', 'info');
   }
 
-  protected mailLink(): string {
-    const to = this.store.treasurerMail();
-    const subject = `Meldegeld ${this.draft().title}`;
-    return `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(this.mailText())}`;
+  protected removeRelay(): void {
+    const relay = this.relayDelete();
+    if (relay) this.store.removeRelay(relay);
+    this.relayDelete.set(null);
+    this.toasts.show('Staffel gelöscht', 'info');
   }
 
-  protected copyMail(): void {
-    void navigator.clipboard
-      .writeText(this.mailText())
-      .then(() => this.toasts.show('Text kopiert', 'info'))
-      .catch(() => this.toasts.show('Kopieren nicht möglich, bitte von Hand markieren.', 'bad'));
+  protected relayName(relay: RelayEntry): string {
+    return `${relay.team}. Mannschaft`;
+  }
+
+  protected relayEvent(relay: RelayEntry): string {
+    const event = this.draft().events.find((item) => item.no === relay.eventNo);
+    return event ? `Wk ${event.no} · ${eventLabel(event)}` : `Wk ${relay.eventNo}`;
+  }
+
+  // Judges and coaches
+  protected staffNames(kind: Staff): { id: string; name: string }[] {
+    return this.draft()[kind].map((id) => ({ id, name: this.store.nameOf(id) }));
+  }
+
+  protected staffAddable(kind: Staff): { id: string; name: string }[] {
+    const chosen = new Set(this.draft()[kind]);
+    return this.store.staffCandidates().filter((person) => !chosen.has(person.id));
+  }
+
+  protected addStaff(kind: Staff, event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const id = select.value;
+    select.value = '';
+    if (id) this.patch({ [kind]: [...this.draft()[kind], id] });
+  }
+
+  protected removeStaff(kind: Staff, id: string): void {
+    this.patch({ [kind]: this.draft()[kind].filter((item) => item !== id) });
   }
 
   protected startAdding(event: Event): void {

@@ -60,8 +60,8 @@ export class EntryForm {
     return this.store.isDeclined(this.competition().id, this.personId());
   });
 
-  protected readonly editable = computed(
-    () => this.store.canManage() || this.store.canRegister(this.competition()),
+  protected readonly editable = computed(() =>
+    this.store.canEditEntries(this.competition(), this.personId()),
   );
 
   private readonly member = computed(() => this.people.member(this.personId()));
@@ -77,11 +77,15 @@ export class EntryForm {
     const competition = this.competition();
     const picks = this.picks();
     return competition.events
+      .filter((event) => event.count === 1)
       .filter((event) => this.showAll() || this.fits(event) || picks.has(event.no))
       .map((event) => ({ event, fits: this.fits(event), picked: picks.has(event.no) }));
   });
 
-  protected readonly hidden = computed(() => this.competition().events.length - this.rows().length);
+  protected readonly hidden = computed(
+    () =>
+      this.competition().events.filter((event) => event.count === 1).length - this.rows().length,
+  );
 
   protected readonly dirty = computed(() => {
     const saved = this.store.entriesOf(this.competition().id, this.personId());

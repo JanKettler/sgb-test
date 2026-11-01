@@ -11,7 +11,7 @@ const ANNOUNCEMENT = [
   'AUSRICHTER: Beispielverein;Frau Muster;Weg 2;12345;Beispielstadt;GER;;;meldung@example.org;',
   'MELDEADRESSE: Frau Muster;Weg 2;12345;Beispielstadt;GER;0123;;meldung@example.org;',
   'MELDESCHLUSS: 20.11.2026;23:59;',
-  'BANKVERBINDUNG: Beispielverein;Beispielbank;DE00 0000 0000;BEISPDE00;',
+  'BANKVERBINDUNG: Beispielbank;DE00 0000 0000;BEISPDE00;Beispielverein;',
   'ABSCHNITT: 1;05.12.2026;09:00;09:30;10:00;N;',
   'ABSCHNITT: 2;05.12.2026;;;01:00;J;',
   'WETTKAMPF: 1;E;1;1;50;F;GL;M;;;',
@@ -20,7 +20,7 @@ const ANNOUNCEMENT = [
   'WETTKAMPF: 4;F;2;1;50;F;GL;M;;;',
   'MELDEGELD: EINZELMELDEGELD;5,00;-1;',
   'MELDEGELD: STAFFELMELDEGELD;8,00;-1;',
-  'WERTUNG: 1;1;1;1;2012;2014;M;Jahrgang',
+  'WERTUNG: 1;E;1001;JG;2012;2014;M;Jahrgang',
 ].join('\r\n');
 
 describe('parseDsv7', () => {
@@ -34,7 +34,11 @@ describe('parseDsv7', () => {
     expect(competition.deadlineTime).toBe('23:59');
     expect(competition.internalDeadline).toBe('2026-11-13');
     expect(competition.contactEmail).toBe('meldung@example.org');
-    expect(competition.bank.bic).toBe('BEISPDE00');
+    expect(competition.bank).toMatchObject({
+      holder: 'Beispielverein',
+      bank: 'Beispielbank',
+      bic: 'BEISPDE00',
+    });
     expect(competition.sections).toHaveLength(2);
     expect(competition.sections[0]).toMatchObject({
       entry: '09:00',
@@ -147,5 +151,78 @@ describe('createZip', () => {
     expect(view.getUint32(zip.length - 22, true)).toBe(0x06054b50);
     expect(view.getUint16(zip.length - 22 + 10, true)).toBe(1);
     expect(crc32(new TextEncoder().encode('123456789'))).toBe(0xcbf43926);
+  });
+});
+
+describe('parseDsv7 with files from other programs', () => {
+  const EASYWK = [
+    'FORMAT: Wettkampfdefinitionsliste;7;',
+    'VERANSTALTUNG: 8. Hunte-Schwimmmeeting;Diepholz;50;HANDZEIT;',
+    'MELDESCHLUSS: 23.05.2026;23:59;',
+    'BANKVERBINDUNG: Kreissparkasse;DE39 2915;BRLADE21SYK;',
+    '(* KONTOINHABER: Sportgemeinschaft Diepholz e.V.; *)',
+    'ABSCHNITT: 1;30.05.2026;09:00;09:20;10:00;;',
+    'ABSCHNITT: 2;30.05.2026;00:00;00:30;01:00;J; (* relativ *)',
+    'WETTKAMPF: 1;E;1;1;100;B;GL;W;SW;;; (* 100m Brust weiblich *)',
+    'WETTKAMPF: 15;E;1;4;50;X;X;X;SW;;; (* 4x50m T-Shirt-Staffel mixed *)',
+    'WETTKAMPF: 32;E;2;4;50;F;GL;X;SW;;; (* 200m TeamRace mixed *)',
+    'WERTUNG: 1;E;1002;JG;2017;2017;W;Jahrgang 2017;',
+    'WERTUNG: 1;E;1010;JG;0;2006;W;Masters (Jg. 2006 und älter);',
+    'WERTUNG: 1;E;1011;JG;0;2017;W;Offene Wertung;',
+    'WERTUNG: 15;E;15001;JG;0;2018;X;Offene Wertung;',
+    'MELDEGELD: Wkmeldegeld;4,00;1;',
+    'MELDEGELD: Wkmeldegeld;6,00;15;',
+    'MELDEGELD: Wkmeldegeld;0,00;32;',
+    'DATEIENDE',
+  ].join('\r\n');
+
+  it('reads per-event fees, open lower year limits and the account holder from a comment', () => {
+    const { competition, warnings } = parseDsv7(EASYWK);
+    expect(competition.bank).toMatchObject({
+      holder: 'Sportgemeinschaft Diepholz e.V.',
+      bank: 'Kreissparkasse',
+      iban: 'DE39 2915',
+    });
+    expect(competition.events[0]).toMatchObject({ fee: 4, birthYears: 'bis 2017' });
+    expect(competition.events[1]).toMatchObject({ fee: 6, count: 4, stroke: 'X' });
+    expect(competition.events[1].name).toBe('4x50m T-Shirt-Staffel mixed');
+    expect(competition.events[2]).toMatchObject({ fee: 0, count: 4, stroke: 'F' });
+    expect(warnings.some((text) => text.includes('Meldegeld'))).toBe(false);
+    expect(yearFits('bis 2017', 2012)).toBe(true);
+    expect(yearFits('bis 2017', 2018)).toBe(false);
+  });
+
+  it('reads files without a space after the key and with empty relay counts (DSV8)', () => {
+    const { competition } = parseDsv7(
+      'FORMAT:Wettkampfdefinitionsliste;8;\nVERANSTALTUNG:Wesavi;Nienburg;25;HANDZEIT;\nWETTKAMPF:3;E;1;;100;L;GL;W;SW;;;\nWETTKAMPF:1;E;1;4;50;F;GL;W;SW;;;',
+    );
+    expect(competition.events.map((event) => [event.no, event.count])).toEqual([
+      [1, 4],
+      [3, 1],
+    ]);
+  });
+
+  it('writes relay teams into the entry file', () => {
+    const { competition } = parseDsv7(EASYWK);
+    const text = buildEntryFile(
+      { ...competition, id: 'c-8' },
+      [],
+      [],
+      {
+        name: 'SG Barnstorf',
+        dsvClubId: '3789',
+        stateId: '9',
+        contactName: 'Muster, Max',
+        contactStreet: 'Weg 1',
+        contactZip: '49406',
+        contactCity: 'Barnstorf',
+        contactMail: 'a@example.org',
+      },
+      new Date(2026, 10, 1),
+      [{ competitionId: 'c-8', eventNo: 15, team: 1, year: 2010, time: '', memberIds: ['a'] }],
+    );
+    expect(text).toContain('STMELDUNG: 1;1001;JG;2010;0;;\r\n');
+    expect(text).toContain('STARTST: 1001;15;00:00:00,00;\r\n');
+    expect(text.endsWith('DATEIENDE\r\n')).toBe(true);
   });
 });

@@ -8,7 +8,8 @@ describe('CompetitionStore', () => {
     const counts = store.counts(meet);
     expect(counts.swimmers).toBe(5);
     expect(counts.singles).toBe(11);
-    expect(store.totalFee(meet)).toBe(55);
+    expect(counts.relays).toBe(1);
+    expect(store.totalFee(meet)).toBe(63);
     expect(store.feeOf(meet, 'p-mats')).toBe(15);
   });
 
@@ -42,12 +43,31 @@ describe('CompetitionStore', () => {
     expect(issues.some((text) => text.startsWith('Jahrgang'))).toBe(true);
   });
 
-  it('builds the entry ZIP and the treasurer text', () => {
+  it('builds the entry downloads, the mail drafts and keeps sent mails', () => {
     const store = TestBed.inject(CompetitionStore);
     const meet = store.competition('c-1')!;
-    const { name, bytes } = store.entryZip(meet);
-    expect(name.endsWith('-SGBarnstorf-Me.zip')).toBe(true);
-    expect(bytes.length).toBeGreaterThan(200);
-    expect(store.treasurerText(meet)).toContain('Bitte überweise 55,00 €');
+    const zip = store.entryDownload(meet, 'zip');
+    expect(zip.name.endsWith('-SGBarnstorf-Me.zip')).toBe(true);
+    expect(zip.bytes.length).toBeGreaterThan(200);
+    expect(store.entryDownload(meet, 'dsv7').name.endsWith('.DSV7')).toBe(true);
+    const { entryFile, control } = store.entryFiles(meet);
+    expect(entryFile).toContain('STMELDUNG: 1;1001;JG;2012;0;;');
+    expect(control).toContain('1. Mannschaft');
+    const treasurer = store.treasurerMailDraft(meet);
+    expect(treasurer.html).toContain('63,00 €');
+    const entry = store.entryMailDraft(meet);
+    expect(entry.to).toBe(meet.contactEmail);
+    expect(entry.attachments).toEqual([zip.name]);
+    store.sendMail(meet.id, entry);
+    expect(store.outbox()).toHaveLength(1);
+  });
+
+  it('checks relay teams and only lets managers edit them', () => {
+    const store = TestBed.inject(CompetitionStore);
+    const meet = store.competition('c-1')!;
+    const [team] = store.relaysOf('c-1');
+    expect(store.relayIssues(meet, team)).toEqual([]);
+    expect(store.relayIssues(meet, { ...team, memberIds: ['p-mats'] })[0]).toContain('4 Schwimmer');
+    expect(store.canEditRelays()).toBe(store.canManage());
   });
 });

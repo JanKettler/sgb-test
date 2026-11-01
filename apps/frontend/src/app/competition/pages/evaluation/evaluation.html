@@ -27,6 +27,8 @@
           <th scope="col">Einzel</th>
           <th scope="col">Staffel</th>
           <th scope="col">Meldegeld</th>
+          <th scope="col">Kampfrichter</th>
+          <th scope="col">Trainer</th>
         </tr>
       </thead>
       <tbody>
@@ -40,10 +42,12 @@
             <td class="has-text-centered">{{ row.singles }}</td>
             <td class="has-text-centered">{{ row.relays }}</td>
             <td class="has-text-centered">{{ euro(row.fee) }}</td>
+            <td class="has-text-centered">{{ row.competition.officials.length }}</td>
+            <td class="has-text-centered">{{ row.competition.coaches.length }}</td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="8" class="has-text-grey">In diesem Jahr gibt es keine Wettkämpfe.</td>
+            <td colspan="10" class="has-text-grey">In diesem Jahr gibt es keine Wettkämpfe.</td>
           </tr>
         }
       </tbody>
@@ -54,13 +58,45 @@
             <th class="has-text-centered">{{ totals().singles }}</th>
             <th class="has-text-centered">{{ totals().relays }}</th>
             <th class="has-text-centered">{{ euro(totals().fee) }}</th>
+            <th></th>
+            <th></th>
           </tr>
         </tfoot>
       }
     </table>
   </div>
+</section>
+
+<section class="box">
+  <h3 class="title is-5">Kampfrichter und Trainer</h3>
+  <div class="table-container">
+    <table class="table is-hoverable">
+      <thead>
+        <tr>
+          <th scope="col">Person</th>
+          <th scope="col">Als Kampfrichter</th>
+          <th scope="col">Als Trainer</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (person of staff(); track person.id) {
+          <tr>
+            <td>{{ person.name }}</td>
+            <td class="has-text-centered">{{ person.judge || '–' }}</td>
+            <td class="has-text-centered">{{ person.coach || '–' }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3" class="has-text-grey">
+              Noch niemand eingetragen. Das geschieht im Wettkampf unter „Kampfrichter & Trainer“.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
   <p class="help">
-    Ergebnisse, Kampfrichter-Statistik, Pokale und Medaillen kommen als Nächstes, wenn die
-    Ergebnislisten eingelesen werden können.
+    Ergebnisse, Pokale und Medaillen kommen als Nächstes, wenn die Ergebnislisten eingelesen werden
+    können.
   </p>
 </section>

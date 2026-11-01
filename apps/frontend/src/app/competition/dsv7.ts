@@ -4,6 +4,7 @@ import {
   CompSection,
   Competition,
   Entry,
+  RelayEntry,
   Sex,
   Stroke,
   Style,
@@ -68,6 +69,8 @@ function emptyMeet(): Omit<Competition, 'id'> {
     sent: false,
     sections: [],
     events: [],
+    officials: [],
+    coaches: [],
   };
 }
 
@@ -78,13 +81,19 @@ function emptyMeet(): Omit<Competition, 'id'> {
 export function parseDsv7(text: string): ParsedMeet {
   const meet = emptyMeet();
   const warnings: string[] = [];
-  const years = new Map<number, number[]>();
+  const years = new Map<number, { low: number; high: number }>();
   const fees: { kind: 'E' | 'S' | 'all'; no: number; amount: number }[] = [];
   let format = '';
   let skipped = 0;
 
   for (const raw of text.split(/\r?\n/)) {
+    const comment = /\(\*(.*?)\*\)/.exec(raw)?.[1]?.trim() ?? '';
     const line = raw.replace(/\(\*.*?\*\)/g, '').trim();
+    if (!line) {
+      const holder = /^KONTOINHABER:\s*([^;]+)/i.exec(comment)?.[1];
+      if (holder) meet.bank.holder = holder.trim();
+      continue;
+    }
     const colon = line.indexOf(':');
     if (colon < 0) continue;
     const key = line.slice(0, colon).trim().toUpperCase();
@@ -92,6 +101,7 @@ export function parseDsv7(text: string): ParsedMeet {
       .slice(colon + 1)
       .split(';')
       .map((field) => field.trim());
+    const rawCount = fields.length;
     while (fields.length > 0 && fields[fields.length - 1] === '') fields.pop();
 
     switch (key) {
@@ -129,18 +139,20 @@ export function parseDsv7(text: string): ParsedMeet {
         meet.deadlineTime = fields[1] || '00:00';
         break;
       case 'BANKVERBINDUNG':
+        // Bank; IBAN; BIC; (DSV8: account holder). The holder may also sit in a comment.
         meet.bank = {
-          holder: fields[0] ?? '',
-          bank: fields[1] ?? '',
-          iban: fields[2] ?? '',
-          bic: fields[3] ?? '',
+          holder: fields[3] || meet.bank.holder,
+          bank: fields[0] ?? '',
+          iban: fields[1] ?? '',
+          bic: fields[2] ?? '',
         };
         break;
       case 'BESONDERES':
         meet.note = fields.join('; ');
         break;
       case 'ABSCHNITT': {
-        const long = fields.length >= 6;
+        // Long form: no;date;entry;judges;start;relative; (+ empty tail). Short: no;date;start;relative;
+        const long = rawCount >= 7;
         const section: CompSection = {
           no: Number(fields[0]),
           date: isoDate(fields[1] ?? ''),
@@ -172,15 +184,24 @@ export function parseDsv7(text: string): ParsedMeet {
           birthYears: 'offen',
           fee: 0,
         };
+        if (event.stroke === 'X' && comment) event.name = comment;
         if (event.no > 0 && !meet.events.some((item) => item.no === event.no)) {
           meet.events.push(event);
         }
         break;
       }
       case 'WERTUNG': {
-        const found = fields.filter((field) => /^(19|20)\d{2}$/.test(field)).map(Number);
+        // WERTUNG: event; E/V; id; JG; from; to; sex; name. A "from" of 0 means "and older".
         const no = Number(fields[0]);
-        if (found.length > 0 && no > 0) years.set(no, [...(years.get(no) ?? []), ...found]);
+        const from = Number(fields[4]);
+        const to = Number(fields[5]);
+        if (no > 0 && fields[3] === 'JG' && Number.isFinite(from) && to >= 1900) {
+          const range = years.get(no) ?? { low: 9999, high: 0 };
+          years.set(no, {
+            low: from === 0 ? 0 : Math.min(range.low, from),
+            high: Math.max(range.high, to),
+          });
+        }
         break;
       }
       case 'MELDEGELD': {
@@ -188,9 +209,10 @@ export function parseDsv7(text: string): ParsedMeet {
         const amount = money(fields[1]);
         const no = Number(fields[2]);
         if (kind === 'MELDEGELDPAUSCHALE') meet.flatFee = amount;
-        else if (kind === 'EINZELMELDEGELD' || kind === 'STAFFELMELDEGELD') {
+        else if (kind.includes('MELDEGELD')) {
+          // "Einzelmeldegeld", "Staffelmeldegeld" or "Wkmeldegeld" (one amount per event number).
           fees.push({
-            kind: kind === 'EINZELMELDEGELD' ? 'E' : 'S',
+            kind: kind.startsWith('EINZEL') ? 'E' : kind.startsWith('STAFFEL') ? 'S' : 'all',
             no: no > 0 ? no : 0,
             amount,
           });
@@ -201,23 +223,26 @@ export function parseDsv7(text: string): ParsedMeet {
   }
 
   for (const event of meet.events) {
-    const list = years.get(event.no);
-    if (list && list.length > 0) {
-      const low = Math.min(...list);
-      const high = Math.max(...list);
-      event.birthYears = low === high ? String(low) : `${low} - ${high}`;
+    const range = years.get(event.no);
+    if (range) {
+      event.birthYears =
+        range.low === 0
+          ? `bis ${range.high}`
+          : range.low === range.high
+            ? String(range.low)
+            : `${range.low} - ${range.high}`;
     }
+    const relay = event.count > 1;
     for (const fee of fees) {
-      const relay = event.count > 1;
-      if (fee.no === event.no || (fee.no === 0 && fee.kind === (relay ? 'S' : 'E'))) {
-        event.fee = fee.amount;
-      }
+      const general = fee.no === 0 && (fee.kind === 'all' || fee.kind === (relay ? 'S' : 'E'));
+      if (fee.no === event.no || general) event.fee = fee.amount;
     }
   }
 
   meet.sections.sort((a, b) => a.no - b.no);
   meet.events.sort((a, b) => a.no - b.no);
   if (!meet.venueCity) meet.venueCity = meet.place;
+  if (!meet.bank.holder) meet.bank.holder = meet.host || meet.organiser;
   if (meet.deadline) meet.internalDeadline = addDays(meet.deadline, -7);
   if (!meet.title) warnings.push('Kein Name der Veranstaltung gefunden.');
   if (meet.events.length === 0) warnings.push('Keine Wettkämpfe gefunden.');
@@ -260,6 +285,7 @@ export function buildEntryFile(
   entries: Entry[],
   club: FileClub,
   now: Date,
+  relays: RelayEntry[] = [],
 ): string {
   const lines: string[] = [];
   const stamp = `${germanDate(now.toISOString().slice(0, 10))} ${now.toTimeString().slice(0, 5)}`;
@@ -293,7 +319,89 @@ export function buildEntryFile(
       lines.push(`STARTPN: ${number};${entry.eventNo};${dsvTime(entry.time)};`);
     }
   });
+  relays.forEach((relay, index) => {
+    const id = 1000 + index + 1;
+    lines.push(`STMELDUNG: ${relay.team};${id};JG;${relay.year};0;;`);
+    lines.push(`STARTST: ${id};${relay.eventNo};${dsvTime(relay.time)};`);
+  });
+  lines.push('DATEIENDE');
   return lines.join('\r\n') + '\r\n';
+}
+
+function pad(text: string, width: number): string {
+  return text.length >= width ? text.slice(0, width) : text + ' '.repeat(width - text.length);
+}
+
+/** The "Kontrollausdruck": the entries as plain text, for a last check before sending. */
+export function buildControlSheet(
+  competition: Competition,
+  swimmers: FileSwimmer[],
+  entries: Entry[],
+  relays: RelayEntry[],
+  club: FileClub,
+): string {
+  const rule = '-'.repeat(98);
+  const row = (cells: string[]) => `|${cells.join('|')}|`;
+  const line = (text: string) => `| ${pad(text, 96)} |`;
+  const out: string[] = [
+    rule,
+    line('K O N T R O L L A U S D R U C K'),
+    line(`Veranstaltung: ${competition.title}`),
+    line(`Ort          : ${competition.place}`),
+    line(`Datum        : ${germanDate(dateOf(competition))}`),
+    rule,
+    line(`Meldender Verein: ${club.name}`),
+    line(`                  DSV-Id: ${club.dsvClubId}, LSV: ${club.stateId}, FINA: GER`),
+    line(`Ansprechpartner:  ${club.contactName}`),
+    line(`                  ${club.contactStreet}, ${club.contactZip} ${club.contactCity}`),
+    line(`                  ${club.contactMail}`),
+    rule,
+    '|Nr.| Schwimmer(in)                                     | Jg |M/W|DSV-Id|Wk |Strecke |Meldezeit  |',
+    rule,
+  ];
+  const label = (eventNo: number) => {
+    const event = competition.events.find((item) => item.no === eventNo);
+    if (!event) return '';
+    const relay = event.count > 1 ? `${event.count}x` : '';
+    return `${relay}${event.distance} ${event.stroke}`;
+  };
+  let number = 0;
+  for (const swimmer of swimmers) {
+    number++;
+    const mine = entries.filter((item) => item.personId === swimmer.personId);
+    mine.forEach((entry, index) => {
+      out.push(
+        row([
+          index === 0 ? String(number).padStart(3) : '   ',
+          index === 0 ? pad(`${swimmer.lastName}, ${swimmer.firstName}`, 51) : pad('', 51),
+          index === 0 ? String(swimmer.year) : '    ',
+          index === 0 ? ` ${swimmer.sex} ` : '   ',
+          index === 0 ? pad(swimmer.dsvId, 6) : '      ',
+          String(entry.eventNo).padStart(3),
+          ` ${pad(label(entry.eventNo), 7)}`,
+          `   ${dsvTime(entry.time).slice(3)}`,
+        ]),
+      );
+    });
+    out.push(rule);
+  }
+  for (const relay of relays) {
+    number++;
+    out.push(
+      row([
+        String(number).padStart(3),
+        pad(`${relay.team}. Mannschaft`, 51),
+        String(relay.year),
+        ` ${competition.events.find((item) => item.no === relay.eventNo)?.sex ?? 'X'} `,
+        '      ',
+        String(relay.eventNo).padStart(3),
+        ` ${pad(label(relay.eventNo), 7)}`,
+        `   ${dsvTime(relay.time).slice(3)}`,
+      ]),
+      rule,
+    );
+  }
+  return out.join('\r\n') + '\r\n';
 }
 
 /** File name like the DSV exports: 2026-12-05-Osnabrue-SGBarnstorf-Me */
