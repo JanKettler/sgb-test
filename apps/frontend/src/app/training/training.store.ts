@@ -343,7 +343,6 @@ export class TrainingStore {
       trainerIds: [...defaults.trainerIds],
       extraSwimmerIds: [],
       maxSwimmers: defaults.maxSwimmers,
-      maxTrainers: defaults.maxTrainers,
       deadlineDate: addDays(date, -defaults.deadlineDaysBefore),
       deadlineTime: defaults.deadlineTime,
     };

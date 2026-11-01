@@ -74,8 +74,8 @@ export class PeopleList {
       })
       .sort((a, b) => {
         const byName =
-          a.lastName.localeCompare(b.lastName, 'de') ||
-          a.firstName.localeCompare(b.firstName, 'de');
+          a.firstName.localeCompare(b.firstName, 'de') ||
+          a.lastName.localeCompare(b.lastName, 'de');
         const order =
           this.sort.key() === 'memberNo'
             ? a.memberNo - b.memberNo

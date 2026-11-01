@@ -32,3 +32,19 @@
     padding: 0;
   }
 }
+
+.filters {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  .select,
+  select {
+    width: 100%;
+  }
+}
+
+.filter-search {
+  grid-column: 1 / -1;
+}

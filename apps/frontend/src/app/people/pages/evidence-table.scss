@@ -8,11 +8,16 @@
   margin-bottom: 0.9rem;
 }
 
-.hide-box {
-  align-items: flex-end;
+.hide-bar {
+  align-items: center;
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+
+  .label {
+    margin: 0;
+  }
 }
 
 .filter-panel {

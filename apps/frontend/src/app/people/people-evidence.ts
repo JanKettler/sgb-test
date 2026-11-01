@@ -93,10 +93,38 @@ function row(
   return { ...base, days, missing: false, tone, text };
 }
 
+/** Swimmers in a competition group (WK or Masters) take part in competitions. */
+export function competes(member: Member): boolean {
+  return member.swimmerGroupIds.some((id) => id === 'WK' || id === 'MA');
+}
+
+/** The member field that holds the date of each kind of evidence. */
+export const EVIDENCE_FIELDS: Record<
+  EvidenceKind,
+  | 'attestUntil'
+  | 'firstAidUntil'
+  | 'lifeSavingUntil'
+  | 'criminalRecordOn'
+  | 'codeOfConductOn'
+  | 'licenseUntil'
+  | 'refereeUntil'
+> = {
+  attest: 'attestUntil',
+  firstAid: 'firstAidUntil',
+  lifeSaving: 'lifeSavingUntil',
+  criminalRecord: 'criminalRecordOn',
+  codeOfConduct: 'codeOfConductOn',
+  license: 'licenseUntil',
+  refereeLicense: 'refereeUntil',
+};
+
 /** All evidence a member needs because of the roles they have. */
 export function evidenceOf(member: Member, today: string): EvidenceRow[] {
   const rows: EvidenceRow[] = [];
-  if (member.swimmer) rows.push(row(member, 'attest', 'Schwimmer', member.attestUntil, today));
+  // The medical certificate is only needed for competitions, not for normal training.
+  if (member.swimmer && (competes(member) || member.attestUntil)) {
+    rows.push(row(member, 'attest', 'Wettkampf', member.attestUntil, today));
+  }
   if (member.trainer) {
     rows.push(row(member, 'firstAid', 'Trainer', member.firstAidUntil, today));
     rows.push(row(member, 'lifeSaving', 'Trainer', member.lifeSavingUntil, today));

@@ -13,30 +13,26 @@
       </button>
     }
   </div>
-  <div class="hide-box">
+</div>
+
+<div class="hide-bar">
+  <span class="label">Fehlende ausblenden:</span>
+  @for (item of hideKinds(); track item.kind) {
     <button
       type="button"
-      class="button"
-      [class.is-link]="hidingMissing()"
-      [attr.aria-pressed]="hidingMissing()"
-      (click)="toggleHidingMissing()"
+      class="chip"
+      [class.is-on]="item.on"
+      [attr.aria-pressed]="item.on"
+      (click)="toggleHiding(item.kind, item.on)"
     >
-      <app-icon name="eye-slash" /> Fehlende ausblenden
+      {{ item.label }}
     </button>
-    <label class="checkbox is-size-7">
-      <input
-        type="checkbox"
-        [checked]="forAll()"
-        (change)="forAll.set($any($event.target).checked)"
-      />
-      für alle Kategorien
-    </label>
-    @if (store.dismissed().size > 0) {
-      <button type="button" class="button is-small" (click)="store.showDismissed()">
-        {{ store.dismissed().size }} einzeln ausgeblendet · einblenden
-      </button>
-    }
-  </div>
+  }
+  @if (store.dismissed().size > 0) {
+    <button type="button" class="button is-small" (click)="store.showDismissed()">
+      {{ store.dismissed().size }} einzeln ausgeblendet · einblenden
+    </button>
+  }
 </div>
 
 <div class="filter-panel">
@@ -129,15 +125,26 @@
             </span>
           </td>
           <td class="has-text-right is-nowrap">
-            <button
-              type="button"
-              class="button is-small"
-              [attr.aria-label]="row.label + ' von ' + row.member.firstName + ' ausblenden'"
-              title="Diesen Eintrag ausblenden"
-              (click)="store.dismiss(row)"
-            >
-              <app-icon name="eye-slash" />
-            </button>
+            <span class="icon-row">
+              <button
+                type="button"
+                class="button is-success"
+                [attr.aria-label]="row.label + ' von ' + row.member.firstName + ' eintragen'"
+                title="Datum eintragen"
+                (click)="startEntering(row)"
+              >
+                <app-icon name="check" />
+              </button>
+              <button
+                type="button"
+                class="button"
+                [attr.aria-label]="row.label + ' von ' + row.member.firstName + ' ausblenden'"
+                title="Diesen Eintrag ausblenden"
+                (click)="store.dismiss(row)"
+              >
+                <app-icon name="eye-slash" />
+              </button>
+            </span>
           </td>
         </tr>
       } @empty {
@@ -152,4 +159,26 @@
 
 @if (mailing()) {
   <app-mail-dialog [recipients]="recipients()" (closed)="mailing.set(false)" (sent)="sent()" />
+}
+
+@if (entering(); as current) {
+  <app-modal-dialog
+    [heading]="current.label + ' eintragen'"
+    [subtitle]="current.member.firstName + ' ' + current.member.lastName"
+    accent="green"
+    (closed)="entering.set(null)"
+  >
+    <label class="label" for="ev-enter">
+      {{
+        current.kind === 'criminalRecord' || current.kind === 'codeOfConduct'
+          ? 'Datum'
+          : 'Gültig bis'
+      }}
+    </label>
+    <app-date-field inputId="ev-enter" [(value)]="enteredDate" />
+    <ng-container dialogActions>
+      <button type="button" class="button" (click)="entering.set(null)">Abbrechen</button>
+      <button type="button" class="button is-success" (click)="saveEntered()">Speichern</button>
+    </ng-container>
+  </app-modal-dialog>
 }

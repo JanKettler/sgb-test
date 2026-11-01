@@ -95,7 +95,6 @@
     <section class="box">
       <div class="panel-row">
         <h3>Trainer</h3>
-        <span class="max">Max. {{ session.maxTrainers }}</span>
       </div>
       <span class="label">Trainer der gewählten Gruppen</span>
       <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
@@ -192,17 +191,6 @@
             min="0"
             [value]="session.maxSwimmers"
             (input)="patch({ maxSwimmers: +value($event) })"
-          />
-        </div>
-        <div>
-          <label class="label" for="edit-max-trainers">Max. Trainer</label>
-          <input
-            id="edit-max-trainers"
-            class="input"
-            type="number"
-            min="0"
-            [value]="session.maxTrainers"
-            (input)="patch({ maxTrainers: +value($event) })"
           />
         </div>
       </div>

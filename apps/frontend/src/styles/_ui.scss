@@ -33,7 +33,7 @@ app-icon {
 
 .chip {
   background: var(--sgb-card);
-  border: 1px dashed var(--sgb-soft);
+  border: 1px solid var(--sgb-line);
   border-radius: 999px;
   color: var(--sgb-ink);
   cursor: pointer;
@@ -412,8 +412,10 @@ app-date-field {
 /* Action buttons in table rows are easy to hit on a phone, too. */
 td .button:has(app-icon:only-child),
 .icon-row .button {
-  height: 2.6rem;
-  min-width: 2.6rem;
+  font-size: 0.85rem;
+  height: 2.2rem;
+  min-width: 2.2rem;
+  padding: 0;
 }
 
 /* Hints about what just happened stay quiet: neutral surface with a thin accent, not a blue bar. */
@@ -421,4 +423,33 @@ td .button:has(app-icon:only-child),
   background: var(--sgb-hover);
   border-left: 4px solid var(--sgb-strong);
   color: var(--sgb-ink);
+}
+
+.table th {
+  text-align: center;
+}
+
+.page-head {
+  min-height: 4.25rem;
+}
+
+/* Lists and quotes inside formatted text (Bulma resets them). */
+[appRichText],
+.area[contenteditable] {
+  ul {
+    list-style: disc;
+    margin-left: 1.4rem;
+  }
+
+  ol {
+    list-style: decimal;
+    margin-left: 1.4rem;
+  }
+
+  blockquote {
+    border-left: 3px solid var(--sgb-line);
+    color: var(--sgb-soft);
+    margin: 0.3rem 0;
+    padding-left: 0.75rem;
+  }
 }

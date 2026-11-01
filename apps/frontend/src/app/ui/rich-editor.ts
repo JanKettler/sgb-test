@@ -111,7 +111,8 @@ export class RichEditor {
   protected command(name: string): void {
     this.restore();
     document.execCommand('styleWithCSS', false, 'true');
-    document.execCommand(name, false);
+    if (name === 'quote') document.execCommand('formatBlock', false, 'blockquote');
+    else document.execCommand(name, false);
     this.changed();
   }
 

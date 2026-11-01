@@ -82,26 +82,10 @@
   </div>
 
   <div class="range">
-    <button
-      type="button"
-      class="button is-small is-rounded"
-      aria-label="Einen Monat zurück"
-      (click)="shift(-1)"
-    >
-      <app-icon name="chevron-left" />
-    </button>
     <span>von</span>
     <app-date-field label="Von" [(value)]="from" />
     <span>bis</span>
     <app-date-field label="Bis" [(value)]="to" />
-    <button
-      type="button"
-      class="button is-small is-rounded"
-      aria-label="Einen Monat vor"
-      (click)="shift(1)"
-    >
-      <app-icon name="chevron-right" />
-    </button>
   </div>
 
   @let data = matrix();
@@ -111,7 +95,12 @@
         <tr>
           <th class="is-left" scope="col">NAME</th>
           @for (session of data.sessions; track session.id) {
-            <th scope="col">{{ columnDay(session) }}<br />{{ session.time }}</th>
+            <th scope="col">
+              {{ columnDay(session) }}<br />{{ session.time }}
+              @if (groupId() === 'all') {
+                <br /><app-group-chips [groupIds]="session.groupIds" [short]="true" />
+              }
+            </th>
           }
         </tr>
       </thead>

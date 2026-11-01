@@ -44,7 +44,6 @@ export interface TrainingSession {
   /** Swimmers that take part in this session only, outside the selected groups. */
   extraSwimmerIds: string[];
   maxSwimmers: number;
-  maxTrainers: number;
   deadlineDate: string;
   deadlineTime: string;
 }
@@ -82,7 +81,6 @@ export interface GroupDefaults {
   deadlineDaysBefore: number;
   deadlineTime: string;
   maxSwimmers: number;
-  maxTrainers: number;
   trainerIds: string[];
 }
 

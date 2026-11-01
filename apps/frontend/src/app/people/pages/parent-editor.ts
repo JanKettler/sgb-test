@@ -5,7 +5,7 @@ import { map } from 'rxjs';
 import { DateField } from '../../ui/date-field';
 import { Icon } from '../../ui/icon';
 import { Toasts } from '../../ui/toast';
-import { PayAccount, Parent, Relation, birthYear, fullName } from '../people.models';
+import { Member, PayAccount, Parent, Relation, birthYear, fullName } from '../people.models';
 import { FeesStore } from '../../fees/fees.store';
 import { PeopleStore } from '../people.store';
 import { PayAccountForm } from './pay-account';
@@ -45,13 +45,16 @@ export class ParentEditor {
   protected readonly draft = signal<Parent>(this.load());
   protected readonly childIds = signal<string[]>(this.loadChildren());
   protected readonly search = signal('');
+  /** Children created here; they are only stored together with the parent. */
+  protected readonly newKids = signal<Member[]>([]);
+  protected readonly kidName = signal('');
+  protected readonly kidBirth = signal('');
   protected readonly invalid = signal(false);
   protected readonly payments = computed(() => this.fees.paymentsOf(this.draft().id));
   protected readonly feeName = (id: string): string => this.fees.feeName(id);
 
   protected readonly children = computed(() =>
-    this.store
-      .members()
+    [...this.store.members(), ...this.newKids()]
       .filter((member) => this.childIds().includes(member.id))
       .map((member) => ({ id: member.id, name: fullName(member), no: member.memberNo })),
   );
@@ -119,6 +122,38 @@ export class ParentEditor {
 
   protected removeChild(id: string): void {
     this.childIds.update((ids) => ids.filter((item) => item !== id));
+    this.newKids.update((kids) => kids.filter((kid) => kid.id !== id));
+  }
+
+  /** Creates a child with the address, phone and e-mail of this parent; editable afterwards. */
+  protected createChild(): void {
+    const first = this.kidName().trim();
+    if (!first) {
+      this.toasts.failed('Bitte den Vornamen des Kindes eintragen');
+      return;
+    }
+    const parent = this.draft();
+    const base = this.store.newMember();
+    const kid: Member = {
+      ...base,
+      memberNo: base.memberNo + this.newKids().length,
+      firstName: first,
+      lastName: parent.name.trim().split(/\s+/).slice(-1)[0] ?? '',
+      birthDate: this.kidBirth(),
+      street: parent.street,
+      houseNo: parent.houseNo,
+      zip: parent.zip,
+      city: parent.city,
+      email1: parent.email,
+      email2: parent.email2,
+      phone1: parent.phone1,
+      phone2: parent.phone2,
+      parentIds: [parent.id],
+    };
+    this.newKids.update((kids) => [...kids, kid]);
+    this.childIds.update((ids) => [...ids, kid.id]);
+    this.kidName.set('');
+    this.kidBirth.set('');
   }
 
   protected invite(): void {
@@ -132,6 +167,7 @@ export class ParentEditor {
       this.toasts.failed('Bitte einen Namen eintragen');
       return;
     }
+    this.newKids().forEach((kid) => this.store.save(kid));
     this.store.saveParent(parent, this.childIds());
     this.fees.generate();
     this.toasts.saved(`${parent.name} gespeichert`);

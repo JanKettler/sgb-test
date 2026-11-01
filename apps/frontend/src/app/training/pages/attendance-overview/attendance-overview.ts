@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Toasts } from '../../../ui/toast';
 import { DateField } from '../../../ui/date-field';
+import { GroupChips } from '../../../ui/group-chips';
 import { Icon } from '../../../ui/icon';
 import { ExportDialog } from '../../dialogs/export-dialog';
 import { MailDialog } from '../../dialogs/mail-dialog';
@@ -17,7 +18,7 @@ interface MailRequest {
 
 @Component({
   selector: 'app-attendance-overview',
-  imports: [Icon, DateField, MailDialog, ExportDialog],
+  imports: [Icon, DateField, MailDialog, ExportDialog, GroupChips],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './attendance-overview.html',
   styleUrl: './attendance-overview.scss',
@@ -64,11 +65,6 @@ export class AttendanceOverview {
 
   protected value(event: Event): string {
     return (event.target as HTMLSelectElement).value;
-  }
-
-  protected shift(months: number): void {
-    this.from.set(addMonths(this.from(), months));
-    this.to.set(addMonths(this.to(), months));
   }
 
   protected mailTemplate(request: MailRequest): string {

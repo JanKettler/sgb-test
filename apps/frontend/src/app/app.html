@@ -16,104 +16,32 @@
     </div>
 
     <nav class="nav">
-      <a
-        (click)="closeMenu()"
-        routerLink="/"
-        routerLinkActive="is-active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <app-icon name="home" /> Startseite
-      </a>
-      <a class="tone-amber" (click)="closeMenu()" routerLink="/brett" routerLinkActive="is-active">
-        <app-icon name="pin" /> Schwarzes Brett
-      </a>
-      @if (store.canManage()) {
-        <a
-          class="tone-green"
-          (click)="closeMenu()"
-          routerLink="/aufgaben"
-          routerLinkActive="is-active"
-        >
-          <app-icon name="tasks" /> Aufgaben
-        </a>
-      }
-
-      <p class="group">Training</p>
-      <a
-        class="tone-green"
-        (click)="closeMenu()"
-        routerLink="/training/anmeldung"
-        routerLinkActive="is-active"
-      >
-        <app-icon name="check" /> Anmeldung
-      </a>
-      @if (store.canManage()) {
-        <a
-          class="tone-amber"
-          (click)="closeMenu()"
-          routerLink="/training/termine"
-          routerLinkActive="is-active"
-        >
-          <app-icon name="calendar" /> Trainingstermine
-        </a>
-        <a
-          class="tone-teal"
-          (click)="closeMenu()"
-          routerLink="/training/anwesenheit"
-          routerLinkActive="is-active"
-        >
-          <app-icon name="clipboard" /> Anwesenheit
-        </a>
-      }
-      @if (store.isAdmin()) {
-        <a
-          class="tone-violet"
-          (click)="closeMenu()"
-          routerLink="/training/einstellungen"
-          routerLinkActive="is-active"
-        >
-          <app-icon name="gear" /> Einstellungen
-        </a>
-      }
-
-      @if (store.canManage()) {
-        <p class="group">Verein</p>
-        <a
-          class="tone-rose"
-          (click)="closeMenu()"
-          routerLink="/personen"
-          routerLinkActive="is-active"
-        >
-          <app-icon name="users" /> Personen
-        </a>
-        <a
-          class="tone-green"
-          (click)="closeMenu()"
-          routerLink="/beitraege"
-          routerLinkActive="is-active"
-        >
-          <app-icon name="coins" /> Beiträge
-        </a>
-      }
-
-      <p class="group">Warteliste</p>
-      <a
-        class="tone-amber"
-        (click)="closeMenu()"
-        routerLink="/warteliste/anmelden"
-        routerLinkActive="is-active"
-      >
-        <app-icon name="list" /> Anmelden
-      </a>
-      @if (store.isAdmin()) {
-        <a
-          class="tone-blue"
-          (click)="closeMenu()"
-          routerLink="/intern/warteliste"
-          routerLinkActive="is-active"
-        >
-          <app-icon name="users" /> Intern
-        </a>
+      @for (section of sections(); track section.key) {
+        @if (section.title) {
+          <button
+            type="button"
+            class="group"
+            [class]="'group is-' + section.tone"
+            [attr.aria-expanded]="!collapsed().has(section.key)"
+            (click)="toggleSection(section.key)"
+          >
+            <span>{{ section.title }}</span>
+            <app-icon [name]="collapsed().has(section.key) ? 'chevron-right' : 'chevron-down'" />
+          </button>
+        }
+        @if (!collapsed().has(section.key)) {
+          @for (item of section.items; track item.path) {
+            <a
+              [class]="'tone-' + item.tone"
+              [routerLink]="item.path"
+              routerLinkActive="is-active"
+              [routerLinkActiveOptions]="{ exact: !!item.exact }"
+              (click)="closeMenu()"
+            >
+              <app-icon [name]="item.icon" /> {{ item.label }}
+            </a>
+          }
+        }
       }
     </nav>
 

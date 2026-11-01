@@ -127,18 +127,6 @@
           (change)="setDefault({ maxSwimmers: +value($event) })"
         />
       </div>
-      <div>
-        <label class="label" for="def-trainers">Max. Trainer</label>
-        <input
-          id="def-trainers"
-          [disabled]="!editing()"
-          class="input"
-          type="number"
-          min="0"
-          [value]="values.maxTrainers"
-          (change)="setDefault({ maxTrainers: +value($event) })"
-        />
-      </div>
     </div>
     <table class="table is-narrow is-fullwidth trainer-table">
       <thead>

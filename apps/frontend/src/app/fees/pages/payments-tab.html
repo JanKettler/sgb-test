@@ -68,7 +68,9 @@
         </th>
         <th scope="col"><app-sort-button label="Person" column="person" [sort]="sort" /></th>
         <th scope="col"><app-sort-button label="Zahler" column="payer" [sort]="sort" /></th>
-        <th scope="col"><app-sort-button label="Beitragsart" column="type" [sort]="sort" /></th>
+        <th scope="col">
+          <app-sort-button label="Status / Beitragsart" column="type" [sort]="sort" />
+        </th>
         <th scope="col"><app-sort-button label="Offen" column="amount" [sort]="sort" /></th>
         <th scope="col"><app-sort-button label="Zahlart" column="method" [sort]="sort" /></th>
         <th scope="col"><app-sort-button label="Mahn." column="dunning" [sort]="sort" /></th>
@@ -91,18 +93,27 @@
           </td>
           <td>{{ payment.payerName }}</td>
           <td>
-            <div class="select is-small">
-              <select
-                [attr.aria-label]="'Beitragsart für ' + payment.label"
-                (change)="setType(payment, $event)"
+            <div class="buttons has-addons mb-0">
+              <button
+                type="button"
+                class="button is-small"
+                [class.is-link]="!isPassive(payment)"
+                [attr.aria-pressed]="!isPassive(payment)"
+                (click)="setPassive(payment, false)"
               >
-                @for (type of types(); track type.id) {
-                  <option [value]="type.id" [selected]="type.id === payment.feeTypeId">
-                    {{ type.name }}
-                  </option>
-                }
-              </select>
+                Aktiv
+              </button>
+              <button
+                type="button"
+                class="button is-small"
+                [class.is-link]="isPassive(payment)"
+                [attr.aria-pressed]="isPassive(payment)"
+                (click)="setPassive(payment, true)"
+              >
+                Passiv
+              </button>
             </div>
+            <span class="sub">{{ store.feeName(payment.feeTypeId) }}</span>
           </td>
           <td>
             @if (payment.paid) {

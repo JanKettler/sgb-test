@@ -70,13 +70,45 @@ $sidebar-width: 15rem;
 }
 
 .group {
-  color: #9db4d1;
-  font-size: 0.72rem;
-  font-weight: 700;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: 0;
+  border-left: 4px solid #9db4d1;
+  border-radius: 8px;
+  color: #dbe6f5;
+  cursor: pointer;
+  display: flex;
+  font-size: 0.74rem;
+  font-weight: 800;
+  justify-content: space-between;
   letter-spacing: 0.05em;
-  margin-top: 0.5rem;
-  padding: 0 0.7rem;
+  margin-top: 0.6rem;
+  padding: 0.35rem 0.7rem;
   text-transform: uppercase;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  &.is-blue {
+    border-left-color: #7cc4ff;
+  }
+
+  &.is-green {
+    border-left-color: #6ee7a0;
+  }
+
+  &.is-amber {
+    border-left-color: #f5c451;
+  }
+
+  &.is-violet {
+    border-left-color: #c4a5ff;
+  }
+
+  &.is-rose {
+    border-left-color: #fda4af;
+  }
 }
 
 .side-foot {

@@ -2,10 +2,10 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { GroupId } from '../training/training.models';
 import { TrainingStore } from '../training/training.store';
 import {
-  EvidenceCategory,
+  EVIDENCE_KINDS,
+  EvidenceKind,
   EvidenceRow,
   MemberStatus,
-  categoryOf,
   evidenceOf,
   statusOf,
 } from './people-evidence';
@@ -40,10 +40,12 @@ export class PeopleStore {
   /** One-time message shown after saving on another page. */
   readonly flash = signal('');
   /** Hide evidence that was never entered, per category. */
-  readonly hideMissing = signal<Record<EvidenceCategory, boolean>>({
-    proof: false,
-    license: false,
-  });
+  readonly hideMissing = signal<Record<EvidenceKind, boolean>>(
+    Object.fromEntries(EVIDENCE_KINDS.map((kind) => [kind, false])) as Record<
+      EvidenceKind,
+      boolean
+    >,
+  );
   /** Single evidence entries the user hid, as "memberId:kind". */
   readonly dismissed = signal<ReadonlySet<string>>(new Set());
 
@@ -98,10 +100,15 @@ export class PeopleStore {
     return [both, ...roles.filter((role) => role.key !== 'swimmer' && role.key !== 'trainer')];
   }
 
-  /** Sets the hiding of missing evidence for one category or for all of them. */
-  setHideMissing(category: EvidenceCategory | 'all', on: boolean): void {
+  /** Sets the hiding of missing evidence for one kind of evidence or for all of them. */
+  setHideMissing(kind: EvidenceKind | 'all', on: boolean): void {
     this.hideMissing.update((current) =>
-      category === 'all' ? { proof: on, license: on } : { ...current, [category]: on },
+      kind === 'all'
+        ? (Object.fromEntries(EVIDENCE_KINDS.map((item) => [item, on])) as Record<
+            EvidenceKind,
+            boolean
+          >)
+        : { ...current, [kind]: on },
     );
   }
 
@@ -115,8 +122,7 @@ export class PeopleStore {
     const hideMissing = this.hideMissing();
     return this.allEvidenceOf(member).filter(
       (item) =>
-        !(hideMissing[categoryOf(item.kind)] && item.missing) &&
-        !hidden.has(`${member.id}:${item.kind}`),
+        !(hideMissing[item.kind] && item.missing) && !hidden.has(`${member.id}:${item.kind}`),
     );
   }
 
@@ -147,6 +153,7 @@ export class PeopleStore {
       ...structuredClone(source),
       id: `m-new-${this.nextId++}`,
       memberNo: highest + 1,
+      firstName: `Kopie - ${source.firstName}`,
     };
     this.members.update((all) => [...all, copy]);
     return copy;

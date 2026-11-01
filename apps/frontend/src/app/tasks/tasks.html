@@ -40,14 +40,14 @@
     <input
       class="input search"
       type="search"
-      placeholder="Aufgabe oder Person suchen …"
+      placeholder="Aufgabe, Beschreibung oder Person suchen …"
       aria-label="Suche"
       [value]="query()"
       (input)="query.set(value($event))"
     />
   </div>
 
-  <div class="chips mb-4">
+  <div class="chips">
     @for (chip of chips(); track chip.key) {
       <button
         type="button"
@@ -56,8 +56,38 @@
         [class.is-bad]="chip.bad && chip.count > 0 && filter() !== chip.key"
         (click)="filter.set(chip.key)"
       >
-        {{ chip.label }} ({{ chip.count }})
+        {{ chip.label }} <span class="count">{{ chip.count }}</span>
       </button>
+    }
+  </div>
+
+  <div class="more-filters mb-4">
+    <div class="select is-small">
+      <select aria-label="Zuständig" (change)="person.set(value($event))">
+        <option value="">Alle Zuständigen</option>
+        @for (name of names(); track name) {
+          <option [value]="name" [selected]="person() === name">{{ name }}</option>
+        }
+      </select>
+    </div>
+    <div class="select is-small">
+      <select aria-label="Sortierung" (change)="sortBy.set($any(value($event)))">
+        <option value="due" [selected]="sortBy() === 'due'">Nach Datum</option>
+        <option value="high" [selected]="sortBy() === 'high'">Wichtige zuerst</option>
+        <option value="title" [selected]="sortBy() === 'title'">Nach Titel</option>
+      </select>
+    </div>
+    <button
+      type="button"
+      class="chip"
+      [class.is-on]="onlyHigh()"
+      [attr.aria-pressed]="onlyHigh()"
+      (click)="onlyHigh.set(!onlyHigh())"
+    >
+      Nur wichtige
+    </button>
+    @if (query() || person() || onlyHigh()) {
+      <button type="button" class="chip" (click)="resetFilters()">Filter zurücksetzen</button>
     }
   </div>
 
@@ -94,6 +124,8 @@
   <article
     class="task"
     [class.is-done]="task.status === 'done'"
+    [class.is-high]="task.high && task.status !== 'done'"
+    [class.is-late]="isOver(task)"
     [class.is-picked]="opened() === task.id"
   >
     <div
@@ -214,6 +246,7 @@
   <app-modal-dialog
     [heading]="task.id ? 'Aufgabe bearbeiten' : 'Neue Aufgabe'"
     accent="green"
+    [wide]="true"
     (closed)="cancel()"
   >
     <div class="field">
@@ -237,17 +270,40 @@
         (input)="change({ text: value($event) })"
       ></textarea>
     </div>
-    <div class="form-grid">
-      <div class="field">
-        <label class="label" for="task-who">Zuständig</label>
-        <input
-          id="task-who"
-          class="input"
-          placeholder="Namen mit Komma trennen"
-          [value]="whoText()"
-          (input)="whoText.set(value($event))"
-        />
+    <div class="field">
+      <span class="label">Zuständig</span>
+      <div class="who-choices">
+        @for (name of whoChoices(); track name) {
+          <button
+            type="button"
+            class="chip"
+            [class.is-on]="whoList().includes(name)"
+            [attr.aria-pressed]="whoList().includes(name)"
+            (click)="toggleWho(name)"
+          >
+            {{ name }}
+          </button>
+        }
       </div>
+      <div class="field has-addons mt-2 mb-0">
+        <div class="control is-expanded">
+          <input
+            class="input is-small"
+            placeholder="Weitere Person eintragen"
+            aria-label="Weitere Person"
+            [value]="newWho()"
+            (input)="newWho.set(value($event))"
+            (keydown.enter)="addWho(); $event.preventDefault()"
+          />
+        </div>
+        <div class="control">
+          <button type="button" class="button is-small" (click)="addWho()">
+            <app-icon name="plus" /> Hinzufügen
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="form-grid">
       <div class="field">
         <label class="label" for="task-due">Bis</label>
         <app-date-field
@@ -282,15 +338,44 @@
       Wichtig
     </label>
     <div class="field">
-      <label class="label" for="task-subs">Unteraufgaben</label>
-      <textarea
-        id="task-subs"
-        class="textarea"
-        rows="3"
-        placeholder="Pro Zeile eine Unteraufgabe"
-        [value]="subText()"
-        (input)="subText.set(value($event))"
-      ></textarea>
+      <span class="label">Unteraufgaben</span>
+      @for (sub of subList(); track $index) {
+        <div class="sub-edit">
+          <input type="checkbox" [checked]="sub.done" [disabled]="true" aria-label="Erledigt" />
+          <input
+            class="input is-small"
+            [attr.aria-label]="'Unteraufgabe ' + ($index + 1)"
+            [value]="sub.text"
+            (input)="editSub($index, value($event))"
+          />
+          <button
+            type="button"
+            class="button is-small"
+            [attr.aria-label]="'Unteraufgabe ' + ($index + 1) + ' entfernen'"
+            title="Entfernen"
+            (click)="removeSub($index)"
+          >
+            <app-icon name="x" />
+          </button>
+        </div>
+      }
+      <div class="field has-addons mb-0">
+        <div class="control is-expanded">
+          <input
+            class="input is-small"
+            placeholder="Neue Unteraufgabe, mit Enter hinzufügen"
+            aria-label="Neue Unteraufgabe"
+            [value]="newSub()"
+            (input)="newSub.set(value($event))"
+            (keydown.enter)="addSub(); $event.preventDefault()"
+          />
+        </div>
+        <div class="control">
+          <button type="button" class="button is-small" (click)="addSub()">
+            <app-icon name="plus" /> Hinzufügen
+          </button>
+        </div>
+      </div>
     </div>
     <div class="field">
       <span class="label">Verknüpft mit</span>

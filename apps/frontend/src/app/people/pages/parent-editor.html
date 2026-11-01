@@ -219,7 +219,36 @@
       }
     </tbody>
   </table>
-  <label class="label" for="e-child">Kind hinzufügen</label>
+  <h4 class="label mt-3">Neues Kind anlegen</h4>
+  <p class="help mb-2">
+    Adresse, Telefon und E-Mail werden von hier übernommen und können danach beim Kind geändert
+    werden.
+  </p>
+  <div class="is-flex is-flex-wrap-wrap is-align-items-flex-end is-gap-2 mb-3">
+    <div>
+      <label class="label" for="e-kid">Vorname</label>
+      <input
+        id="e-kid"
+        class="input"
+        autocomplete="off"
+        [value]="kidName()"
+        (input)="kidName.set(value($event))"
+      />
+    </div>
+    <div>
+      <label class="label" for="e-kid-birth">Geburtsdatum</label>
+      <app-date-field
+        inputId="e-kid-birth"
+        [value]="kidBirth()"
+        (valueChange)="kidBirth.set($event)"
+      />
+    </div>
+    <button type="button" class="button is-link" (click)="createChild()">
+      <app-icon name="plus" /> Kind anlegen
+    </button>
+  </div>
+
+  <label class="label" for="e-child">Vorhandenes Kind hinzufügen</label>
   <input
     id="e-child"
     class="input"
@@ -235,10 +264,12 @@
   }
 </section>
 
-<h3 class="mt-4">Zahlung</h3>
-<app-pay-account
-  [account]="draft().account"
-  [payments]="payments()"
-  [feeName]="feeName"
-  (changed)="setAccount($event)"
-/>
+@if (draft().memberNo) {
+  <h3 class="mt-4">Zahlung</h3>
+  <app-pay-account
+    [account]="draft().account"
+    [payments]="payments()"
+    [feeName]="feeName"
+    (changed)="setAccount($event)"
+  />
+}

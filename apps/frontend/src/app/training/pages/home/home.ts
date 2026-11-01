@@ -57,8 +57,10 @@ export class Home {
 
   protected readonly days = computed<CalendarDay[]>(() => {
     const firstMinute = this.hours()[0] * 60;
+    const sinceMonday = (parseIsoDate(this.store.today).getDay() + 6) % 7;
+    const monday = addDays(this.store.today, -sinceMonday);
     return Array.from({ length: 7 }, (_, offset) => {
-      const iso = addDays(this.store.today, offset);
+      const iso = addDays(monday, offset);
       const events = this.entries()
         .filter((entry) => entry.session.date === iso)
         .map(({ session, labels }): CalendarEvent => {
@@ -77,7 +79,7 @@ export class Home {
         iso,
         weekday: weekdayShort(iso).toUpperCase(),
         label: `${date.getDate()}.${date.getMonth() + 1}.`,
-        isToday: offset === 0,
+        isToday: iso === this.store.today,
         events,
       };
     });

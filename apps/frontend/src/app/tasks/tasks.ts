@@ -13,6 +13,7 @@ import { DONE_VISIBLE_DAYS, TasksStore } from './tasks.store';
 import {
   REPEAT_LABEL,
   STATUS_LABEL,
+  SubTask,
   Task,
   TaskRepeat,
   TaskStatus,
@@ -60,8 +61,13 @@ export class Tasks {
     this.route.snapshot.queryParamMap.get('aufgabe') ? 'open' : 'mine',
   );
   protected readonly editing = signal<Task | null>(null);
-  protected readonly subText = signal('');
-  protected readonly whoText = signal('');
+  protected readonly subList = signal<SubTask[]>([]);
+  protected readonly newSub = signal('');
+  protected readonly whoList = signal<string[]>([]);
+  protected readonly newWho = signal('');
+  protected readonly person = signal('');
+  protected readonly onlyHigh = signal(false);
+  protected readonly sortBy = signal<'due' | 'title' | 'high'>('due');
   protected readonly toDelete = signal<Task | null>(null);
   protected readonly commenting = signal<Task | null>(null);
   protected readonly commentText = signal('');
@@ -72,15 +78,32 @@ export class Tasks {
     return addDays(t, (7 - weekdayIndex(t)) % 7);
   });
 
+  /** Everybody who is named on a task; offered as filter and as choice in the dialog. */
+  protected readonly names = computed(() => {
+    const all = new Set<string>([this.store.me(), ...this.store.tasks().flatMap((t) => t.who)]);
+    return [...all].filter(Boolean).sort((a, b) => a.localeCompare(b, 'de'));
+  });
+
   private readonly searched = computed(() => {
     const q = this.query().trim().toLowerCase();
+    const person = this.person();
+    const high = this.onlyHigh();
+    const sort = this.sortBy();
     return this.store
       .tasks()
       .filter(
         (task) =>
-          !q || `${task.title} ${task.text} ${task.who.join(' ')}`.toLowerCase().includes(q),
+          (!q || `${task.title} ${task.text} ${task.who.join(' ')}`.toLowerCase().includes(q)) &&
+          (!person || task.who.includes(person)) &&
+          (!high || task.high),
       )
-      .sort(this.byDue);
+      .sort((a, b) =>
+        sort === 'title'
+          ? a.title.localeCompare(b.title, 'de')
+          : sort === 'high'
+            ? Number(b.high) - Number(a.high) || this.byDue(a, b)
+            : this.byDue(a, b),
+      );
   });
 
   protected readonly counts = computed(() => {
@@ -219,15 +242,19 @@ export class Tasks {
 
   protected add(): void {
     this.invalid.set(false);
-    this.subText.set('');
-    this.whoText.set(this.store.me());
+    this.subList.set([]);
+    this.newSub.set('');
+    this.whoList.set([this.store.me()]);
+    this.newWho.set('');
     this.editing.set(emptyTask(this.store.me()));
   }
 
   protected edit(task: Task): void {
     this.invalid.set(false);
-    this.subText.set(task.subs.map((sub) => sub.text).join('\n'));
-    this.whoText.set(task.who.join(', '));
+    this.subList.set(task.subs.map((sub) => ({ ...sub })));
+    this.newSub.set('');
+    this.whoList.set([...task.who]);
+    this.newWho.set('');
     this.editing.set({ ...task });
   }
 
@@ -247,19 +274,55 @@ export class Tasks {
       this.toasts.failed('Bitte einen Titel eingeben');
       return;
     }
-    const known = new Map(task.subs.map((sub) => [sub.text, sub.done]));
-    const subs = this.subText()
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((text) => ({ text, done: known.get(text) ?? false }));
-    const who = this.whoText()
-      .split(/[,;]/)
-      .map((name) => name.trim())
-      .filter(Boolean);
+    this.addSub();
+    this.addWho();
+    const subs = this.subList()
+      .map((sub) => ({ ...sub, text: sub.text.trim() }))
+      .filter((sub) => sub.text);
+    const who = this.whoList();
     this.store.save({ ...task, title: task.title.trim(), subs, who });
     this.editing.set(null);
     this.toasts.saved(task.id ? 'Aufgabe gespeichert' : 'Aufgabe angelegt');
+  }
+
+  protected addSub(): void {
+    const text = this.newSub().trim();
+    if (!text) return;
+    this.subList.update((list) => [...list, { text, done: false }]);
+    this.newSub.set('');
+  }
+
+  protected editSub(index: number, text: string): void {
+    this.subList.update((list) => list.map((sub, i) => (i === index ? { ...sub, text } : sub)));
+  }
+
+  protected removeSub(index: number): void {
+    this.subList.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  protected toggleWho(name: string): void {
+    this.whoList.update((list) =>
+      list.includes(name) ? list.filter((item) => item !== name) : [...list, name],
+    );
+  }
+
+  protected addWho(): void {
+    const name = this.newWho().trim();
+    if (!name) return;
+    this.whoList.update((list) => (list.includes(name) ? list : [...list, name]));
+    this.newWho.set('');
+  }
+
+  protected whoChoices(): string[] {
+    return [...new Set([...this.names(), ...this.whoList()])];
+  }
+
+  protected resetFilters(): void {
+    this.query.set('');
+    this.person.set('');
+    this.onlyHigh.set(false);
+    this.sortBy.set('due');
+    this.filter.set('open');
   }
 
   protected cancel(): void {
