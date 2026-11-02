@@ -740,3 +740,13 @@ td .button:has(app-icon:only-child),
   font-weight: 600;
   padding: 0 0.25rem;
 }
+
+/* Tabs that do not fit wrap onto a second line instead of hiding the last ones behind a scroll. */
+.tabs {
+  overflow: visible;
+
+  ul {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+  }
+}
