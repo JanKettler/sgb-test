@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { fullDate } from '../../../training/training-dates';
+import { Action } from '../../../ui/action';
+import { ConfirmDialog } from '../../../ui/confirm-dialog';
 import { Icon } from '../../../ui/icon';
-import { ModalDialog } from '../../../ui/modal-dialog';
 import { Toasts } from '../../../ui/toast';
 import { Competition, dateOf, euro } from '../../competition.models';
 import { CompetitionStore } from '../../competition.store';
 
 @Component({
   selector: 'app-competition-list',
-  imports: [RouterLink, Icon, ModalDialog],
+  imports: [RouterLink, Action, ConfirmDialog, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './competition-list.html',
   styleUrl: './competition-list.scss',

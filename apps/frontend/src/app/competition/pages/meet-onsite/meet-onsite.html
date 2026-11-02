@@ -63,7 +63,7 @@
 
           <div class="fields">
             <input
-              class="input time"
+              class="input is-small time"
               [class.is-danger]="invalid().has(row.key + ':t')"
               inputmode="numeric"
               autocomplete="off"
@@ -74,7 +74,7 @@
               (input)="typeEnd(row, $event)"
               (focus)="selectAll($event)"
             />
-            <div class="select compact">
+            <div class="select is-small compact">
               <select
                 [attr.aria-label]="'Status ' + display(row.start.n) + ', Wk ' + row.start.e"
                 [disabled]="!store.canManage()"
@@ -91,16 +91,7 @@
             @if (store.canManage()) {
               <button
                 type="button"
-                class="button"
-                title="Stoppuhr"
-                aria-label="Stoppuhr"
-                (click)="openWatch(row)"
-              >
-                <app-icon name="stopwatch" />
-              </button>
-              <button
-                type="button"
-                class="button"
+                class="button is-small"
                 [class.is-success]="row.result?.ok"
                 [attr.aria-pressed]="!!row.result?.ok"
                 (click)="toggleDone(row)"
@@ -122,7 +113,7 @@
             <div class="splits">
               @for (index of row.splits; track index) {
                 <input
-                  class="input time"
+                  class="input is-small time"
                   [class.is-danger]="invalid().has(row.key + ':' + index)"
                   inputmode="numeric"
                   autocomplete="off"
@@ -149,58 +140,12 @@
 
     <h4 class="section-title">Notiz zum Wettkampf</h4>
     <textarea
-      class="textarea"
+      class="textarea is-small"
       rows="3"
       aria-label="Notiz zum Wettkampf"
       [value]="item.schedule.note"
       [disabled]="!store.canManage()"
       (change)="setNote($event)"
     ></textarea>
-  }
-
-  @if (watchOpen() && watch(); as w) {
-    <app-modal-dialog heading="Stoppuhr" [subtitle]="w.name" accent="amber" (closed)="closeWatch()">
-      <p class="sub watch-event">{{ w.event }}</p>
-      <div class="clock">{{ clockText(w.running || w.elapsed !== null ? clock() : 0) }}</div>
-      <div class="watch-buttons">
-        @if (!w.running && w.elapsed === null) {
-          <button type="button" class="button is-success is-large" (click)="go()">Start</button>
-        }
-        @if (w.running) {
-          @if (w.laps.length < w.splits) {
-            <button type="button" class="button is-large" (click)="lap()">Zwischenzeit</button>
-          }
-          <button type="button" class="button is-danger is-large" (click)="stop()">Stopp</button>
-        }
-      </div>
-      @for (ms of w.laps; track $index) {
-        <div class="lap">
-          <span>{{ ($index + 1) * 100 }} m</span>
-          <strong>{{ clockText(ms) }}</strong>
-        </div>
-      }
-      <ng-container dialogActions>
-        <button
-          type="button"
-          class="button is-danger"
-          title="Schließen"
-          aria-label="Schließen"
-          (click)="closeWatch()"
-        >
-          <app-icon name="x" />
-        </button>
-        <button type="button" class="button" (click)="reset()">
-          <app-icon name="restore" /> Neu
-        </button>
-        <button
-          type="button"
-          class="button is-success"
-          [disabled]="w.elapsed === null"
-          (click)="takeOver()"
-        >
-          <app-icon name="check" /> Zeiten übernehmen
-        </button>
-      </ng-container>
-    </app-modal-dialog>
   }
 }

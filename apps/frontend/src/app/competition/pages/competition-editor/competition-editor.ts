@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ActivatedRoute, Router } from '@angular/router';
 import { PeopleStore } from '../../../people/people.store';
 import { GROUPS, GroupId } from '../../../training/training.models';
+import { Action } from '../../../ui/action';
+import { ConfirmDialog } from '../../../ui/confirm-dialog';
 import { DateField } from '../../../ui/date-field';
 import { Icon, IconName } from '../../../ui/icon';
 import { ModalDialog } from '../../../ui/modal-dialog';
@@ -61,6 +63,8 @@ type MoneyKey = 'flatFee' | 'perSwimmerFee' | 'discount';
 @Component({
   selector: 'app-competition-editor',
   imports: [
+    Action,
+    ConfirmDialog,
     Icon,
     DateField,
     ModalDialog,

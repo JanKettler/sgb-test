@@ -156,6 +156,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'wettkampf/wettkaempfe/:id/ansehen',
+    title: 'Wettkampf ansehen – SGB Portal',
+    loadComponent: () =>
+      import('./competition/pages/competition-view/competition-view').then(
+        (module) => module.CompetitionView,
+      ),
+  },
+  {
     path: 'wettkampf/wettkaempfe/:id',
     title: 'Wettkampf – SGB Portal',
     loadComponent: () =>

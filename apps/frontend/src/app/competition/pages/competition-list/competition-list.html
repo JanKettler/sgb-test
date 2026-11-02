@@ -2,25 +2,21 @@
   class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-center mb-4"
 >
   <h2 class="title is-4 mb-0">Wettkämpfe</h2>
-  <div class="icon-row">
-    <label class="button is-link" title="Ausschreibung (DSV7-Datei) einlesen">
-      <app-icon name="upload" />
-      <input
-        type="file"
-        class="is-hidden"
-        accept=".dsv7,.DSV7,.txt"
-        (change)="importFile($event)"
-      />
-    </label>
-    <a
-      class="button is-success"
-      routerLink="/wettkampf/wettkaempfe/neu"
-      title="Wettkampf von Hand anlegen"
-      aria-label="Wettkampf von Hand anlegen"
-    >
-      <app-icon name="plus" />
-    </a>
-  </div>
+  @if (store.canManage()) {
+    <div class="icon-row">
+      <label class="button is-link" title="Ausschreibung (DSV7-Datei) einlesen">
+        <app-icon name="upload" />
+        <input
+          type="file"
+          class="is-hidden"
+          accept=".dsv7,.DSV7,.txt"
+          aria-label="Ausschreibung (DSV7-Datei) einlesen"
+          (change)="importFile($event)"
+        />
+      </label>
+      <app-action kind="add" label="Wettkampf von Hand anlegen" link="/wettkampf/wettkaempfe/neu" />
+    </div>
+  }
 </header>
 
 @if (notes().length > 0) {
@@ -31,9 +27,13 @@
         <li>{{ note }}</li>
       }
     </ul>
-    <a class="button is-small" [routerLink]="['/wettkampf/wettkaempfe', lastId()]">
-      <app-icon name="pencil" /> Wettkampf öffnen
-    </a>
+    <app-action
+      kind="edit"
+      small
+      withText
+      label="Wettkampf öffnen"
+      [link]="['/wettkampf/wettkaempfe', lastId()]"
+    />
   </div>
 }
 
@@ -58,7 +58,10 @@
               <strong>{{ fullDate(row.date) }}</strong>
             </td>
             <td>
-              <a class="meet-title" [routerLink]="['/wettkampf/wettkaempfe', row.competition.id]">
+              <a
+                class="meet-title"
+                [routerLink]="['/wettkampf/wettkaempfe', row.competition.id, 'ansehen']"
+              >
                 {{ row.competition.title || 'Ohne Namen' }}
               </a>
               @if (!row.competition.open) {
@@ -105,23 +108,26 @@
             <td class="nowrap">{{ euro(row.fee) }}</td>
             <td class="nowrap">
               <span class="icon-row">
-                <a
-                  class="button is-warning"
-                  [routerLink]="['/wettkampf/wettkaempfe', row.competition.id]"
-                  aria-label="Bearbeiten"
-                  title="Bearbeiten"
-                >
-                  <app-icon name="pencil" />
-                </a>
-                <button
-                  type="button"
-                  class="button is-danger"
-                  aria-label="Löschen"
-                  title="Löschen"
-                  (click)="toDelete.set(row.competition)"
-                >
-                  <app-icon name="trash" />
-                </button>
+                <app-action
+                  kind="view"
+                  small
+                  [label]="(row.competition.title || 'Wettkampf') + ' ansehen'"
+                  [link]="['/wettkampf/wettkaempfe', row.competition.id, 'ansehen']"
+                />
+                @if (store.canManage()) {
+                  <app-action
+                    kind="edit"
+                    small
+                    [label]="(row.competition.title || 'Wettkampf') + ' bearbeiten'"
+                    [link]="['/wettkampf/wettkaempfe', row.competition.id]"
+                  />
+                  <app-action
+                    kind="delete"
+                    small
+                    [label]="(row.competition.title || 'Wettkampf') + ' löschen'"
+                    (pressed)="toDelete.set(row.competition)"
+                  />
+                }
               </span>
             </td>
           </tr>
@@ -132,16 +138,10 @@
 </section>
 
 @if (toDelete(); as competition) {
-  <app-modal-dialog
+  <app-confirm-dialog
     heading="Wettkampf löschen?"
-    accent="red"
-    [compact]="true"
+    [text]="'„' + competition.title + '“ wird mit allen Meldungen gelöscht.'"
+    (confirmed)="remove()"
     (closed)="toDelete.set(null)"
-  >
-    <p>„{{ competition.title }}“ wird mit allen Meldungen gelöscht.</p>
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
-      <button type="button" class="button is-danger" (click)="remove()">Löschen</button>
-    </ng-container>
-  </app-modal-dialog>
+  />
 }
