@@ -6,7 +6,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { Icon } from '../../ui/icon';
+import { Action } from '../../ui/action';
 import { FeeSettings, PLACEHOLDERS } from '../fees.models';
 import { FeesStore } from '../fees.store';
 import { euro, parseEuro } from '../../core/money';
@@ -18,7 +18,7 @@ type DaysKey = 'daysLevel1' | 'daysFromLevel2';
 
 @Component({
   selector: 'app-fee-settings-tab',
-  imports: [Icon],
+  imports: [Action],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './fee-settings-tab.html',
 })

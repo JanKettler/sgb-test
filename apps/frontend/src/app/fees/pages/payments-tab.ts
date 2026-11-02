@@ -6,10 +6,10 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { Icon } from '../../ui/icon';
+import { Action } from '../../ui/action';
+import { ConfirmDialog } from '../../ui/confirm-dialog';
 import { SortButton, SortState } from '../../ui/sort';
 import { TablePager, pageOf } from '../../ui/table-pager';
-import { ModalDialog } from '../../ui/modal-dialog';
 import { downloadText } from '../../training/training-download';
 import { Payment } from '../fees.models';
 import { FeesStore } from '../fees.store';
@@ -19,7 +19,7 @@ type StatusFilter = 'open' | 'paid' | 'all';
 
 @Component({
   selector: 'app-payments-tab',
-  imports: [Icon, ModalDialog, SortButton, TablePager],
+  imports: [Action, ConfirmDialog, SortButton, TablePager],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './payments-tab.html',
   styles: `

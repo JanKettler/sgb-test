@@ -38,20 +38,30 @@
 
 <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mb-3">
   <span class="label m-0">{{ selected().size }} von {{ rows().length }} markiert</span>
-  <button type="button" class="button is-small" [disabled]="selected().size === 0" (click)="book()">
-    <app-icon name="check" /> Zahlungseingang buchen
-  </button>
-  <button type="button" class="button is-small" [disabled]="selected().size === 0" (click)="dun()">
-    <app-icon name="mail" /> Mahnung senden
-  </button>
-  <button
-    type="button"
-    class="button is-small is-danger"
+  <app-action
+    kind="done"
+    label="Zahlungseingang buchen"
+    withText
+    small
     [disabled]="selected().size === 0"
-    (click)="toDelete.set(true)"
-  >
-    <app-icon name="trash" /> Zahlung löschen
-  </button>
+    (pressed)="book()"
+  />
+  <app-action
+    kind="send"
+    label="Mahnung senden"
+    withText
+    small
+    [disabled]="selected().size === 0"
+    (pressed)="dun()"
+  />
+  <app-action
+    kind="delete"
+    label="Zahlung löschen"
+    withText
+    small
+    [disabled]="selected().size === 0"
+    (pressed)="toDelete.set(true)"
+  />
 </div>
 
 <div class="table-container">
@@ -117,16 +127,10 @@
 <app-table-pager [total]="rows().length" [(page)]="page" [(size)]="size" />
 
 @if (toDelete()) {
-  <app-modal-dialog
+  <app-confirm-dialog
     heading="Zahlungen löschen?"
-    [compact]="true"
-    accent="red"
+    [text]="selected().size + ' markierte Zahlungen werden endgültig gelöscht.'"
+    (confirmed)="remove()"
     (closed)="toDelete.set(false)"
-  >
-    <p>{{ selected().size }} markierte Zahlungen werden endgültig gelöscht.</p>
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="toDelete.set(false)">Abbrechen</button>
-      <button type="button" class="button is-danger" (click)="remove()">Löschen</button>
-    </ng-container>
-  </app-modal-dialog>
+  />
 }

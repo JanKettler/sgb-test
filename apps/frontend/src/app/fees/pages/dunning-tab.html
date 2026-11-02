@@ -75,14 +75,13 @@
 </div>
 
 <div class="is-flex is-flex-wrap-wrap is-align-items-center is-gap-2 mt-3">
-  <button
-    type="button"
-    class="button is-primary"
+  <app-action
+    kind="send"
+    [label]="'Mahnungen versenden (' + chosen().length + ')'"
+    withText
     [disabled]="chosen().length === 0"
-    (click)="send()"
-  >
-    <app-icon name="mail" /> Mahnungen versenden ({{ chosen().length }})
-  </button>
+    (pressed)="send()"
+  />
 </div>
 
 @if (shown(); as row) {

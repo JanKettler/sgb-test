@@ -32,28 +32,26 @@
   <div class="fees-actions">
     @switch (tab()) {
       @case ('payments') {
-        <button type="button" class="button" (click)="payments()?.exportCsv()">
-          <app-icon name="sheet" /> Excel
-        </button>
-        <button type="button" class="button" (click)="payments()?.exportSepa()">
-          <app-icon name="download" /> SEPA-Lastschriftdatei
-        </button>
-        <button type="button" class="button is-primary" (click)="payments()?.generate()">
-          <app-icon name="plus" /> Zahlungen erzeugen
-        </button>
+        <app-action kind="excel" withText (pressed)="payments()?.exportCsv()" />
+        <app-action
+          kind="download"
+          label="SEPA-Lastschriftdatei"
+          withText
+          (pressed)="payments()?.exportSepa()"
+        />
+        <app-action
+          kind="add"
+          label="Zahlungen erzeugen"
+          withText
+          (pressed)="payments()?.generate()"
+        />
       }
       @case ('dunning') {
-        <button type="button" class="button" (click)="dunning()?.exportCsv()">
-          <app-icon name="sheet" /> Excel
-        </button>
+        <app-action kind="excel" withText (pressed)="dunning()?.exportCsv()" />
       }
       @case ('types') {
-        <button type="button" class="button" (click)="types()?.exportCsv()">
-          <app-icon name="sheet" /> Excel
-        </button>
-        <button type="button" class="button is-primary" (click)="types()?.add()">
-          <app-icon name="plus" /> Neue Beitragsart
-        </button>
+        <app-action kind="excel" withText (pressed)="types()?.exportCsv()" />
+        <app-action kind="add" label="Neue Beitragsart" withText (pressed)="types()?.add()" />
       }
     }
   </div>

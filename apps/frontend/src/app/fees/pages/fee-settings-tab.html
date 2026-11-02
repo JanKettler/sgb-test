@@ -1,22 +1,6 @@
 <div class="icon-row is-pulled-right mb-3">
-  <button
-    type="button"
-    class="button is-danger"
-    aria-label="Abbrechen"
-    title="Abbrechen"
-    (click)="cancel()"
-  >
-    <app-icon name="x" />
-  </button>
-  <button
-    type="button"
-    class="button is-success"
-    aria-label="Speichern"
-    title="Speichern"
-    (click)="save()"
-  >
-    <app-icon name="save" />
-  </button>
+  <app-action kind="cancel" (pressed)="cancel()" />
+  <app-action kind="save" (pressed)="save()" />
 </div>
 <div class="is-clearfix"></div>
 <div class="cols">

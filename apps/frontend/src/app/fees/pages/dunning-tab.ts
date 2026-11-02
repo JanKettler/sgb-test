@@ -6,7 +6,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { Icon } from '../../ui/icon';
+import { Action } from '../../ui/action';
 import { SortButton, SortState } from '../../ui/sort';
 import { downloadText } from '../../training/training-download';
 import { fullDate } from '../../training/training-dates';
@@ -15,7 +15,7 @@ import { euro } from '../../core/money';
 
 @Component({
   selector: 'app-dunning-tab',
-  imports: [Icon, SortButton],
+  imports: [Action, SortButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dunning-tab.html',
   styles: `

@@ -6,7 +6,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { Icon } from '../../ui/icon';
+import { Action } from '../../ui/action';
 import { downloadText } from '../../training/training-download';
 import { FeeType } from '../fees.models';
 import { FeesStore } from '../fees.store';
@@ -14,7 +14,7 @@ import { euro, parseEuro } from '../../core/money';
 
 @Component({
   selector: 'app-fee-types-tab',
-  imports: [Icon],
+  imports: [Action],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './fee-types-tab.html',
 })
