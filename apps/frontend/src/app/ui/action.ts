@@ -41,6 +41,7 @@ export type ActionKind =
   | 'close'
   | 'register'
   | 'unregister'
+  | 'decline'
   | 'people'
   | 'attendance'
   | 'hide'
@@ -87,6 +88,7 @@ export const ACTIONS: Readonly<Record<ActionKind, ActionLook>> = {
   close: { icon: 'x', label: 'Schließen', tone: '' },
   register: { icon: 'check', label: 'Anmelden', tone: 'is-success' },
   unregister: { icon: 'x', label: 'Abmelden', tone: 'is-danger' },
+  decline: { icon: 'minus', label: 'Nicht teilnehmen', tone: '' },
   people: { icon: 'users', label: 'Angemeldete anzeigen', tone: '' },
   attendance: { icon: 'clipboard', label: 'Anwesenheit führen', tone: 'is-primary' },
   hide: { icon: 'eye-slash', label: 'Ausblenden', tone: '' },

@@ -1,10 +1,93 @@
-.person-bar {
-  align-items: center;
+.head {
+  align-items: flex-start;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.75rem 1.5rem;
   justify-content: space-between;
   margin-bottom: 1rem;
+}
+
+.person-pick {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+
+  > span:first-child {
+    color: var(--sgb-soft);
+    font-size: 0.85rem;
+  }
+}
+
+/* One card per meet; the colour on the left shows at a glance whether the swimmer is registered. */
+.meet {
+  border-left: 4px solid var(--sgb-line);
+  margin-bottom: 0.75rem;
+  padding: 0.9rem 1.1rem;
+
+  &[data-status='registered'] {
+    border-left-color: var(--ok-fg);
+  }
+
+  &[data-status='declined'] {
+    border-left-color: var(--warn-fg);
+  }
+
+  &[data-status='open'] {
+    border-left-color: var(--bad-fg);
+  }
+
+  &.is-open {
+    box-shadow: 0 0 0 1px var(--sgb-strong);
+  }
+}
+
+.meet-head {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.date {
+  align-items: center;
+  background: var(--sgb-hover);
+  border-radius: 10px;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  height: 3.6rem;
+  justify-content: center;
+  line-height: 1.05;
+  width: 3.4rem;
+
+  strong {
+    font-size: 1.45rem;
+  }
+
+  span {
+    color: var(--sgb-soft);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
+
+.info {
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+
+.name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.where {
+  color: var(--sgb-soft);
+  font-size: 0.9rem;
+  margin: 0.1rem 0 0.35rem;
 }
 
 .deadline {
@@ -14,7 +97,6 @@
   font-size: 0.8rem;
   font-weight: 700;
   gap: 0.35rem;
-  margin-top: 0.3rem;
   padding: 0.15rem 0.7rem;
 
   &.is-danger {
@@ -33,32 +115,50 @@
   }
 }
 
-.meet {
-  border: 1px solid var(--sgb-line);
-  border-radius: 12px;
-  margin-bottom: 0.75rem;
-  padding: 0.75rem 1rem;
-
-  &.is-open {
-    border-color: var(--sgb-strong);
-  }
-}
-
-.meet-head {
+.side {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  justify-content: space-between;
-}
-
-.meet-actions {
-  align-items: center;
-  display: flex;
   gap: 0.6rem;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
-app-entry-form {
+/* The small overview: what the swimmer is registered for, without opening the card. */
+.starts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+
+  li {
+    align-items: baseline;
+    background: var(--ok-bg);
+    border-radius: 999px;
+    color: var(--ok-fg);
+    display: inline-flex;
+    font-size: 0.85rem;
+    gap: 0.4rem;
+    padding: 0.2rem 0.8rem;
+  }
+
+  .time {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+  }
+}
+
+.locked {
+  color: var(--sgb-soft);
+  font-size: 0.85rem;
+  margin: 0.7rem 0 0;
+}
+
+.form {
+  border-top: 1px solid var(--sgb-line);
   display: block;
-  margin-top: 0.75rem;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
 }
