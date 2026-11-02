@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Action } from '../../../ui/action';
+import { ConfirmDialog } from '../../../ui/confirm-dialog';
 import { Icon } from '../../../ui/icon';
 import { ModalDialog } from '../../../ui/modal-dialog';
 import { Toasts } from '../../../ui/toast';
@@ -21,7 +23,6 @@ import {
   evaluationFileName,
   evaluationSheets,
 } from '../../evaluation/evaluation.xlsx';
-import { PointListRead, parsePointListCsv } from '../../evaluation/point-list';
 import {
   COURSE_NAME,
   WaResult,
@@ -50,12 +51,6 @@ interface WaPreview {
   file: string;
 }
 
-/** A points list read from a file, waiting for season and pool. */
-interface ListPreview {
-  read: PointListRead;
-  file: string;
-}
-
 interface BandsForm {
   masters: string;
   mergeMax: string;
@@ -64,18 +59,19 @@ interface BandsForm {
 }
 
 interface Removal {
-  kind: 'wa' | 'list';
   id: string;
   name: string;
 }
 
 /**
  * The yearly evaluation like in the Intranet: ranking, statistic, honours and the sheet of every
- * swimmer, the same Excel file, and the upload of the base times and points lists.
+ * swimmer, the same Excel file, and the upload of the base times. The season is chosen on the page,
+ * as the file is made late in the new year for the season before. All points are worked out from
+ * the results of the meets in the portal.
  */
 @Component({
   selector: 'app-competition-evaluation',
-  imports: [EvaluationBlocks, Icon, ModalDialog],
+  imports: [Action, ConfirmDialog, EvaluationBlocks, Icon, ModalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './evaluation.html',
   styleUrl: './evaluation.scss',
@@ -102,12 +98,16 @@ export class CompetitionEvaluation {
   protected readonly query = signal('');
 
   protected readonly ev = this.store.evaluation;
-  protected readonly years = computed(() => this.ev().years());
+  protected readonly seasons = computed(() => this.ev().seasons());
+  /** The chosen season; without a choice the newest one with results. */
   protected readonly year = computed(() => {
-    const years = this.years();
     const chosen = this.chosenYear();
-    return years.includes(chosen) ? chosen : (years[0] ?? this.store.today.slice(0, 4));
+    return this.seasons().includes(chosen) ? chosen : this.ev().defaultSeason();
   });
+  /** Whether the season has results to work with. */
+  protected readonly hasResults = computed(
+    () => this.ev().meetsWithResults(this.year()).length > 0,
+  );
   protected readonly title = computed(
     () => this.tabs.find((entry) => entry.id === this.tab())?.label ?? '',
   );
@@ -123,17 +123,6 @@ export class CompetitionEvaluation {
   protected readonly rankBlocks = computed(() =>
     rankingBlocks(this.ev(), this.year(), this.list(), this.group()),
   );
-  protected readonly listInfo = computed(() => {
-    const year = this.year();
-    return (['Lang', 'Kurz'] as const)
-      .flatMap((pool) => {
-        const found = this.store.lists().find((list) => list.jahr === year && list.bahn === pool);
-        return found
-          ? [`${pool === 'Lang' ? 'Langbahn' : 'Kurzbahn'} vom ${longDate(found.stand)}`]
-          : [];
-      })
-      .join(' · ');
-  });
   protected readonly waInfo = computed(() => this.ev().waInfo());
 
   // ---------- Statistik ----------
@@ -188,22 +177,15 @@ export class CompetitionEvaluation {
   protected readonly waSets = computed(() =>
     [...this.store.waSets()].sort((a, b) => b.von.localeCompare(a.von)),
   );
-  protected readonly lists = computed(() =>
-    [...this.store.lists()].sort((a, b) => (b.jahr + b.bahn).localeCompare(a.jahr + a.bahn)),
-  );
   protected readonly sampleFile = WA_SAMPLE_FILE;
   protected readonly waMessage = signal('');
   protected readonly waPreview = signal<WaPreview | null>(null);
   protected readonly waDates = signal<Record<string, { von: string; bis: string }>>({});
-  protected readonly listMessage = signal('');
-  protected readonly listPreview = signal<ListPreview | null>(null);
-  protected readonly listYear = signal('');
-  protected readonly listPool = signal<'Lang' | 'Kurz'>('Lang');
   protected readonly bandsForm = signal<BandsForm | null>(null);
   protected readonly removal = signal<Removal | null>(null);
 
-  protected pickYear(year: string): void {
-    this.chosenYear.set(year);
+  protected pickSeason(event: Event): void {
+    this.chosenYear.set((event.target as HTMLSelectElement).value);
   }
 
   protected pickSwimmer(name: string): void {
@@ -307,82 +289,6 @@ export class CompetitionEvaluation {
     return Object.keys(set.t).length;
   }
 
-  // ---------- points lists ----------
-  protected async readList(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (/\.pdf$/i.test(file.name)) {
-      this.listMessage.set(
-        'PDF-Listen werden hier nicht gelesen. Bitte die Liste in WebClub als CSV ausgeben.',
-      );
-      input.value = '';
-      return;
-    }
-    this.listMessage.set('Wird gelesen …');
-    try {
-      const read = parsePointListCsv(await readTextFile(file));
-      if (!read.rows.length) {
-        this.listMessage.set(
-          read.warnings.join(' ') || 'In der Datei wurden keine Schwimmer gefunden.',
-        );
-        return;
-      }
-      this.listYear.set(read.season || this.year());
-      this.listPool.set('Lang');
-      this.listPreview.set({ read, file: file.name });
-      this.listMessage.set('');
-    } catch (error) {
-      this.listMessage.set(
-        error instanceof Error ? error.message : 'Die Datei konnte nicht gelesen werden.',
-      );
-    } finally {
-      input.value = '';
-    }
-  }
-
-  protected typedListYear(event: Event): void {
-    this.listYear.set((event.target as HTMLInputElement).value);
-  }
-
-  protected pickListPool(event: Event): void {
-    this.listPool.set((event.target as HTMLSelectElement).value === 'Kurz' ? 'Kurz' : 'Lang');
-  }
-
-  /** The best swimmer of the list read, shown in the preview. */
-  protected topOf(read: PointListRead): string {
-    const best = [...read.rows].sort((a, b) => b.ges - a.ges)[0];
-    return best ? `${best.name} (${best.ges})` : '–';
-  }
-
-  protected replacesList(): boolean {
-    return this.store
-      .lists()
-      .some((list) => list.jahr === this.listYear().trim() && list.bahn === this.listPool());
-  }
-
-  protected saveList(): void {
-    const preview = this.listPreview();
-    if (!preview) return;
-    const year = this.listYear().trim();
-    if (!/^\d{4}$/.test(year)) {
-      this.toasts.failed('Bitte eine Saison mit vier Ziffern eintragen');
-      return;
-    }
-    const pool = this.listPool();
-    this.store.saveList({
-      id: `ps-${year}-${pool.toLowerCase()}`,
-      jahr: year,
-      bahn: pool,
-      rows: preview.read.rows,
-      stand: this.store.today,
-      file: preview.file,
-    });
-    this.chosenYear.set(year);
-    this.listPreview.set(null);
-    this.toasts.saved('Punkteliste übernommen');
-  }
-
   // ---------- groups ----------
   protected openBands(): void {
     const ev = this.ev();
@@ -426,15 +332,14 @@ export class CompetitionEvaluation {
   }
 
   // ---------- delete ----------
-  protected askRemove(kind: 'wa' | 'list', id: string, name: string): void {
-    this.removal.set({ kind, id, name });
+  protected askRemove(id: string, name: string): void {
+    this.removal.set({ id, name });
   }
 
   protected remove(): void {
     const item = this.removal();
     if (!item) return;
-    if (item.kind === 'wa') this.store.removeWaSet(item.id);
-    else this.store.removeList(item.id);
+    this.store.removeWaSet(item.id);
     this.removal.set(null);
     this.toasts.show('Gelöscht', 'info');
   }

@@ -1,16 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { seasonOf } from '../competition-sample';
-import { PointList } from './evaluation.model';
 import { EvaluationStore } from './evaluation.store';
-
-const LIST: PointList = {
-  id: 'ps-test',
-  jahr: '2026',
-  bahn: 'Lang',
-  rows: [{ name: 'Anna Beispiel', jg: 2010, sex: 'W', p: { '50F': 400 }, ges: 400 }],
-  stand: '2026-11-01',
-  file: 'Liste.csv',
-};
 
 describe('EvaluationStore', () => {
   it('works out the demo season of the sample meets', () => {
@@ -67,17 +57,6 @@ describe('EvaluationStore', () => {
       .stat(year)
       .events.find((item) => item.id === 'c-s1')!;
     expect(row.poolMeters).toBe(50);
-  });
-
-  it('replaces a points list of the same season and pool, and removes it again', () => {
-    const store = TestBed.inject(EvaluationStore);
-    store.saveList(LIST);
-    store.saveList({ ...LIST, id: 'ps-other', stand: '2026-11-02' });
-    expect(store.lists().map((list) => list.id)).toEqual(['ps-other']);
-    store.saveList({ ...LIST, bahn: 'Kurz' });
-    expect(store.lists()).toHaveLength(2);
-    store.removeList('ps-other');
-    expect(store.lists().map((list) => list.bahn)).toEqual(['Kurz']);
   });
 
   it('replaces base times of the same course and year', () => {

@@ -1,4 +1,4 @@
-import { XLSX_TYPE, columnName, escapeXml } from '../xlsx';
+import { XLSX_TYPE, columnName, escapeXml, headWidth } from '../xlsx';
 import { ZipFile, createZip } from '../zip';
 import {
   assemblyBlocks,
@@ -56,7 +56,7 @@ const STYLES =
   '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="14">' +
   '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
   '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
-  '<xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>' +
+  '<xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
   '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>' +
   '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="right"/></xf>' +
   '<xf numFmtId="0" fontId="1" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>' +
@@ -153,6 +153,15 @@ export function blocksToRows(blocks: Block[]): ReportRow[] {
   return out;
 }
 
+/**
+ * Width a cell needs in Excel characters. A heading never wraps, so its column is at least as wide
+ * as the whole heading; other text counts up to 42 characters.
+ */
+function widthOf(cell: ReportCell): number {
+  const text = String(cell.v);
+  return cell.s === STYLE.head ? headWidth(text) : Math.min(text.length, 42) * 1.15 + 2;
+}
+
 function sheetXml(rows: ReportRow[]): string {
   const merges: string[] = [];
   const widths: number[] = [];
@@ -179,7 +188,7 @@ function sheetXml(rows: ReportRow[]): string {
           if (cell.s) cells += `<c r="${columnName(col + q)}${rowIndex + 1}" s="${cell.s}"/>`;
         }
       } else if (!single) {
-        widths[col] = Math.max(widths[col] ?? 0, Math.min(String(cell.v).length, 42));
+        widths[col] = Math.max(widths[col] ?? 0, widthOf(cell));
       }
       col += span;
     }
@@ -188,7 +197,7 @@ function sheetXml(rows: ReportRow[]): string {
   const cols = widths
     .map((width, index) =>
       width
-        ? `<col min="${index + 1}" max="${index + 1}" width="${Math.max(8, width * 1.15 + 2)}" customWidth="1"/>`
+        ? `<col min="${index + 1}" max="${index + 1}" width="${Math.max(8, width)}" customWidth="1"/>`
         : '',
     )
     .join('');

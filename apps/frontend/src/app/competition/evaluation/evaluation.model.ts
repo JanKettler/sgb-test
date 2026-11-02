@@ -80,29 +80,10 @@ export interface EvalConfig {
   bandsM: Record<string, BandDef[]>;
 }
 
-/** The points list of WebClub ("Punktbeste Leistung nach World Aquatics") of one season and pool. */
-export interface PointRow {
-  name: string;
-  jg: number;
-  sex: string;
-  p: Record<string, number>;
-  ges: number;
-}
-
-export interface PointList {
-  id: string;
-  jahr: string;
-  bahn: 'Lang' | 'Kurz';
-  rows: PointRow[];
-  stand: string;
-  file: string;
-}
-
 export interface EvalInput {
   meets: EvalMeet[];
   members: EvalMember[];
   waSets: WaSet[];
-  lists: PointList[];
   config: EvalConfig;
   clubName: string;
   /** ISO date of today. */

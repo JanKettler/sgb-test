@@ -18,7 +18,6 @@ function evaluation(today = TODAY): Evaluation {
     meets: season.competitions.map((meet) => toEvalMeet(meet, null, sexes)),
     members: members.map(toEvalMember),
     waSets: sampleWaSets(seasonOf(today), today),
-    lists: [],
     config: defaultConfig(),
     clubName: 'SG Barnstorf',
     today,

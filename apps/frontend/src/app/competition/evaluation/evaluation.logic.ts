@@ -218,16 +218,34 @@ export class Evaluation {
     return Object.keys(meet.results).length > 0;
   }
 
-  /** Years with results or points lists, newest first. */
+  /** Years with results, newest first. */
   years(): string[] {
     const years = new Set<string>();
-    for (const list of this.input.lists) years.add(list.jahr);
     for (const meet of this.input.meets) {
       if (meet.date && this.hasResults(meet) && !this.cancelled(meet)) {
         years.add(meet.date.slice(0, 4));
       }
     }
     return [...years].sort().reverse();
+  }
+
+  /**
+   * The seasons to choose from, newest first: every year with a meet, this year and the year
+   * before. The file is made late in the new year for the season before, so that one is always
+   * there, even without any result.
+   */
+  seasons(): string[] {
+    const thisYear = Number(this.input.today.slice(0, 4));
+    const seasons = new Set([String(thisYear), String(thisYear - 1)]);
+    for (const meet of this.input.meets) {
+      if (meet.date && !this.cancelled(meet)) seasons.add(meet.date.slice(0, 4));
+    }
+    return [...seasons].sort().reverse();
+  }
+
+  /** The season that is shown first: the newest one with results, otherwise this year. */
+  defaultSeason(): string {
+    return this.years()[0] ?? this.input.today.slice(0, 4);
   }
 
   /** Meets of a year that were not cancelled, oldest first. */
@@ -319,22 +337,6 @@ export class Evaluation {
       ges: 0,
       avg: 0,
     });
-    for (const course of ['Lang', 'Kurz'] as const) {
-      if (bahn !== 'best' && bahn !== course) continue;
-      const list = this.input.lists.find((item) => item.jahr === year && item.bahn === course);
-      if (!list) continue;
-      for (const row of list.rows) {
-        const key = row.name.toLowerCase();
-        const swimmer = by.get(key) ?? fresh(row.name, row.jg, row.sex);
-        by.set(key, swimmer);
-        for (const event of Object.keys(row.p)) {
-          (course === 'Lang' ? swimmer.l : swimmer.k)[event] = row.p[event];
-          if (swimmer.p[event] === undefined || swimmer.p[event] < row.p[event]) {
-            swimmer.p[event] = row.p[event];
-          }
-        }
-      }
-    }
     const starts = this.starts(year);
     for (const key of Object.keys(starts)) {
       for (const start of starts[key]) {
