@@ -1,6 +1,8 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Action } from '../ui/action';
+import { ConfirmDialog } from '../ui/confirm-dialog';
 import { DateField } from '../ui/date-field';
 import { Icon } from '../ui/icon';
 import { LinkPicker } from '../ui/link-picker';
@@ -49,6 +51,8 @@ const STATUSES = Object.entries(STATUS_LABEL) as [TaskStatus, string][];
     NgTemplateOutlet,
     RouterLink,
     Icon,
+    Action,
+    ConfirmDialog,
     ModalDialog,
     DateField,
     LinkPicker,

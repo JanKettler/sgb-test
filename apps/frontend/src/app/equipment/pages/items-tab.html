@@ -1,0 +1,208 @@
+<div class="toolbar">
+  <input
+    class="input search"
+    type="search"
+    placeholder="Name, Kategorie, Lagerort oder Notiz suchen …"
+    aria-label="Suche"
+    [value]="query()"
+    (input)="query.set(value($event))"
+  />
+  <app-action kind="excel" withText label="Excel „Materialliste“" (pressed)="exportExcel()" />
+  @if (store.canEdit()) {
+    <app-action kind="add" withText label="Neuer Gegenstand" (pressed)="add()" />
+  }
+</div>
+<div class="chip-row">
+  <button
+    type="button"
+    class="chip"
+    [class.is-on]="onlyBuy()"
+    [attr.aria-pressed]="onlyBuy()"
+    (click)="onlyBuy.set(!onlyBuy())"
+  >
+    Nachkaufen <span class="count">{{ buyCount() }}</span>
+  </button>
+  <button
+    type="button"
+    class="chip"
+    [class.is-on]="onlyLent()"
+    [attr.aria-pressed]="onlyLent()"
+    (click)="onlyLent.set(!onlyLent())"
+  >
+    Verliehen <span class="count">{{ store.lentCount() }}</span>
+  </button>
+  @if (store.overdueCount() > 0) {
+    <span class="is-late is-align-self-center">{{ store.overdueCount() }} überfällig</span>
+  }
+</div>
+
+@if (visible().length === 0) {
+  <p class="empty">Keine Gegenstände gefunden.</p>
+} @else {
+  <div class="item-list">
+    @for (item of visible(); track item.id) {
+      <article class="item" [class.is-bad]="anyOverdue(item) || item.condition === 'defekt'">
+        <div class="item-main">
+          <div class="item-title">
+            {{ item.title }}
+            @if (isLow(item)) {
+              <span class="pill is-bad">Mindestbestand</span>
+            }
+            @if (item.toBuy) {
+              <span class="pill is-warn">nachkaufen</span>
+            }
+            @if (item.condition === 'defekt') {
+              <span class="pill is-bad">defekt</span>
+            }
+            @if (item.loans.length > 0) {
+              <span
+                class="pill"
+                [class.is-bad]="anyOverdue(item)"
+                [class.is-info]="!anyOverdue(item)"
+              >
+                {{ item.loans.length }} verliehen
+              </span>
+            }
+          </div>
+          <div class="item-sub">{{ subline(item) }}</div>
+          @if (item.note) {
+            <div class="item-sub">{{ item.note }}</div>
+          }
+          @if (item.pieces.length > 0) {
+            <div class="item-sub">
+              Stücke:
+              @for (piece of item.pieces; track piece; let last = $last) {
+                @if (pieceLent(item, piece)) {
+                  <s>{{ piece }}</s
+                  >{{ last ? '' : ', ' }}
+                } @else {
+                  {{ piece }}{{ last ? '' : ', ' }}
+                }
+              }
+            </div>
+          } @else if (item.minimum !== null) {
+            <div class="item-sub">Mindestbestand {{ item.minimum }} {{ item.unit }}</div>
+          }
+
+          @if (item.loans.length > 0) {
+            <div class="item-heading">Verliehen</div>
+            @for (loan of item.loans; track loan.id) {
+              <div class="sub-row">
+                <span>
+                  <b>{{ loan.who }}</b> · {{ loan.piece || loan.count + '×' }} · seit
+                  {{ fullDate(loan.since) }}
+                  @if (loan.until) {
+                    ·
+                    <span [class.is-late]="isOverdue(loan, store.today)">
+                      @if (isOverdue(loan, store.today)) {
+                        überfällig,
+                      }
+                      zurück bis {{ fullDate(loan.until) }}
+                    </span>
+                  }
+                </span>
+                @if (store.canLend()) {
+                  <span class="sub-actions">
+                    <app-action
+                      kind="edit"
+                      small
+                      [label]="'Verleih an ' + loan.who + ' bearbeiten'"
+                      (pressed)="changing.set({ item, loan })"
+                    />
+                    <app-action
+                      kind="return"
+                      small
+                      withText
+                      [label]="'Rückgabe von ' + loan.who + ' eintragen'"
+                      (pressed)="giveBack(item, loan)"
+                    />
+                  </span>
+                }
+              </div>
+            }
+          }
+          @if (item.history.length > 0) {
+            <div class="item-heading">Zuletzt zurückgegeben</div>
+            @for (entry of item.history.slice(0, 5); track $index) {
+              <div class="item-sub">
+                {{ entry.who }}{{ entry.piece ? ' · ' + entry.piece : '' }} ·
+                {{ fullDate(entry.since) }} bis {{ fullDate(entry.back) }}
+              </div>
+            }
+          }
+        </div>
+        <div class="item-actions">
+          @if (store.canLend()) {
+            <app-action
+              kind="lend"
+              withText
+              [label]="item.title + ' verleihen'"
+              [disabled]="availableOf(item) <= 0"
+              (pressed)="lending.set(item)"
+            />
+            @if (item.pieces.length === 0) {
+              <app-action
+                kind="stock"
+                [label]="'Bestand von ' + item.title + ' ändern'"
+                (pressed)="counting.set(item)"
+              />
+            }
+          }
+          @if (store.canEdit()) {
+            <app-action
+              kind="edit"
+              [label]="item.title + ' bearbeiten'"
+              (pressed)="editing.set(item)"
+            />
+            <app-action
+              kind="delete"
+              [label]="item.title + ' löschen'"
+              (pressed)="toDelete.set(item)"
+            />
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (editing(); as current) {
+  <app-form-dialog
+    [heading]="current.id ? 'Gegenstand bearbeiten' : 'Neuer Gegenstand'"
+    [fields]="fields"
+    [values]="current"
+    [check]="check"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (counting(); as item) {
+  <app-form-dialog
+    heading="Bestand ändern"
+    [subtitle]="item.title"
+    [fields]="stockFields"
+    [values]="item"
+    [check]="stockCheck"
+    (saved)="saveStock($event)"
+    (closed)="counting.set(null)"
+  />
+}
+
+@if (lending(); as item) {
+  <app-loan-dialog [item]="item" (closed)="lending.set(null)" />
+}
+
+@if (changing(); as change) {
+  <app-loan-dialog [item]="change.item" [loan]="change.loan" (closed)="changing.set(null)" />
+}
+
+@if (toDelete(); as item) {
+  <app-confirm-dialog
+    heading="Gegenstand löschen?"
+    [subtitle]="item.title"
+    text="Der Gegenstand verschwindet mit allen Ausgaben aus der Liste."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

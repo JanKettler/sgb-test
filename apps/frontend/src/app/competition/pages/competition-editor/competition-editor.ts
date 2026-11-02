@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ActivatedRoute, Router } from '@angular/router';
 import { PeopleStore } from '../../../people/people.store';
 import { GROUPS, GroupId } from '../../../training/training.models';
+import { Action } from '../../../ui/action';
+import { ConfirmDialog } from '../../../ui/confirm-dialog';
 import { DateField } from '../../../ui/date-field';
 import { Icon, IconName } from '../../../ui/icon';
 import { ModalDialog } from '../../../ui/modal-dialog';
@@ -17,7 +19,6 @@ import {
   STYLES,
   TIMINGS,
   eventLabel,
-  euro,
   showTime,
 } from '../../competition.models';
 import { CompetitionStore, MailDraft } from '../../competition.store';
@@ -29,6 +30,7 @@ import { MeetResults } from '../meet-results/meet-results';
 import { MeetSchedule } from '../meet-schedule/meet-schedule';
 import { MailDialog } from '../mail-dialog/mail-dialog';
 import { RelayForm } from '../relay-form/relay-form';
+import { euro } from '../../../core/money';
 
 type Tab =
   | 'base'
@@ -61,6 +63,8 @@ type MoneyKey = 'flatFee' | 'perSwimmerFee' | 'discount';
 @Component({
   selector: 'app-competition-editor',
   imports: [
+    Action,
+    ConfirmDialog,
     Icon,
     DateField,
     ModalDialog,

@@ -1,5 +1,6 @@
+import { headWidth } from '../xlsx';
 import { Block, Row } from './evaluation.model';
-import { blocksToRows, createReportXlsx } from './evaluation.xlsx';
+import { ReportCell, blocksToRows, createReportXlsx } from './evaluation.xlsx';
 
 /** Reads a ZIP whose files are stored, like the one `createZip` writes. */
 function readZip(bytes: Uint8Array): Map<string, string> {
@@ -219,7 +220,31 @@ describe('createReportXlsx', () => {
 
   it('sets the column widths from the longest text, at least 8', () => {
     const sheet = files.get('xl/worksheets/sheet1.xml') ?? '';
-    expect(sheet).toContain('<col min="1" max="1" width="8" customWidth="1"/>');
+    expect(sheet).toContain(`<col min="1" max="1" width="${headWidth('Platz')}" customWidth="1"/>`);
     expect(sheet).toContain('<col min="2" max="2" width="15.');
+  });
+
+  it('keeps every heading on one line: no wrapping and columns as wide as the heading', () => {
+    expect(files.get('xl/styles.xml') ?? '').not.toContain('wrapText');
+    const head = (v: string): ReportCell => ({ v, s: 2 });
+    const book = createReportXlsx([
+      {
+        name: 'Kopf',
+        rows: [
+          [head('Durchschnitt Punkte'), head('Anzahl Strecken'), head('Pkt')],
+          [
+            { v: 1, s: 4 },
+            { v: 2, s: 4 },
+            { v: 3, s: 4 },
+          ],
+        ],
+      },
+    ]);
+    const sheet = readZip(book).get('xl/worksheets/sheet1.xml') ?? '';
+    for (const [index, title] of ['Durchschnitt Punkte', 'Anzahl Strecken', 'Pkt'].entries()) {
+      expect(sheet).toContain(
+        `<col min="${index + 1}" max="${index + 1}" width="${Math.max(8, headWidth(title))}" customWidth="1"/>`,
+      );
+    }
   });
 });

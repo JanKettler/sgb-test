@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { PeopleStore } from '../../../people/people.store';
 import { fullDate, weekdayLong, weekdayShort } from '../../../training/training-dates';
+import { Action } from '../../../ui/action';
 import { Icon } from '../../../ui/icon';
 import { Competition, dateOf } from '../../competition.models';
 import { CompetitionStore } from '../../competition.store';
@@ -29,7 +30,7 @@ interface Row {
 
 @Component({
   selector: 'app-competition-entry',
-  imports: [Icon, EntryForm],
+  imports: [Action, Icon, EntryForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './entry.html',
   styleUrl: './entry.scss',

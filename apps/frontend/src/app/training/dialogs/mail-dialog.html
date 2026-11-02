@@ -26,9 +26,7 @@
   </textarea>
   <p class="label mt-2">Demo: Es wird keine Mail verschickt.</p>
   <ng-container dialogActions>
-    <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
-    <button type="button" class="button is-primary" (click)="sent.emit(recipients().length)">
-      Senden
-    </button>
+    <app-action kind="cancel" withText (pressed)="closed.emit()" />
+    <app-action kind="send" withText (pressed)="sent.emit(recipients().length)" />
   </ng-container>
 </app-modal-dialog>

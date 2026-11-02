@@ -1,0 +1,51 @@
+<div class="toolbar">
+  <p class="item-sub mb-0">
+    Diese Werte werden bei jeder neuen Abrechnung und Fahrt vorgeschlagen. Jede Abrechnung kann den
+    Satz für sich ändern.
+  </p>
+  @if (store.isAdmin()) {
+    <app-action kind="edit" withText label="Sätze bearbeiten" (pressed)="editing.set(true)" />
+  }
+</div>
+
+<dl class="facts">
+  <dt>Standard-Stundensatz</dt>
+  <dd>{{ euro(store.rates().hourly) }}</dd>
+  <dt>Kilometergeld</dt>
+  <dd>{{ euro(store.rates().km) }} pro km</dd>
+  <dt>Fahrer-Pauschale (Wettkampftraining)</dt>
+  <dd>{{ euro(store.rates().driveFee) }}</dd>
+</dl>
+
+<h3 class="item-heading">Fahrerliste</h3>
+@if (store.rates().drivers.length === 0) {
+  <p class="item-sub">Noch keine Fahrer. Dann stehen alle Trainer zur Auswahl.</p>
+} @else {
+  <div class="chip-row">
+    @for (name of store.rates().drivers; track name) {
+      <span class="pill is-info">{{ name }}</span>
+    }
+  </div>
+}
+
+<h3 class="item-heading">Satz nach Lizenz</h3>
+@if (store.rates().licenses.length === 0) {
+  <p class="item-sub">Keine Lizenz-Sätze. Es gilt der Standard-Stundensatz.</p>
+} @else {
+  <dl class="facts">
+    @for (entry of store.rates().licenses; track entry.name) {
+      <dt>{{ entry.name }}</dt>
+      <dd>{{ euro(entry.rate) }}</dd>
+    }
+  </dl>
+}
+
+@if (editing()) {
+  <app-form-dialog
+    heading="Sätze"
+    [fields]="fields()"
+    [values]="values()"
+    (saved)="save($event)"
+    (closed)="editing.set(false)"
+  />
+}

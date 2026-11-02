@@ -7,9 +7,7 @@
   </div>
   <div class="buttons">
     @if (store.canEdit()) {
-      <button type="button" class="button is-primary" (click)="add()">
-        <app-icon name="plus" /> Neue Aufgabe
-      </button>
+      <app-action kind="add" label="Neue Aufgabe" withText (pressed)="add()" />
     }
   </div>
 </header>
@@ -221,17 +219,17 @@
             </button>
           }
           @if (store.canTick(task)) {
-            <button type="button" class="button is-small" (click)="commenting.set(task)">
-              Kommentar
-            </button>
+            <app-action
+              kind="add"
+              label="Kommentar"
+              withText
+              small
+              (pressed)="commenting.set(task)"
+            />
           }
           @if (store.canEdit()) {
-            <button type="button" class="button is-small is-warning" (click)="edit(task)">
-              <app-icon name="pencil" /> Bearbeiten
-            </button>
-            <button type="button" class="button is-small is-danger" (click)="toDelete.set(task)">
-              <app-icon name="trash" /> Löschen
-            </button>
+            <app-action kind="edit" withText small (pressed)="edit(task)" />
+            <app-action kind="delete" withText small (pressed)="toDelete.set(task)" />
           }
         </div>
       </div>
@@ -288,9 +286,7 @@
           />
         </div>
         <div class="control">
-          <button type="button" class="button is-small" (click)="addWho()">
-            <app-icon name="plus" /> Hinzufügen
-          </button>
+          <app-action kind="add" withText small (pressed)="addWho()" />
         </div>
       </div>
     </div>
@@ -339,15 +335,12 @@
             [value]="sub.text"
             (input)="editSub($index, value($event))"
           />
-          <button
-            type="button"
-            class="button is-small"
-            [attr.aria-label]="'Unteraufgabe ' + ($index + 1) + ' entfernen'"
-            title="Entfernen"
-            (click)="removeSub($index)"
-          >
-            <app-icon name="x" />
-          </button>
+          <app-action
+            kind="delete"
+            small
+            [label]="'Unteraufgabe ' + ($index + 1) + ' entfernen'"
+            (pressed)="removeSub($index)"
+          />
         </div>
       }
       <div class="field has-addons mb-0">
@@ -362,9 +355,7 @@
           />
         </div>
         <div class="control">
-          <button type="button" class="button is-small" (click)="addSub()">
-            <app-icon name="plus" /> Hinzufügen
-          </button>
+          <app-action kind="add" withText small (pressed)="addSub()" />
         </div>
       </div>
     </div>
@@ -377,42 +368,20 @@
       />
     </div>
     <ng-container dialogActions>
-      <button
-        type="button"
-        class="button is-danger"
-        aria-label="Abbrechen"
-        title="Abbrechen"
-        (click)="cancel()"
-      >
-        <app-icon name="x" />
-      </button>
-      <button
-        type="button"
-        class="button is-success"
-        aria-label="Speichern"
-        title="Speichern"
-        (click)="save()"
-      >
-        <app-icon name="save" />
-      </button>
+      <app-action kind="cancel" (pressed)="cancel()" />
+      <app-action kind="save" (pressed)="save()" />
     </ng-container>
   </app-modal-dialog>
 }
 
 @if (toDelete(); as task) {
-  <app-modal-dialog
+  <app-confirm-dialog
     heading="Aufgabe löschen?"
-    [compact]="true"
     [subtitle]="task.title"
-    accent="red"
+    text="Die Aufgabe wird endgültig entfernt."
+    (confirmed)="confirmDelete()"
     (closed)="toDelete.set(null)"
-  >
-    <p>Die Aufgabe wird endgültig entfernt.</p>
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
-      <button type="button" class="button is-danger" (click)="confirmDelete()">Löschen</button>
-    </ng-container>
-  </app-modal-dialog>
+  />
 }
 
 @if (commenting(); as task) {
@@ -430,8 +399,8 @@
       (input)="commentText.set(value($event))"
     />
     <ng-container dialogActions>
-      <button type="button" class="button" (click)="commenting.set(null)">Abbrechen</button>
-      <button type="button" class="button is-primary" (click)="sendComment()">Speichern</button>
+      <app-action kind="cancel" withText (pressed)="commenting.set(null)" />
+      <app-action kind="save" withText (pressed)="sendComment()" />
     </ng-container>
   </app-modal-dialog>
 }

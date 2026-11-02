@@ -87,7 +87,7 @@ export class Start {
         icon: event.icon,
         title: event.title,
         text: `${weekdayShort(event.date)}, ${fullDate(event.date)} · ${event.info}`,
-        route: '/',
+        route: event.route,
         days,
       });
     }

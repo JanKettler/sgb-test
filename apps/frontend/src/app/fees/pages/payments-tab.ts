@@ -6,19 +6,22 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { Icon } from '../../ui/icon';
+import { Action } from '../../ui/action';
+import { ConfirmDialog } from '../../ui/confirm-dialog';
 import { SortButton, SortState } from '../../ui/sort';
 import { TablePager, pageOf } from '../../ui/table-pager';
-import { ModalDialog } from '../../ui/modal-dialog';
+import { downloadXlsx } from '../../competition/competition-download';
 import { downloadText } from '../../training/training-download';
-import { Payment, euro } from '../fees.models';
+import { paymentsBook } from '../fees.export';
+import { Payment } from '../fees.models';
 import { FeesStore } from '../fees.store';
+import { euro } from '../../core/money';
 
 type StatusFilter = 'open' | 'paid' | 'all';
 
 @Component({
   selector: 'app-payments-tab',
-  imports: [Icon, ModalDialog, SortButton, TablePager],
+  imports: [Action, ConfirmDialog, SortButton, TablePager],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './payments-tab.html',
   styles: `
@@ -121,8 +124,11 @@ export class PaymentsTab {
     );
   }
 
-  exportCsv(): void {
-    downloadText('Zahlungen.csv', this.store.paymentsCsv(this.rows()));
+  exportExcel(): void {
+    downloadXlsx(
+      'Zahlungen.xlsx',
+      paymentsBook(this.store.paymentLines(this.rows()), this.store.today),
+    );
   }
 
   exportSepa(): void {

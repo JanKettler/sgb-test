@@ -49,18 +49,21 @@
                 <span class="pill is-bad">Keine Rückmeldung</span>
               }
             }
-            <button
-              type="button"
-              class="button is-small"
-              [attr.aria-expanded]="openId() === row.competition.id"
-              [attr.aria-label]="
-                openId() === row.competition.id ? 'Zuklappen' : 'Anmelden oder ändern'
-              "
-              [title]="openId() === row.competition.id ? 'Zuklappen' : 'Anmelden oder ändern'"
-              (click)="toggle(row.competition.id)"
-            >
-              <app-icon [name]="openId() === row.competition.id ? 'chevron-up' : 'pencil'" />
-            </button>
+            @if (openId() === row.competition.id) {
+              <app-action
+                kind="collapse"
+                label="Zuklappen"
+                small
+                (pressed)="toggle(row.competition.id)"
+              />
+            } @else {
+              <app-action
+                kind="edit"
+                label="Anmelden oder ändern"
+                small
+                (pressed)="toggle(row.competition.id)"
+              />
+            }
           </div>
         </div>
         @if (openId() === row.competition.id) {

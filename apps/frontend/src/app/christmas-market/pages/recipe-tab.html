@@ -1,0 +1,134 @@
+<div class="box">
+  <div class="card-head">
+    <div>
+      <h2 class="title is-5 mb-1">{{ store.recipe().name }}</h2>
+      <p class="sub">
+        Die Mengen gelten für {{ numberText(store.recipe().baseLiters) }} Liter und werden
+        umgerechnet.
+      </p>
+    </div>
+    @if (store.canOrganize()) {
+      <app-action
+        kind="edit"
+        withText
+        label="Zubereitung bearbeiten"
+        (pressed)="editing.set(true)"
+      />
+    }
+  </div>
+
+  <div class="field">
+    <label class="label" for="recipe-liters">Wie viele Liter werden gebraucht?</label>
+    <div class="control">
+      <input
+        id="recipe-liters"
+        class="input"
+        type="number"
+        min="0"
+        step="0.5"
+        inputmode="decimal"
+        [value]="shown()"
+        (input)="type($event)"
+      />
+    </div>
+  </div>
+
+  @if (liters() > 0) {
+    <div class="table-container">
+      <table class="data-table has-cols">
+        <thead>
+          <tr>
+            <th class="is-left">Zutat</th>
+            <th>Menge für {{ numberText(liters()) }} Liter</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (portion of portions(); track portion.name) {
+            <tr>
+              <td class="is-left">
+                {{ portion.name }}
+                @if (!portion.buy) {
+                  <span class="sub">wird nicht gekauft</span>
+                }
+              </td>
+              <td class="is-center">
+                <b>{{ quantity(portion.amount, portion.unit) }}</b>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p class="empty">Trag eine Menge über 0 Litern ein.</p>
+  }
+
+  @if (store.canOrganize()) {
+    <div class="mt-4">
+      <app-action
+        kind="cart"
+        withText
+        label="Bedarf in die Einkaufsliste übernehmen"
+        [disabled]="liters() <= 0"
+        (pressed)="confirming.set(true)"
+      />
+    </div>
+  }
+</div>
+
+<div class="box">
+  <h3 class="title is-5">Zubereitung</h3>
+  @if (steps().length === 0) {
+    <p class="empty">Es ist noch keine Zubereitung eingetragen.</p>
+  } @else {
+    <ol class="ml-5">
+      @for (step of steps(); track $index) {
+        <li>{{ step }}</li>
+      }
+    </ol>
+  }
+  @if (store.recipe().note) {
+    <p class="sub mt-3 keep-lines">{{ store.recipe().note }}</p>
+  }
+</div>
+
+@if (editing()) {
+  <app-form-dialog
+    heading="Zubereitung bearbeiten"
+    [subtitle]="store.recipe().name"
+    [fields]="recipeForm"
+    [values]="values()"
+    (saved)="save($event)"
+    (closed)="editing.set(false)"
+  />
+}
+
+@if (confirming()) {
+  <app-modal-dialog
+    heading="Bedarf übernehmen?"
+    [subtitle]="numberText(liters()) + ' Liter ' + store.recipe().name"
+    accent="amber"
+    (closed)="confirming.set(false)"
+  >
+    <p class="mb-2">Der Bedarf dieser Artikel in der Einkaufsliste wird so gesetzt:</p>
+    <ul class="item-list">
+      @for (line of plan(); track line.name) {
+        <li class="sub-row">
+          <span>{{ line.name }}</span>
+          <span>
+            @if (line.known) {
+              <span class="item-sub">{{ line.before }} → </span>
+            } @else {
+              <span class="pill is-info">neu</span>
+            }
+            <b>{{ quantity(line.amount, line.unit) }}</b>
+          </span>
+        </li>
+      }
+    </ul>
+    <ng-container dialogActions>
+      <app-action kind="cancel" withText (pressed)="confirming.set(false)" />
+      <app-action kind="done" withText label="Übernehmen" (pressed)="transfer()" />
+    </ng-container>
+  </app-modal-dialog>
+}

@@ -29,16 +29,14 @@
   }
   <ng-container dialogActions>
     @if (otherSelected()) {
-      <button type="button" class="button" (click)="otherSelected.set(false)">Zurück</button>
-      <button
-        type="button"
-        class="button is-danger"
-        (click)="chosen.emit({ reason: other, note: note() })"
-      >
-        Abmelden
-      </button>
+      <app-action kind="back" withText (pressed)="otherSelected.set(false)" />
+      <app-action
+        kind="unregister"
+        withText
+        (pressed)="chosen.emit({ reason: other, note: note() })"
+      />
     } @else {
-      <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
+      <app-action kind="cancel" withText (pressed)="closed.emit()" />
     }
   </ng-container>
 </app-modal-dialog>

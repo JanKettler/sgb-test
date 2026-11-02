@@ -141,7 +141,6 @@ function input(change: Partial<EvalInput> = {}): EvalInput {
     meets: [meetOne(), meetTwo(), meetThree()],
     members: [],
     waSets: WA,
-    lists: [],
     config: defaultConfig(),
     clubName: 'SG Barnstorf',
     today: '2026-11-01',
@@ -246,24 +245,34 @@ describe('Evaluation: starts and ranking', () => {
     expect(short[0].ges).toBe(701);
   });
 
-  it('adds points lists of the old club software to the ranking', () => {
-    const withList = new Evaluation(
-      input({
-        lists: [
-          {
-            id: 'ps-2026-lang',
-            jahr: '2026',
-            bahn: 'Lang',
-            rows: [{ name: 'Zora Alt', jg: 2010, sex: 'W', p: { '100B': 500 }, ges: 500 }],
-            stand: '2026-02-01',
-            file: 'liste.csv',
-          },
-        ],
-      }),
-    );
-    const list = withList.ranking('2026', 'best');
+  it('works out the ranking from the results alone, without any list of the old software', () => {
+    const list = ev.ranking('2026', 'best');
     expect(list[0].name).toBe('Anna Muster');
-    expect(list.find((swimmer) => swimmer.name === 'Zora Alt')?.ges).toBe(500);
+    expect(list.map((swimmer) => swimmer.name)).not.toContain('Zora Alt');
+  });
+});
+
+describe('Evaluation: seasons', () => {
+  it('offers this year, last year and every year with a meet, newest first', () => {
+    expect(new Evaluation(input()).seasons()).toEqual(['2026', '2025']);
+    expect(new Evaluation(input({ today: '2027-02-10' })).seasons()).toEqual(['2027', '2026']);
+    const old = { ...meetOne(), id: 'old', date: '2023-05-01' };
+    expect(new Evaluation(input({ meets: [old, meetOne()] })).seasons()).toEqual([
+      '2026',
+      '2025',
+      '2023',
+    ]);
+  });
+
+  it('shows the newest season with results first, so the file of last year can be made in January', () => {
+    expect(new Evaluation(input({ today: '2027-01-12' })).defaultSeason()).toBe('2026');
+    const onlyPlanned = input({ meets: [meetThree()], today: '2027-01-12' });
+    expect(new Evaluation(onlyPlanned).defaultSeason()).toBe('2027');
+  });
+
+  it('leaves out cancelled meets', () => {
+    const cancelled = { ...meetOne(), id: 'c', title: 'Abgesagt: Cup', date: '2020-03-01' };
+    expect(new Evaluation(input({ meets: [cancelled] })).seasons()).toEqual(['2026', '2025']);
   });
 });
 

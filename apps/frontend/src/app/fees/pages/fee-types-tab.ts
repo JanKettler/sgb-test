@@ -6,14 +6,16 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { Icon } from '../../ui/icon';
-import { downloadText } from '../../training/training-download';
-import { FeeType, euro, parseEuro } from '../fees.models';
+import { Action } from '../../ui/action';
+import { downloadXlsx } from '../../competition/competition-download';
+import { feeTypesBook } from '../fees.export';
+import { FeeType } from '../fees.models';
 import { FeesStore } from '../fees.store';
+import { euro, parseEuro } from '../../core/money';
 
 @Component({
   selector: 'app-fee-types-tab',
-  imports: [Icon],
+  imports: [Action],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './fee-types-tab.html',
 })
@@ -66,21 +68,13 @@ export class FeeTypesTab {
     this.notice.emit(`${type.name} wurde gespeichert.`);
   }
 
-  exportCsv(): void {
-    const lines = [
-      ['Beitragsart', 'Regel', 'Betrag', 'Zahler'],
-      ...this.store
-        .types()
-        .map((type) => [
-          type.name,
-          type.rule,
-          euro(type.amount),
-          String(this.store.payerCount(type.id)),
-        ]),
-    ];
-    downloadText(
-      'Beitragsarten.csv',
-      String.fromCharCode(0xfeff) + lines.map((line) => line.join(';')).join('\r\n'),
-    );
+  exportExcel(): void {
+    const lines = this.store.types().map((type) => ({
+      name: type.name,
+      rule: type.rule,
+      amount: type.amount,
+      payers: this.store.payerCount(type.id),
+    }));
+    downloadXlsx('Beitragsarten.xlsx', feeTypesBook(lines, this.store.today));
   }
 }

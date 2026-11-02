@@ -1,15 +1,17 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { downloadXlsx } from '../../competition/competition-download';
+import { Action } from '../../ui/action';
 import { DateField } from '../../ui/date-field';
 import { ModalDialog } from '../../ui/modal-dialog';
 import { addDays, addMonths, lastDayOfMonth, monthKey } from '../training-dates';
-import { downloadText } from '../training-download';
+import { attendanceBook, attendanceFileName } from '../training.export';
 import { GroupId } from '../training.models';
 import { ExportContent, TrainingStore } from '../training.store';
 
 /** Pop-up for the Excel list: names as rows, sessions as columns. */
 @Component({
   selector: 'app-export-dialog',
-  imports: [ModalDialog, DateField],
+  imports: [Action, ModalDialog, DateField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './export-dialog.html',
 })
@@ -61,8 +63,11 @@ export class ExportDialog {
 
   protected download(): void {
     const group = this.currentGroup();
-    const csv = this.store.attendanceCsv(group, this.content(), this.from(), this.to());
-    downloadText(`Anwesenheit_${group}_${this.from()}_${this.to()}.csv`, csv);
+    const [from, to] = [this.from(), this.to()];
+    const blank = this.content() === 'blank';
+    const table = this.store.attendanceTable(group, this.content(), from, to);
+    const name = this.store.groupName(group);
+    downloadXlsx(attendanceFileName(group, from, to), attendanceBook(name, table, from, to, blank));
     this.closed.emit();
   }
 }

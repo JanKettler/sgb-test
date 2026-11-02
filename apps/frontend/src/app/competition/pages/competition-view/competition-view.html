@@ -1,0 +1,186 @@
+@let meet = item();
+@if (meet) {
+  <header
+    class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-3"
+  >
+    <div>
+      <h2 class="title is-4 mb-1">{{ meet.title || 'Ohne Namen' }}</h2>
+      <p class="subtitle is-6 mb-0">
+        {{ meet.place }}
+        @if (firstDay()) {
+          · {{ date(firstDay()) }}
+        }
+      </p>
+    </div>
+    <div class="icon-row">
+      <app-action kind="back" withText label="Zur Liste" link="/wettkampf/wettkaempfe" />
+      @if (store.canManage()) {
+        <app-action
+          kind="edit"
+          withText
+          label="Bearbeiten"
+          [link]="['/wettkampf/wettkaempfe', meet.id]"
+        />
+      }
+    </div>
+  </header>
+
+  <section class="box">
+    <div class="status-line">
+      <progress
+        class="progress is-small is-link"
+        [value]="progress().done"
+        [max]="progress().total"
+        aria-label="Fortschritt der Checkliste"
+      ></progress>
+      <span class="item-sub">Checkliste {{ progress().done }}/{{ progress().total }}</span>
+      @for (warning of warnings(); track warning.text) {
+        <span
+          class="pill"
+          [class.is-warn]="warning.tone === 'warn'"
+          [class.is-bad]="warning.tone === 'bad'"
+        >
+          {{ warning.text }}
+        </span>
+      }
+    </div>
+
+    <h3>Termin und Meldung</h3>
+    <dl class="facts">
+      @for (fact of facts(); track fact.label) {
+        <dt>{{ fact.label }}</dt>
+        <dd>{{ fact.text }}</dd>
+      }
+    </dl>
+
+    <h3>Abschnitte</h3>
+    @if (meet.sections.length === 0) {
+      <p class="empty">Noch keine Abschnitte.</p>
+    } @else {
+      <div class="table-container">
+        <table class="table is-narrow is-fullwidth">
+          <thead>
+            <tr>
+              <th scope="col">Abschnitt</th>
+              <th scope="col">Datum</th>
+              <th scope="col">Einlass</th>
+              <th scope="col">Einschwimmen</th>
+              <th scope="col">Kampfrichter</th>
+              <th scope="col">Beginn</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (section of meet.sections; track section.no) {
+              <tr>
+                <td>
+                  {{ section.no }}
+                  @if (section.relative) {
+                    <span class="pill" title="Die Zeiten gelten nach dem vorigen Abschnitt">
+                      nach Abs. davor
+                    </span>
+                  }
+                </td>
+                <td>{{ date(section.date) || '–' }}</td>
+                <td>{{ section.entry || '–' }}</td>
+                <td>{{ section.warmup || '–' }}</td>
+                <td>{{ section.judges || '–' }}</td>
+                <td>{{ section.start || '–' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <h3>Wettkampffolge</h3>
+    @if (meet.events.length === 0) {
+      <p class="empty">Noch keine Wettkämpfe.</p>
+    } @else {
+      <div class="table-container">
+        <table class="table is-narrow is-fullwidth">
+          <thead>
+            <tr>
+              <th scope="col">Wk</th>
+              <th scope="col">Abschnitt</th>
+              <th scope="col">Strecke</th>
+              <th scope="col">Geschlecht</th>
+              <th scope="col">Jahrgänge</th>
+              <th scope="col" class="has-text-right">Meldegeld</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (event of meet.events; track event.no) {
+              <tr>
+                <td>{{ event.no }}</td>
+                <td>{{ event.section }}</td>
+                <td>{{ eventLabel(event) }}</td>
+                <td>{{ sexLabel(event.sex) }}</td>
+                <td>{{ event.birthYears || 'offen' }}</td>
+                <td class="has-text-right">{{ euro(event.fee) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <h3>Meldungen</h3>
+    @if (starters().length === 0 && relays().length === 0) {
+      <p class="empty">Noch keine Meldungen.</p>
+    } @else {
+      <ul class="entry-list">
+        @for (row of starters(); track row.id) {
+          <li>
+            <div class="entry-head">
+              <strong>{{ row.name }}</strong>
+              <span class="item-sub">Jg. {{ row.year }}</span>
+              @for (issue of row.issues; track issue) {
+                <span class="pill is-warn">{{ issue }}</span>
+              }
+            </div>
+            <div class="item-sub">{{ row.starts.join(' · ') }}</div>
+          </li>
+        }
+        @for (relay of relays(); track relay.name + relay.start) {
+          <li>
+            <div class="entry-head">
+              <strong>{{ relay.name }}</strong>
+              <span class="item-sub">Jg. {{ relay.year }}</span>
+            </div>
+            <div class="item-sub">{{ relay.start }}</div>
+            <div class="item-sub">{{ relay.members }}</div>
+          </li>
+        }
+      </ul>
+    }
+
+    <h3>Kampfrichter und Trainer</h3>
+    @if (staff().length === 0) {
+      <p class="empty">Noch keine Abschnitte.</p>
+    } @else {
+      <dl class="facts">
+        @for (row of staff(); track row.section) {
+          <dt>Abschnitt {{ row.section }}</dt>
+          <dd>
+            <div>
+              <span class="item-sub">Kampfrichter</span>
+              {{ row.judges.length > 0 ? row.judges.join(', ') : 'niemand eingetragen' }}
+              @if (row.needed !== null) {
+                <span class="pill" [class.is-ok]="row.judges.length >= row.needed">
+                  {{ row.judges.length }} von {{ row.needed }}
+                </span>
+              }
+            </div>
+            <div>
+              <span class="item-sub">Trainer</span>
+              {{ row.coaches.length > 0 ? row.coaches.join(', ') : 'niemand eingetragen' }}
+            </div>
+          </dd>
+        }
+      </dl>
+    }
+  </section>
+} @else {
+  <p class="empty">Diesen Wettkampf gibt es nicht.</p>
+  <app-action kind="back" withText label="Zur Liste" link="/wettkampf/wettkaempfe" />
+}

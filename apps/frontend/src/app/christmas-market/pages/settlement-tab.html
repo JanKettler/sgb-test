@@ -1,0 +1,228 @@
+<div class="box">
+  <div class="card-head">
+    <div>
+      <h2 class="title is-5 mb-1">Abrechnung</h2>
+      <p class="sub">Was in der Kasse zusammenkommt, was ausgegeben wurde und was übrig bleibt.</p>
+    </div>
+    <div class="icon-row">
+      <app-action kind="excel" withText label="Abrechnung als Excel" (pressed)="excel()" />
+      @if (store.isAdmin()) {
+        <app-action
+          kind="settings"
+          withText
+          label="Gebühr und Teig"
+          (pressed)="settings.set(true)"
+        />
+      }
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table has-cols">
+      <thead>
+        <tr>
+          <th class="is-left">Tag</th>
+          <th class="has-text-right">Verkäufe</th>
+          <th class="has-text-right">Spenden</th>
+          <th class="has-text-right">Summe</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (day of days; track day) {
+          <tr>
+            <td class="is-left">{{ dayName[day] }}</td>
+            <td class="has-text-right">{{ euro(finance().days[day].sales) }}</td>
+            <td class="has-text-right">{{ euro(finance().days[day].donation) }}</td>
+            <td class="has-text-right">
+              <b>{{ euro(finance().days[day].total) }}</b>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <dl class="facts mt-4">
+    <dt>Gesamtumsatz</dt>
+    <dd>{{ euro(finance().revenue) }}</dd>
+    <dt>Standgebühr</dt>
+    <dd>− {{ euro(finance().fee) }}</dd>
+    <dt>Ausgaben</dt>
+    <dd>− {{ euro(finance().expenses) }}</dd>
+    <dt>Gewinn</dt>
+    <dd>
+      <b [class]="profitClass()">{{ euro(finance().profit) }}</b>
+    </dd>
+    <dt>Waffeln</dt>
+    <dd>{{ store.waffles() }} insgesamt, davon {{ freeWaffles() }} gratis für die Helfer</dd>
+    <dt>Teig</dt>
+    <dd>{{ store.batches() }} Teige bei {{ store.wafflesPerBatch() }} Waffeln pro Teig</dd>
+  </dl>
+
+  <div class="box-note">
+    @if (store.booked(); as entry) {
+      <app-icon name="check-double" />
+      Der Gewinn ist am {{ fullDate(entry.date) }} mit {{ euro(entry.amount) }} in der Jugendkasse
+      gebucht.
+    } @else {
+      <div class="card-head mb-0">
+        <span> Der Gewinn kann einmal als Einnahme in die Jugendkasse gebucht werden. </span>
+        <app-action
+          kind="done"
+          withText
+          label="In die Jugendkasse buchen"
+          [disabled]="!canBook()"
+          (pressed)="booking.set(true)"
+        />
+      </div>
+    }
+  </div>
+</div>
+
+<div class="box">
+  <div class="card-head">
+    <h3 class="title is-5 mb-0">Ausgaben</h3>
+    @if (store.canOrganize()) {
+      <app-action kind="add" withText small label="Ausgabe" (pressed)="addExpense()" />
+    }
+  </div>
+  @if (sortedExpenses().length === 0) {
+    <p class="empty">Es wurden noch keine Ausgaben eingetragen.</p>
+  } @else {
+    <div class="item-list">
+      @for (expense of sortedExpenses(); track expense.id) {
+        <div class="item">
+          <div class="item-main">
+            <div class="item-title">
+              {{ expense.text }}
+              @if (expense.receipt) {
+                <span class="pill is-ok">Beleg</span>
+              } @else {
+                <span class="pill is-warn">ohne Beleg</span>
+              }
+            </div>
+            <div class="item-sub">
+              {{ expense.date ? fullDate(expense.date) + ' · ' : '' }}{{ euro(expense.amount) }}
+            </div>
+          </div>
+          @if (store.canOrganize()) {
+            <div class="item-actions">
+              <app-action
+                kind="edit"
+                small
+                label="Ausgabe bearbeiten"
+                (pressed)="editingExpense.set(expense)"
+              />
+              <app-action
+                kind="delete"
+                small
+                label="Ausgabe löschen"
+                (pressed)="expenseToDelete.set(expense)"
+              />
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<div class="box">
+  <div class="card-head">
+    <h3 class="title is-5 mb-0">Produkte und Preise</h3>
+    @if (store.isAdmin()) {
+      <app-action kind="add" withText small label="Produkt" (pressed)="addProduct()" />
+    }
+  </div>
+  <div class="item-list">
+    @for (product of store.products(); track product.id) {
+      <div class="item">
+        <div class="item-main">
+          <div class="item-title"><app-icon [name]="product.icon" /> {{ product.name }}</div>
+          <div class="item-sub">{{ euro(product.price) }} je {{ product.unit }}</div>
+        </div>
+        @if (store.isAdmin()) {
+          <div class="item-actions">
+            <app-action
+              kind="edit"
+              small
+              [label]="product.name + ' bearbeiten'"
+              (pressed)="editingProduct.set(product)"
+            />
+            @if (!product.builtin) {
+              <app-action
+                kind="delete"
+                small
+                [label]="product.name + ' löschen'"
+                (pressed)="productToDelete.set(product)"
+              />
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+@if (settings()) {
+  <app-form-dialog
+    heading="Gebühr und Teig"
+    [fields]="settingsForm"
+    [values]="settingsValues()"
+    (saved)="saveSettings($event)"
+    (closed)="settings.set(false)"
+  />
+}
+
+@if (editingProduct(); as product) {
+  <app-form-dialog
+    [heading]="product.id ? 'Produkt bearbeiten' : 'Produkt hinzufügen'"
+    [fields]="productForm"
+    [values]="productValues()"
+    (saved)="saveProduct($event)"
+    (closed)="editingProduct.set(null)"
+  />
+}
+
+@if (productToDelete(); as product) {
+  <app-confirm-dialog
+    heading="Produkt löschen?"
+    [text]="
+      product.name + ' wird aus der Kasse entfernt. Gezählte Verkäufe zählen dann nicht mehr.'
+    "
+    (confirmed)="removeProduct()"
+    (closed)="productToDelete.set(null)"
+  />
+}
+
+@if (editingExpense(); as expense) {
+  <app-form-dialog
+    [heading]="expense.id ? 'Ausgabe bearbeiten' : 'Ausgabe hinzufügen'"
+    [fields]="expenseForm"
+    [values]="expenseValues()"
+    (saved)="saveExpense($event)"
+    (closed)="editingExpense.set(null)"
+  />
+}
+
+@if (expenseToDelete(); as expense) {
+  <app-confirm-dialog
+    heading="Ausgabe löschen?"
+    [text]="expense.text + ' (' + euro(expense.amount) + ') wird gelöscht.'"
+    (confirmed)="removeExpense()"
+    (closed)="expenseToDelete.set(null)"
+  />
+}
+
+@if (booking()) {
+  <app-confirm-dialog
+    heading="Gewinn in die Jugendkasse buchen?"
+    [text]="
+      'Die Jugendkasse bekommt ' + euro(finance().profit) + ' als Einnahme. Das geht nur einmal.'
+    "
+    confirmLabel="Buchen"
+    confirmKind="done"
+    (confirmed)="bookProfit()"
+    (closed)="booking.set(false)"
+  />
+}

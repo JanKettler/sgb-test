@@ -32,9 +32,9 @@
   <p class="label mt-2">Mit {{ '{' }}Name{{ '}' }} wird der Vorname eingesetzt.</p>
   <ng-container dialogActions>
     @if (item.id) {
-      <button type="button" class="button is-danger" (click)="deleted.emit()">Löschen</button>
+      <app-action kind="delete" withText (pressed)="deleted.emit()" />
     }
-    <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
-    <button type="button" class="button is-primary" (click)="saved.emit(item)">Speichern</button>
+    <app-action kind="cancel" withText (pressed)="closed.emit()" />
+    <app-action kind="save" withText (pressed)="saved.emit(item)" />
   </ng-container>
 </app-modal-dialog>

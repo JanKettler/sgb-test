@@ -20,15 +20,7 @@
             <strong>{{ euro(type.amount) }}</strong>
           </td>
           <td class="has-text-right is-nowrap">
-            <button
-              type="button"
-              class="button is-warning"
-              [attr.aria-label]="type.name + ' bearbeiten'"
-              title="Bearbeiten"
-              (click)="edit(type)"
-            >
-              <app-icon name="pencil" />
-            </button>
+            <app-action kind="edit" [label]="type.name + ' bearbeiten'" (pressed)="edit(type)" />
           </td>
         </tr>
       }
@@ -41,24 +33,8 @@
     <div class="card-head">
       <h3>{{ type.name || 'Neue Beitragsart' }}</h3>
       <div class="icon-row">
-        <button
-          type="button"
-          class="button is-danger"
-          aria-label="Abbrechen"
-          title="Abbrechen"
-          (click)="draft.set(null)"
-        >
-          <app-icon name="x" />
-        </button>
-        <button
-          type="button"
-          class="button is-success"
-          aria-label="Speichern"
-          title="Speichern"
-          (click)="save()"
-        >
-          <app-icon name="save" />
-        </button>
+        <app-action kind="cancel" (pressed)="draft.set(null)" />
+        <app-action kind="save" (pressed)="save()" />
       </div>
     </div>
     <div class="form-grid">

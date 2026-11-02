@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { Action } from '../../ui/action';
 import { ModalDialog } from '../../ui/modal-dialog';
 import { shortDay } from '../training-dates';
 import { DeclineReason, OTHER_REASON, TrainingSession } from '../training.models';
@@ -12,7 +13,7 @@ export interface DeclineChoice {
 /** Asks why somebody cannot come. Every reason except "Sonstiges" declines right away. */
 @Component({
   selector: 'app-decline-dialog',
-  imports: [ModalDialog],
+  imports: [Action, ModalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './decline-dialog.html',
   styleUrl: './decline-dialog.scss',

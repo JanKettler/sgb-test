@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DateField } from '../../ui/date-field';
-import { Payment, euro } from '../../fees/fees.models';
+import { Payment } from '../../fees/fees.models';
 import { PayAccount, PayMethod } from '../people.models';
 import { fullDate } from '../../training/training-dates';
+import { euro } from '../../core/money';
 
 type TextKey = 'holder' | 'iban' | 'bic' | 'bank' | 'mandateRef';
 

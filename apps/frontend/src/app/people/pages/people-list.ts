@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { Action } from '../../ui/action';
+import { ConfirmDialog } from '../../ui/confirm-dialog';
 import { GroupChips } from '../../ui/group-chips';
-import { Icon } from '../../ui/icon';
-import { ModalDialog } from '../../ui/modal-dialog';
 import { SortButton, SortState } from '../../ui/sort';
 import { TablePager, pageOf } from '../../ui/table-pager';
 import { Toasts } from '../../ui/toast';
@@ -17,16 +17,7 @@ type StatusFilter = 'active' | 'all' | 'inactive';
 
 @Component({
   selector: 'app-people-list',
-  imports: [
-    RouterLink,
-    Icon,
-    GroupChips,
-    ModalDialog,
-    ParentsTable,
-    EvidenceTable,
-    SortButton,
-    TablePager,
-  ],
+  imports: [Action, ConfirmDialog, GroupChips, ParentsTable, EvidenceTable, SortButton, TablePager],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './people-list.html',
   styleUrl: './people-list.scss',

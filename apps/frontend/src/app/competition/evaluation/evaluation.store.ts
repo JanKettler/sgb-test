@@ -4,14 +4,15 @@ import { seasonOf } from '../competition-sample';
 import { CompetitionStore } from '../competition.store';
 import { Evaluation, defaultConfig } from './evaluation.logic';
 import { sexByName, toEvalMeet, toEvalMember } from './evaluation.mapper';
-import { EvalConfig, PointList } from './evaluation.model';
+import { EvalConfig } from './evaluation.model';
 import { WaSet } from './wa-points';
 import { sampleWaSets } from './wa-sample';
 
 /**
- * Everything the yearly evaluation needs besides the meets: base times, imported point lists, the
- * group settings and the corrections typed on the page. The meets and members come from the
- * other stores; in-memory like the rest of the test portal.
+ * Everything the yearly evaluation needs besides the meets: the base times, the group settings and
+ * the corrections typed on the page. The points are worked out from the results of the meets, so
+ * no list of the old club software is needed. The meets and members come from the other stores;
+ * in-memory like the rest of the test portal.
  */
 @Injectable({ providedIn: 'root' })
 export class EvaluationStore {
@@ -20,7 +21,6 @@ export class EvaluationStore {
   readonly today = this.meets.today;
 
   readonly waSets = signal<WaSet[]>(sampleWaSets(seasonOf(this.today), this.today));
-  readonly lists = signal<PointList[]>([]);
   readonly config = signal<EvalConfig>(defaultConfig());
   /** Entry fees typed by hand, per meet. */
   readonly fees = signal<Record<string, number>>({});
@@ -34,7 +34,6 @@ export class EvaluationStore {
       meets: this.meets.competitions().map((meet) => toEvalMeet(meet, this.feeOf(meet.id), sexes)),
       members: this.people.members().map(toEvalMember),
       waSets: this.waSets(),
-      lists: this.lists(),
       config: this.config(),
       clubName: this.meets.club.name,
       today: this.today,
@@ -85,18 +84,6 @@ export class EvaluationStore {
 
   removeWaSet(id: string): void {
     this.waSets.update((all) => all.filter((set) => set.id !== id));
-  }
-
-  /** A points list replaces the one of the same season and pool. */
-  saveList(list: PointList): void {
-    this.lists.update((all) => [
-      ...all.filter((old) => !(old.jahr === list.jahr && old.bahn === list.bahn)),
-      list,
-    ]);
-  }
-
-  removeList(id: string): void {
-    this.lists.update((all) => all.filter((list) => list.id !== id));
   }
 
   setConfig(change: Partial<EvalConfig>): void {

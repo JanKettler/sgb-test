@@ -7,43 +7,10 @@
       <p class="subtitle is-6 mb-0">{{ subtitle() }}</p>
     </div>
     <div class="icon-row">
-      <button
-        type="button"
-        class="button is-success"
-        aria-label="Personen hinzufügen"
-        title="Personen hinzufügen"
-        (click)="adding.set(true)"
-      >
-        <app-icon name="plus" />
-      </button>
-      <button
-        type="button"
-        class="button is-danger"
-        aria-label="Abbrechen"
-        title="Abbrechen"
-        [disabled]="pending().size === 0"
-        (click)="cancel()"
-      >
-        <app-icon name="x" />
-      </button>
-      <button
-        type="button"
-        class="button is-success"
-        aria-label="Speichern"
-        title="Speichern"
-        [disabled]="pending().size === 0"
-        (click)="save()"
-      >
-        <app-icon name="save" />
-      </button>
-      <a
-        class="button"
-        routerLink="/training/termine"
-        aria-label="Zurück zu den Terminen"
-        title="Zurück zu den Terminen"
-      >
-        <app-icon name="chevron-left" />
-      </a>
+      <app-action kind="add" label="Personen hinzufügen" (pressed)="adding.set(true)" />
+      <app-action kind="cancel" [disabled]="pending().size === 0" (pressed)="cancel()" />
+      <app-action kind="save" [disabled]="pending().size === 0" (pressed)="save()" />
+      <app-action kind="back" label="Zurück zu den Terminen" link="/training/termine" />
     </div>
   </header>
 

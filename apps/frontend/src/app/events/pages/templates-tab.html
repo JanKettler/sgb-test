@@ -1,0 +1,91 @@
+<div class="toolbar">
+  <p class="item-sub mb-0">
+    Eine Vorlage ist eine fertige Checkliste. Beim Anwenden werden die Fristen automatisch aus dem
+    Datum der Veranstaltung berechnet.
+  </p>
+  @if (store.canEdit()) {
+    @if (store.missingStandards().length > 0) {
+      <app-action
+        kind="copy"
+        withText
+        label="Fehlende Standard-Vorlagen anlegen"
+        (pressed)="addStandards()"
+      />
+    }
+    <app-action kind="add" withText label="Neue Vorlage" (pressed)="add()" />
+  }
+</div>
+
+@if (store.sortedTemplates().length === 0) {
+  <p class="empty">Noch keine Vorlagen.</p>
+} @else {
+  <div class="item-list">
+    @for (template of store.sortedTemplates(); track template.id) {
+      <article class="item">
+        <div class="item-main">
+          <div class="item-title">{{ template.title }}</div>
+          <div class="item-sub">{{ template.points.length }} Punkte</div>
+          @if (isOpen(template.id)) {
+            @for (category of categoriesOf(template.points); track category) {
+              <div class="item-heading">{{ category }}</div>
+              @for (point of pointsIn(template, category); track $index) {
+                <div class="sub-row">
+                  <span>{{ point.text }}</span>
+                  <span class="item-sub">{{ days(point) }}</span>
+                </div>
+              }
+            }
+          }
+        </div>
+        <div class="item-actions">
+          @if (isOpen(template.id)) {
+            <app-action
+              kind="collapse"
+              [label]="template.title + ' zuklappen'"
+              (pressed)="toggleOpen(template.id)"
+            />
+          } @else {
+            <app-action
+              kind="expand"
+              [label]="template.title + ' aufklappen'"
+              (pressed)="toggleOpen(template.id)"
+            />
+          }
+          @if (store.canEdit()) {
+            <app-action
+              kind="edit"
+              [label]="template.title + ' bearbeiten'"
+              (pressed)="edit(template)"
+            />
+            <app-action
+              kind="delete"
+              [label]="template.title + ' löschen'"
+              (pressed)="toDelete.set(template)"
+            />
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (editing(); as draft) {
+  <app-form-dialog
+    [heading]="draft.id ? 'Vorlage bearbeiten' : 'Neue Vorlage'"
+    [fields]="fields"
+    [values]="draft"
+    [check]="check"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (toDelete(); as template) {
+  <app-confirm-dialog
+    heading="Vorlage löschen?"
+    [subtitle]="template.title"
+    text="Bereits angelegte Veranstaltungen behalten ihre Checkliste."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

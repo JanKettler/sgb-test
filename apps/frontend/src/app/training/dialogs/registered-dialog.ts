@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { Action } from '../../ui/action';
 import { DialogAccent, ModalDialog } from '../../ui/modal-dialog';
 import { shortDay } from '../training-dates';
 import { GroupId, TrainingSession } from '../training.models';
@@ -16,7 +17,7 @@ const GROUP_LOOK: Record<GroupId, { accent: DialogAccent; tone: string }> = {
 /** Lists everybody who registered for a session: trainers first, then swimmers. */
 @Component({
   selector: 'app-registered-dialog',
-  imports: [ModalDialog],
+  imports: [Action, ModalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './registered-dialog.html',
   styleUrl: './registered-dialog.scss',

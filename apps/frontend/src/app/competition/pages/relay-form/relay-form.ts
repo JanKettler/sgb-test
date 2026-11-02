@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { PeopleStore } from '../../../people/people.store';
-import { Icon } from '../../../ui/icon';
+import { Action } from '../../../ui/action';
 import { Toasts } from '../../../ui/toast';
 import {
   Competition,
@@ -23,7 +23,7 @@ import { CompetitionStore } from '../../competition.store';
 /** One relay team: the event, team number, age class, entry time and the swimmers. */
 @Component({
   selector: 'app-relay-form',
-  imports: [Icon],
+  imports: [Action],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let event = current();
@@ -93,25 +93,8 @@ import { CompetitionStore } from '../../competition.store';
       <span class="pill is-warn mr-1">{{ issue }}</span>
     }
     <div class="icon-row mt-3">
-      <button
-        type="button"
-        class="button is-danger"
-        title="Abbrechen"
-        aria-label="Abbrechen"
-        (click)="cancelled.emit()"
-      >
-        <app-icon name="x" />
-      </button>
-      <button
-        type="button"
-        class="button is-success"
-        title="Speichern"
-        aria-label="Speichern"
-        [disabled]="!event"
-        (click)="save()"
-      >
-        <app-icon name="save" />
-      </button>
+      <app-action kind="cancel" (pressed)="cancelled.emit()" />
+      <app-action kind="save" [disabled]="!event" (pressed)="save()" />
     </div>
   `,
 })

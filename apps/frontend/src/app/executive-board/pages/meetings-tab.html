@@ -1,0 +1,116 @@
+<div class="toolbar">
+  <app-search-field placeholder="Sitzung, Ort oder Protokoll durchsuchen …" [(value)]="query" />
+  @if (store.canEdit()) {
+    <app-action kind="add" withText label="Neue Sitzung" (pressed)="add()" />
+  }
+</div>
+<p class="item-sub mb-3">
+  Sitzungen mit Tagesordnung und Protokoll. Das Protokoll wird als Gliederung geschrieben: jede
+  Zeile ein Punkt, „- “ für Unterpunkte.
+</p>
+
+@if (visible().length === 0) {
+  <p class="empty">Keine Sitzungen gefunden.</p>
+} @else {
+  <div class="item-list">
+    @for (meeting of visible(); track meeting.id) {
+      <article class="item">
+        <div class="item-main">
+          <div class="item-title">
+            {{ meeting.title }}
+            <span
+              class="pill"
+              [class.is-ok]="meeting.state === 'Durchgeführt'"
+              [class.is-info]="meeting.state === 'Geplant'"
+              >{{ meeting.state }}</span
+            >
+            @if (meeting.minutes) {
+              <span class="pill is-violet">Protokoll</span>
+            }
+          </div>
+          <div class="item-sub">{{ subline(meeting) }}</div>
+
+          @if (isOpen(meeting.id)) {
+            @if (meeting.attendees) {
+              <div class="item-sub">Anwesend: {{ meeting.attendees }}</div>
+            }
+            @if (meeting.secretary) {
+              <div class="item-sub">Protokollführung: {{ meeting.secretary }}</div>
+            }
+            @if (meeting.minutes) {
+              <div class="item-heading">Protokoll</div>
+              <app-outline-view [text]="meeting.minutes" />
+            } @else if (meeting.agenda.length > 0) {
+              <div class="item-heading">Tagesordnung</div>
+              <app-outline-view [text]="meeting.agenda.join('\n')" />
+            } @else {
+              <p class="item-sub mt-2">Noch keine Tagesordnung.</p>
+            }
+          }
+        </div>
+        <div class="item-actions">
+          @if (isOpen(meeting.id)) {
+            <app-action
+              kind="collapse"
+              [label]="nameOf(meeting) + ' zuklappen'"
+              (pressed)="toggleOpen(meeting.id)"
+            />
+          } @else {
+            <app-action
+              kind="expand"
+              [label]="nameOf(meeting) + ' aufklappen'"
+              (pressed)="toggleOpen(meeting.id)"
+            />
+          }
+          <app-action
+            kind="print"
+            [label]="'Protokoll ' + nameOf(meeting) + ' drucken'"
+            [disabled]="!meeting.minutes"
+            (pressed)="print(meeting)"
+          />
+          @if (store.canEdit()) {
+            @if (!meeting.minutes && meeting.agenda.length > 0) {
+              <app-action
+                kind="copy"
+                small
+                withText
+                label="Protokoll beginnen"
+                (pressed)="prepareMinutes(meeting)"
+              />
+            }
+            <app-action
+              kind="edit"
+              [label]="nameOf(meeting) + ' bearbeiten'"
+              (pressed)="editing.set(meeting)"
+            />
+            <app-action
+              kind="delete"
+              [label]="nameOf(meeting) + ' löschen'"
+              (pressed)="toDelete.set(meeting)"
+            />
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (editing(); as current) {
+  <app-form-dialog
+    [heading]="current.id ? 'Sitzung bearbeiten' : 'Neue Sitzung'"
+    [fields]="fields()"
+    [values]="current"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (toDelete(); as meeting) {
+  <app-confirm-dialog
+    heading="Sitzung löschen?"
+    [subtitle]="nameOf(meeting)"
+    text="Die Sitzung verschwindet mit Tagesordnung und Protokoll aus der Liste."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

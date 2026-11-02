@@ -1,0 +1,160 @@
+<div class="tile-grid mb-3">
+  <article class="tile" [class.is-bad]="store.balance() < 0">
+    <div class="tile-name">Kassenstand</div>
+    <div class="tile-number">{{ euro(store.balance()) }}</div>
+    <div class="item-sub">nur bestätigte Buchungen</div>
+  </article>
+  <article class="tile">
+    <div class="tile-name">Anfangsbestand</div>
+    <div class="tile-number">{{ euro(store.config().opening) }}</div>
+    <div class="item-sub">
+      {{ store.config().place }}
+      @if (store.config().holder) {
+        · {{ store.config().holder }}
+      }
+    </div>
+  </article>
+  <article class="tile" [class.is-bad]="store.openEntries().length > 0">
+    <div class="tile-name">Buchungen offen</div>
+    <div class="tile-number">{{ store.openEntries().length }}</div>
+    <div class="item-sub">warten auf Bestätigung</div>
+  </article>
+  <article class="tile" [class.is-bad]="store.requestedExpenses().length > 0">
+    <div class="tile-name">Auslagen beantragt</div>
+    <div class="tile-number">{{ store.requestedExpenses().length }}</div>
+    <div class="item-sub">warten auf Genehmigung</div>
+  </article>
+</div>
+@if (store.balance() !== store.balanceWithOpen()) {
+  <p class="item-sub mb-2">
+    Mit den noch unbestätigten Buchungen wären es {{ euro(store.balanceWithOpen()) }}.
+  </p>
+}
+@if (store.lastCount(); as count) {
+  <p class="item-sub mb-3">
+    Letzter Kassensturz: {{ fullDate(count.date) }} · gezählt {{ euro(count.counted) }} ·
+    @if (count.difference === 0) {
+      stimmt
+    } @else {
+      <span class="is-late">Differenz {{ euro(count.difference) }}</span>
+    }
+  </p>
+}
+
+<div class="toolbar">
+  @if (store.canBook()) {
+    <app-action kind="add" withText label="Einnahme" (pressed)="add('in')" />
+    <app-action kind="add" withText label="Ausgabe" (pressed)="add('out')" />
+  }
+  <app-action kind="excel" withText label="Excel „Kassenbuch“" (pressed)="exportExcel()" />
+  @if (store.canAdminister()) {
+    <app-action kind="settings" withText (pressed)="settings.set(true)" />
+  }
+</div>
+
+<div class="toolbar">
+  <app-action kind="back" label="Vorheriger Monat" (pressed)="shift(-1)" />
+  <b>{{ monthLabel(month()) }}</b>
+  <app-action kind="next" label="Nächster Monat" (pressed)="shift(1)" />
+  @if (closed()) {
+    <span class="pill is-info">abgeschlossen</span>
+  }
+  <span class="item-sub">
+    Einnahmen <b class="has-text-success">{{ euro(income()) }}</b> · Ausgaben
+    <b class="has-text-danger">{{ euro(expense()) }}</b>
+  </span>
+</div>
+
+@if (entries().length === 0) {
+  <p class="empty">In diesem Monat gibt es keine Buchungen.</p>
+} @else {
+  <div class="item-list">
+    @for (entry of entries(); track entry.id) {
+      <article class="item" [class.is-ok]="entry.status === 'confirmed'">
+        <div class="item-main">
+          <div class="item-title">
+            {{ titleOf(entry) }}
+            <span
+              class="pill"
+              [class.is-ok]="entry.status === 'confirmed'"
+              [class.is-warn]="entry.status === 'open'"
+              >{{ entry.status === 'confirmed' ? 'bestätigt' : 'offen' }}</span
+            >
+          </div>
+          <div class="item-sub">{{ subline(entry) }}</div>
+        </div>
+        <div class="item-actions">
+          <b
+            class="amount"
+            [class.has-text-success]="entry.kind === 'in'"
+            [class.has-text-danger]="entry.kind === 'out'"
+            >{{ entry.kind === 'out' ? '−' : '+' }}{{ euro(entry.amount) }}</b
+          >
+          @if (store.canConfirm() && !isClosed(entry)) {
+            @if (entry.status === 'open') {
+              <app-action
+                kind="done"
+                small
+                withText
+                label="Bestätigen"
+                (pressed)="confirm(entry, true)"
+              />
+            } @else {
+              <app-action
+                kind="return"
+                small
+                [label]="titleOf(entry) + ': Bestätigung zurücknehmen'"
+                (pressed)="confirm(entry, false)"
+              />
+            }
+          }
+          @if (editable(entry)) {
+            <app-action
+              kind="edit"
+              [label]="titleOf(entry) + ' bearbeiten'"
+              (pressed)="editing.set(entry)"
+            />
+            <app-action
+              kind="delete"
+              [label]="titleOf(entry) + ' löschen'"
+              (pressed)="toDelete.set(entry)"
+            />
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (editing(); as current) {
+  <app-form-dialog
+    [heading]="
+      current.id ? 'Buchung ändern' : current.kind === 'out' ? 'Ausgabe buchen' : 'Einnahme buchen'
+    "
+    [fields]="fields()"
+    [values]="current"
+    [check]="check"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (settings()) {
+  <app-form-dialog
+    heading="Jugendkasse einrichten"
+    [fields]="settingsFields"
+    [values]="store.config()"
+    (saved)="saveSettings($event)"
+    (closed)="settings.set(false)"
+  />
+}
+
+@if (toDelete(); as entry) {
+  <app-confirm-dialog
+    heading="Buchung löschen?"
+    [subtitle]="titleOf(entry)"
+    text="Die Buchung verschwindet aus dem Kassenbuch."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

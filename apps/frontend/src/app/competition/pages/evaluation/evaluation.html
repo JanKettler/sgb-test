@@ -1,6 +1,22 @@
-<header class="page-head mb-4">
-  <h2 class="title is-4 mb-1">Auswertung</h2>
-  <p class="subtitle is-6 mb-0">Rangliste, Statistik, Ehrungen und Einzelblätter der Saison</p>
+<header
+  class="page-head is-flex is-justify-content-space-between is-flex-wrap-wrap is-align-items-flex-end mb-4"
+>
+  <div>
+    <h2 class="title is-4 mb-1">Auswertung</h2>
+    <p class="subtitle is-6 mb-0">
+      Rangliste, Statistik, Ehrungen und Einzelblätter der Saison {{ year() }}
+    </p>
+  </div>
+  <div class="field season-pick mb-0">
+    <label class="label is-small mb-1" for="season">Saison</label>
+    <div class="select is-small">
+      <select id="season" (change)="pickSeason($event)">
+        @for (entry of seasons(); track entry) {
+          <option [value]="entry" [selected]="entry === year()">{{ entry }}</option>
+        }
+      </select>
+    </div>
+  </div>
 </header>
 
 <section class="box">
@@ -68,73 +84,17 @@
               <span class="pill is-warn ml-1">Beispielwerte, nicht amtlich</span>
             }
           </span>
-          <button
-            type="button"
-            class="button is-small is-danger is-light"
-            aria-label="Löschen"
-            title="Löschen"
-            (click)="
-              askRemove('wa', set.id, (set.bahn === 'Lang' ? 'Langbahn ' : 'Kurzbahn ') + set.jahr)
+          <app-action
+            kind="delete"
+            small
+            [label]="(set.bahn === 'Lang' ? 'Langbahn ' : 'Kurzbahn ') + set.jahr + ' löschen'"
+            (pressed)="
+              askRemove(set.id, (set.bahn === 'Lang' ? 'Langbahn ' : 'Kurzbahn ') + set.jahr)
             "
-          >
-            <app-icon name="trash" />
-          </button>
+          />
         </li>
       } @empty {
         <li class="has-text-grey">Noch keine Basiszeiten eingelesen.</li>
-      }
-    </ul>
-
-    <h3>Punkteliste aus WebClub (optional)</h3>
-    <p class="help">
-      Die Liste „Punktbeste Leistung nach World Aquatics“ als CSV. Sie ergänzt die Punkte aus den
-      Wettkampfergebnissen um frühere Starts; je Strecke zählt die bessere Punktzahl. Eine neue
-      Liste ersetzt die alte derselben Saison und Bahn.
-    </p>
-    <div class="file is-small mt-2">
-      <label class="file-label">
-        <input
-          class="file-input"
-          type="file"
-          accept=".csv,.txt,text/csv,text/plain"
-          (change)="readList($event)"
-        />
-        <span class="file-cta">
-          <span class="file-icon"><app-icon name="upload" /></span>
-          <span class="file-label">Punkteliste einlesen</span>
-        </span>
-      </label>
-    </div>
-    @if (listMessage()) {
-      <p class="help">{{ listMessage() }}</p>
-    }
-    <ul class="items">
-      @for (list of lists(); track list.id) {
-        <li>
-          <span>
-            <strong>{{ list.jahr }} · {{ list.bahn === 'Lang' ? 'Langbahn' : 'Kurzbahn' }}</strong>
-            <span class="sub">
-              {{ list.rows.length }} Schwimmer · hochgeladen {{ date(list.stand) }}
-            </span>
-          </span>
-          <button
-            type="button"
-            class="button is-small is-danger is-light"
-            aria-label="Löschen"
-            title="Löschen"
-            (click)="
-              askRemove(
-                'list',
-                list.id,
-                'Punkteliste ' + list.jahr + (list.bahn === 'Lang' ? ' Langbahn' : ' Kurzbahn')
-              )
-            "
-          >
-            <app-icon name="trash" />
-          </button>
-        </li>
-      } @empty {
-        <li class="has-text-grey">Noch keine Punkteliste hochgeladen.</li>
       }
     </ul>
 
@@ -143,75 +103,66 @@
       Welche Jahrgänge zu einer Gruppe zählen und ab welchem Alter jemand zu den Masters gehört
       (jetzt ab {{ ev().masters() }} Jahren). Das gilt für alle Schwimmer.
     </p>
-    <button type="button" class="button mt-2" (click)="openBands()">
-      <app-icon name="pencil" /> Jahrgangsgruppen {{ year() }}
-    </button>
-  } @else if (years().length === 0) {
-    <p class="empty">
-      Es gibt noch keine Punkte. Im Reiter „Hochladen“ zuerst die World-Aquatics-Basiszeiten
-      einlesen. Dann rechnet das Portal die Punkte aus den eingelesenen Wettkampfergebnissen selbst
-      aus. Alternativ lässt sich die WebClub-Liste „Punktbeste Leistung nach World Aquatics“
-      hochladen.
-    </p>
+    <div class="mt-2">
+      <app-action
+        kind="edit"
+        withText
+        [label]="'Jahrgangsgruppen ' + year()"
+        (pressed)="openBands()"
+      />
+    </div>
   } @else {
     <div class="card-head">
       <h3 class="first">{{ title() }} {{ year() }}</h3>
-      <button type="button" class="button" (click)="download()">
-        <app-icon name="file-excel" /> Excel
-      </button>
+      <app-action
+        kind="excel"
+        withText
+        [label]="'Excel ' + year()"
+        [disabled]="!hasResults()"
+        (pressed)="download()"
+      />
     </div>
 
-    @if (years().length > 1 || tab() === 'rank') {
+    @if (!hasResults()) {
+      <div class="alert is-warn">
+        <strong>Für die Saison {{ year() }} sind noch keine Ergebnisse da.</strong>
+        Das Portal rechnet alle Punkte aus den Ergebnissen der Wettkämpfe und den Basiszeiten aus.
+        Bitte die Ergebnisse im jeweiligen Wettkampf unter „Ergebnisse“ einlesen.
+      </div>
+    }
+
+    @if (tab() === 'rank') {
       <div class="filters">
-        @if (years().length > 1) {
-          <div class="filter-row">
-            <span class="filter-label">Jahr</span>
-            <div class="chips">
-              @for (entry of years(); track entry) {
-                <button
-                  type="button"
-                  class="chip"
-                  [class.is-on]="entry === year()"
-                  (click)="pickYear(entry)"
-                >
-                  {{ entry }}
-                </button>
-              }
-            </div>
+        <div class="filter-row">
+          <span class="filter-label">Bahn</span>
+          <div class="chips">
+            @for (choice of bahnChoices; track choice.id) {
+              <button
+                type="button"
+                class="chip"
+                [class.is-on]="choice.id === bahn()"
+                (click)="bahn.set(choice.id)"
+              >
+                {{ choice.label }}
+              </button>
+            }
           </div>
-        }
-        @if (tab() === 'rank') {
-          <div class="filter-row">
-            <span class="filter-label">Bahn</span>
-            <div class="chips">
-              @for (choice of bahnChoices; track choice.id) {
-                <button
-                  type="button"
-                  class="chip"
-                  [class.is-on]="choice.id === bahn()"
-                  (click)="bahn.set(choice.id)"
-                >
-                  {{ choice.label }}
-                </button>
-              }
-            </div>
+        </div>
+        <div class="filter-row">
+          <span class="filter-label">Wertung</span>
+          <div class="chips">
+            @for (entry of groups; track entry) {
+              <button
+                type="button"
+                class="chip"
+                [class.is-on]="entry === group()"
+                (click)="group.set(entry)"
+              >
+                {{ entry }}
+              </button>
+            }
           </div>
-          <div class="filter-row">
-            <span class="filter-label">Wertung</span>
-            <div class="chips">
-              @for (entry of groups; track entry) {
-                <button
-                  type="button"
-                  class="chip"
-                  [class.is-on]="entry === group()"
-                  (click)="group.set(entry)"
-                >
-                  {{ entry }}
-                </button>
-              }
-            </div>
-          </div>
-        }
+        </div>
       </div>
     }
 
@@ -235,11 +186,12 @@
           </div>
         }
         <p class="help">
-          Stand der WebClub-Listen: {{ listInfo() || 'keine hochgeladen' }}.
+          Die Punkte rechnet das Portal aus den Wettkampfergebnissen der Saison und den Basiszeiten
+          aus
           @if (waInfo()) {
-            Punkte aus Wettkampfergebnissen mit den Basiszeiten: {{ waInfo() }}.
+            ({{ waInfo() }})
           }
-          Gewertet wird je Strecke die punktbeste Leistung. Fett ist je Tabelle der höchste Wert
+          . Gewertet wird je Strecke die punktbeste Leistung. Fett ist je Tabelle der höchste Wert
           einer Spalte.
         </p>
         @if (rankBlocks().length > 0) {
@@ -319,22 +271,20 @@
             </div>
             <div>
               <div class="nav">
-                <button
-                  type="button"
-                  class="button is-small"
+                <app-action
+                  kind="back"
+                  withText
+                  small
                   [disabled]="position() <= 0"
-                  (click)="step(-1)"
-                >
-                  <app-icon name="chevron-left" /> Zurück
-                </button>
-                <button
-                  type="button"
-                  class="button is-small"
+                  (pressed)="step(-1)"
+                />
+                <app-action
+                  kind="next"
+                  withText
+                  small
                   [disabled]="position() >= names().length - 1"
-                  (click)="step(1)"
-                >
-                  Weiter <app-icon name="chevron-right" />
-                </button>
+                  (pressed)="step(1)"
+                />
                 <span class="sub"
                   >Platz {{ place() }} von {{ bestList().length }} in der Gesamtwertung</span
                 >
@@ -420,86 +370,10 @@
       }
     }
     <ng-container dialogActions>
-      <button
-        type="button"
-        class="button is-danger"
-        aria-label="Abbrechen"
-        title="Abbrechen"
-        (click)="waPreview.set(null)"
-      >
-        <app-icon name="x" />
-      </button>
+      <app-action kind="cancel" (pressed)="waPreview.set(null)" />
       @if (preview.result.errors.length === 0 && preview.result.list.length > 0) {
-        <button type="button" class="button is-success" (click)="saveWa()">
-          <app-icon name="check" /> Übernehmen
-        </button>
+        <app-action kind="save" withText label="Übernehmen" (pressed)="saveWa()" />
       }
-    </ng-container>
-  </app-modal-dialog>
-}
-
-@if (listPreview(); as preview) {
-  <app-modal-dialog heading="Das wurde gefunden" accent="amber" (closed)="listPreview.set(null)">
-    @if (preview.read.warnings.length > 0) {
-      <div class="alert is-warn">
-        @for (warning of preview.read.warnings.slice(0, 6); track $index) {
-          <div>{{ warning }}</div>
-        }
-        @if (preview.read.warnings.length > 6) {
-          <div>… und {{ preview.read.warnings.length - 6 }} weitere</div>
-        }
-      </div>
-    }
-    <p>
-      <strong>{{ preview.read.rows.length }}</strong> Schwimmer · Saison in der Datei:
-      <strong>{{ preview.read.season || '?' }}</strong>
-      <br />
-      Beste Punktzahl: {{ topOf(preview.read) }}
-    </p>
-    <div class="date-pair">
-      <label class="label-line">
-        Saison
-        <input
-          class="input"
-          type="number"
-          min="2000"
-          max="2100"
-          [value]="listYear()"
-          (input)="typedListYear($event)"
-        />
-      </label>
-      <div class="label-line">
-        <label for="list-pool">Bahn</label>
-        <span class="select is-fullwidth">
-          <select id="list-pool" (change)="pickListPool($event)">
-            <option value="Lang" [selected]="listPool() === 'Lang'">Langbahn (50 m)</option>
-            <option value="Kurz" [selected]="listPool() === 'Kurz'">Kurzbahn (25 m)</option>
-          </select>
-        </span>
-      </div>
-    </div>
-    @if (preview.read.season && preview.read.season !== listYear().trim()) {
-      <div class="alert is-warn">
-        Die Datei gehört zur Saison {{ preview.read.season }}, gewählt ist {{ listYear() }}. Bitte
-        prüfen.
-      </div>
-    }
-    @if (replacesList()) {
-      <p class="help">Für diese Saison und Bahn gibt es schon eine Liste. Sie wird ersetzt.</p>
-    }
-    <ng-container dialogActions>
-      <button
-        type="button"
-        class="button is-danger"
-        aria-label="Abbrechen"
-        title="Abbrechen"
-        (click)="listPreview.set(null)"
-      >
-        <app-icon name="x" />
-      </button>
-      <button type="button" class="button is-success" (click)="saveList()">
-        <app-icon name="check" /> Übernehmen
-      </button>
     </ng-container>
   </app-modal-dialog>
 }
@@ -557,39 +431,17 @@
       des Geschlechts und ohne die Junioren.
     </p>
     <ng-container dialogActions>
-      <button
-        type="button"
-        class="button is-danger"
-        aria-label="Abbrechen"
-        title="Abbrechen"
-        (click)="bandsForm.set(null)"
-      >
-        <app-icon name="x" />
-      </button>
-      <button type="button" class="button is-success" (click)="saveBands()">
-        <app-icon name="save" /> Speichern
-      </button>
+      <app-action kind="cancel" (pressed)="bandsForm.set(null)" />
+      <app-action kind="save" withText (pressed)="saveBands()" />
     </ng-container>
   </app-modal-dialog>
 }
 
 @if (removal(); as item) {
-  <app-modal-dialog
+  <app-confirm-dialog
     [heading]="item.name + ' löschen?'"
-    accent="red"
-    [compact]="true"
+    text="Die Punkte für Wettkämpfe in diesem Zeitraum entfallen dann."
+    (confirmed)="remove()"
     (closed)="removal.set(null)"
-  >
-    <p>
-      @if (item.kind === 'wa') {
-        Die Punkte für Wettkämpfe in diesem Zeitraum entfallen dann.
-      } @else {
-        Die Punkte dieser Liste fließen dann nicht mehr in die Rangliste ein.
-      }
-    </p>
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="removal.set(null)">Abbrechen</button>
-      <button type="button" class="button is-danger" (click)="remove()">Löschen</button>
-    </ng-container>
-  </app-modal-dialog>
+  />
 }

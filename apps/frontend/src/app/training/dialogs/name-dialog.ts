@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { Action } from '../../ui/action';
 import { ModalDialog } from '../../ui/modal-dialog';
 
 /** Edits one short text, for example the name of a venue or a reason. */
 @Component({
   selector: 'app-name-dialog',
-  imports: [ModalDialog],
+  imports: [Action, ModalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './name-dialog.html',
 })

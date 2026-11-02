@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { PeopleStore } from '../people/people.store';
-import { addDays } from '../training/training-dates';
+import { addDays, daysBetween } from '../training/training-dates';
 import { TrainingStore } from '../training/training.store';
 import {
   CompEvent,
@@ -16,7 +16,6 @@ import {
   Participation,
   PHASES,
   dateOf,
-  euro,
   eventLabel,
   eventTitle,
   yearFits,
@@ -35,6 +34,7 @@ import {
 import { createZip } from './zip';
 import { pastSeason, sampleMeet } from './competition-sample';
 import { ParsedResults, ParsedSchedule } from './wk-parse';
+import { euro } from '../core/money';
 
 /** The club as it appears in the entry file; editable in the settings later. */
 const CLUB: FileClub = {
@@ -613,9 +613,7 @@ export class CompetitionStore {
   }
 
   daysTo(iso: string): number {
-    return Math.round(
-      (Date.parse(`${iso}T12:00:00`) - Date.parse(`${this.today}T12:00:00`)) / 864e5,
-    );
+    return daysBetween(this.today, iso);
   }
 
   /** Slots of the host's judge panel nobody is named for yet. */

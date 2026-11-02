@@ -1,14 +1,5 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  input,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Icon } from '../../../ui/icon';
-import { ModalDialog } from '../../../ui/modal-dialog';
 import {
   NO_TIME,
   RunResult,
@@ -39,17 +30,6 @@ interface StartRow {
   splits: number[];
 }
 
-interface Watch {
-  key: string;
-  name: string;
-  event: string;
-  splits: number;
-  running: boolean;
-  startedAt: number;
-  elapsed: number | null;
-  laps: number[];
-}
-
 const STATUS = ['DQ', 'nicht angetreten', 'abgemeldet'];
 
 /** 200 for "200m Brust"; relays ("4x50m Lagen") have no single distance. */
@@ -60,12 +40,11 @@ function distanceOf(name: string): number {
 
 /**
  * The list for the pool deck: every start of the club in the order of the day with time of day,
- * heat and lane. Times are typed in as digits, intermediate times come with distances from 200 m,
- * and a stopwatch takes times straight from the starting block.
+ * heat and lane. Times are typed in as digits, intermediate times come with distances from 200 m.
  */
 @Component({
   selector: 'app-meet-onsite',
-  imports: [Icon, ModalDialog],
+  imports: [Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './meet-onsite.html',
   styleUrl: './meet-onsite.scss',
@@ -81,15 +60,6 @@ export class MeetOnsite {
   protected readonly onlyOpen = signal(false);
   /** Fields whose last input was no time ("01:75,00"); they are not saved. */
   protected readonly invalid = signal<ReadonlySet<string>>(new Set());
-
-  protected readonly watch = signal<Watch | null>(null);
-  protected readonly watchOpen = signal(false);
-  protected readonly clock = signal(0);
-  private timer: ReturnType<typeof setInterval> | null = null;
-
-  constructor() {
-    inject(DestroyRef).onDestroy(() => this.stopTimer());
-  }
 
   protected readonly rows = computed<StartRow[]>(() => {
     const item = this.competition();
@@ -228,83 +198,5 @@ export class MeetOnsite {
       before = ms;
     }
     return parts.length > 1 ? parts.join(' · ') : '';
-  }
-
-  // ---- Stopwatch ----------------------------------------------------------------------------
-
-  protected openWatch(row: StartRow): void {
-    const current = this.watch();
-    if (current?.key !== row.key) {
-      this.stopTimer();
-      this.watch.set({
-        key: row.key,
-        name: displayName(row.start.n),
-        event: `Wk ${row.start.e} · ${row.event}`,
-        splits: row.splits.length,
-        running: false,
-        startedAt: 0,
-        elapsed: null,
-        laps: [],
-      });
-      this.clock.set(0);
-    }
-    this.watchOpen.set(true);
-  }
-
-  protected go(): void {
-    const current = this.watch();
-    if (!current || current.running || current.elapsed !== null) return;
-    const startedAt = Date.now();
-    this.watch.set({ ...current, running: true, startedAt });
-    this.timer = setInterval(() => this.clock.set(Date.now() - startedAt), 50);
-  }
-
-  protected lap(): void {
-    const current = this.watch();
-    if (!current?.running || current.laps.length >= current.splits) return;
-    this.watch.set({ ...current, laps: [...current.laps, Date.now() - current.startedAt] });
-  }
-
-  protected stop(): void {
-    const current = this.watch();
-    if (!current?.running) return;
-    const elapsed = Date.now() - current.startedAt;
-    this.stopTimer();
-    this.clock.set(elapsed);
-    this.watch.set({ ...current, running: false, elapsed });
-  }
-
-  protected reset(): void {
-    const current = this.watch();
-    if (!current) return;
-    this.stopTimer();
-    this.clock.set(0);
-    this.watch.set({ ...current, running: false, startedAt: 0, elapsed: null, laps: [] });
-  }
-
-  protected takeOver(): void {
-    const current = this.watch();
-    if (!current || current.elapsed === null) return;
-    this.store.setResult(this.id(), current.key, {
-      t: msToTime(current.elapsed),
-      sp: current.laps.slice(0, current.splits).map(msToTime),
-    });
-    this.stopTimer();
-    this.watch.set(null);
-    this.watchOpen.set(false);
-  }
-
-  protected closeWatch(): void {
-    this.watchOpen.set(false);
-  }
-
-  /** "1:38,52" or "31,20"; "0,00" at the start. */
-  protected clockText(ms: number): string {
-    return showTime(msToTime(ms)) || '0,00';
-  }
-
-  private stopTimer(): void {
-    if (this.timer) clearInterval(this.timer);
-    this.timer = null;
   }
 }

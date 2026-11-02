@@ -41,44 +41,22 @@
                             (input)="typed($event)"
                             (keydown.enter)="save(action.id)"
                           />
-                          <button
-                            type="button"
-                            class="button is-small is-success"
-                            aria-label="Speichern"
-                            title="Speichern"
-                            (click)="save(action.id)"
-                          >
-                            <app-icon name="save" />
-                          </button>
-                          <button
-                            type="button"
-                            class="button is-small"
-                            aria-label="Abbrechen"
-                            title="Abbrechen"
-                            (click)="editing.set(null)"
-                          >
-                            <app-icon name="x" />
-                          </button>
+                          <app-action kind="save" small (pressed)="save(action.id)" />
+                          <app-action kind="cancel" small (pressed)="editing.set(null)" />
                         } @else {
-                          <button
-                            type="button"
-                            class="button is-small"
-                            aria-label="Meldegeld ändern"
-                            title="Meldegeld ändern"
-                            (click)="edit(action.id, action.value)"
-                          >
-                            <app-icon name="pencil" />
-                          </button>
+                          <app-action
+                            kind="edit"
+                            small
+                            label="Meldegeld ändern"
+                            (pressed)="edit(action.id, action.value)"
+                          />
                           @if (action.manual) {
-                            <button
-                              type="button"
-                              class="button is-small"
-                              aria-label="Zurück auf die Summe der Meldungen"
-                              title="Zurück auf die Summe der Meldungen"
-                              (click)="reset(action.id)"
-                            >
-                              <app-icon name="restore" />
-                            </button>
+                            <app-action
+                              kind="restore"
+                              small
+                              label="Zurück auf die Summe der Meldungen"
+                              (pressed)="reset(action.id)"
+                            />
                           }
                         }
                       </span>

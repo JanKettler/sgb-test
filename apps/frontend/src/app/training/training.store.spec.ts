@@ -138,11 +138,14 @@ describe('TrainingStore', () => {
     expect(store.deleteVenue(added.id)).toBe(true);
   });
 
-  it('exports a semicolon separated list with one row per swimmer', () => {
+  it('lists the attendance with one row per swimmer and one column per session', () => {
     // A range, not just today: on days without a session the header has no date columns.
-    const csv = store.attendanceCsv('WK', 'blank', store.today, addDays(store.today, 14));
-    const lines = csv.split('\r\n');
-    expect(lines[0].startsWith('﻿Name;')).toBe(true);
-    expect(lines.length).toBe(1 + store.swimmers().filter((p) => p.groupId === 'WK').length);
+    const table = store.attendanceTable('WK', 'blank', store.today, addDays(store.today, 14));
+    expect(table.head[0]).toBe('Name');
+    expect(table.rows).toHaveLength(store.swimmers().filter((p) => p.groupId === 'WK').length);
+    for (const row of table.rows) {
+      expect(row).toHaveLength(table.head.length);
+      expect(row.slice(1).every((cell) => cell === '')).toBe(true);
+    }
   });
 });

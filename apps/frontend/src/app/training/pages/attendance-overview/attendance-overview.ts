@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Toasts } from '../../../ui/toast';
+import { Action } from '../../../ui/action';
 import { DateField } from '../../../ui/date-field';
 import { GroupChips } from '../../../ui/group-chips';
 import { Icon } from '../../../ui/icon';
@@ -18,7 +19,7 @@ interface MailRequest {
 
 @Component({
   selector: 'app-attendance-overview',
-  imports: [Icon, DateField, MailDialog, ExportDialog, GroupChips],
+  imports: [Action, Icon, DateField, MailDialog, ExportDialog, GroupChips],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './attendance-overview.html',
   styleUrl: './attendance-overview.scss',

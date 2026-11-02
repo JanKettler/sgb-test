@@ -7,7 +7,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { Toasts } from '../../ui/toast';
-import { Icon } from '../../ui/icon';
+import { Action } from '../../ui/action';
 import { FeesStore } from '../fees.store';
 import { DunningTab } from './dunning-tab';
 import { FeeSettingsTab } from './fee-settings-tab';
@@ -18,7 +18,7 @@ type Tab = 'payments' | 'dunning' | 'types' | 'settings';
 
 @Component({
   selector: 'app-fees',
-  imports: [Icon, PaymentsTab, DunningTab, FeeTypesTab, FeeSettingsTab],
+  imports: [Action, PaymentsTab, DunningTab, FeeTypesTab, FeeSettingsTab],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './fees.html',
 })

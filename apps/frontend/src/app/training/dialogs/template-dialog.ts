@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { Action } from '../../ui/action';
 import { ModalDialog } from '../../ui/modal-dialog';
 import { MailTemplate } from '../training.models';
 
 /** Edits a mail template. A template without an id is new. */
 @Component({
   selector: 'app-template-dialog',
-  imports: [ModalDialog],
+  imports: [Action, ModalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './template-dialog.html',
 })

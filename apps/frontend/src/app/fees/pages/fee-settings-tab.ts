@@ -6,9 +6,10 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { Icon } from '../../ui/icon';
-import { FeeSettings, PLACEHOLDERS, euro, parseEuro } from '../fees.models';
+import { Action } from '../../ui/action';
+import { FeeSettings, PLACEHOLDERS } from '../fees.models';
 import { FeesStore } from '../fees.store';
+import { euro, parseEuro } from '../../core/money';
 
 type TextKey =
   'copyTo' | 'purposeTemplate' | 'accountHolder' | 'bank' | 'iban' | 'bic' | 'creditorId';
@@ -17,7 +18,7 @@ type DaysKey = 'daysLevel1' | 'daysFromLevel2';
 
 @Component({
   selector: 'app-fee-settings-tab',
-  imports: [Icon],
+  imports: [Action],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './fee-settings-tab.html',
 })

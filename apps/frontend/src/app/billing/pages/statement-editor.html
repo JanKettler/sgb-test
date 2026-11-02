@@ -1,0 +1,227 @@
+@if (statement(); as s) {
+  @let totals = sumsOf(s);
+  <div class="toolbar">
+    <app-action kind="back" withText label="Zurück" (pressed)="closed.emit()" />
+    <app-action kind="excel" withText label="Excel" (pressed)="exportExcel(s)" />
+    <app-action kind="print" withText label="Drucken" (pressed)="print(s)" />
+    @if (owns() && s.state === 'draft') {
+      <app-action kind="done" withText label="Einreichen" (pressed)="setState(s, 'submitted')" />
+      <app-action kind="delete" [label]="s.title + ' löschen'" (pressed)="toDelete.set(true)" />
+    }
+    @if (owns() && s.state === 'submitted') {
+      <app-action
+        kind="return"
+        withText
+        label="Zurück zum Entwurf"
+        (pressed)="setState(s, 'draft')"
+      />
+    }
+    @if (store.isAdmin() && s.state === 'submitted') {
+      <app-action
+        kind="done"
+        withText
+        label="Als bezahlt markieren"
+        (pressed)="setState(s, 'paid')"
+      />
+    }
+    @if (store.isAdmin() && s.state === 'paid') {
+      <app-action
+        kind="return"
+        withText
+        label="Wieder öffnen"
+        (pressed)="setState(s, 'submitted')"
+      />
+    }
+  </div>
+
+  <h3 class="title is-5 mb-1">
+    {{ s.title }}
+    <span
+      class="pill"
+      [class.is-ok]="s.state === 'paid'"
+      [class.is-info]="s.state === 'submitted'"
+      [class.is-warn]="s.state === 'draft'"
+      >{{ stateLabel[s.state] }}</span
+    >
+  </h3>
+  @if (!owns()) {
+    <p class="item-sub">von {{ s.owner }}</p>
+  }
+  @if (s.state === 'paid') {
+    <p class="item-sub">bezahlt am {{ fullDate(s.paidOn) }} · {{ s.paidBy }}</p>
+  }
+  @if (s.state !== 'draft' && owns()) {
+    <p class="box-note my-2">
+      @if (s.state === 'submitted') {
+        Diese Abrechnung ist eingereicht und gesperrt. Mit „Zurück zum Entwurf“ lässt sie sich
+        wieder ändern.
+      } @else {
+        Diese Abrechnung ist bezahlt und gesperrt.
+      }
+    </p>
+  }
+
+  <div class="toolbar mt-4">
+    <h4 class="title is-6 mb-0">Angaben</h4>
+    @if (editable()) {
+      <app-action kind="edit" label="Angaben bearbeiten" (pressed)="section.set('basics')" />
+    }
+  </div>
+  <dl class="facts">
+    <dt>Name</dt>
+    <dd>{{ s.name || s.owner }}</dd>
+    <dt>ÜL-EDV-Nr.</dt>
+    <dd>{{ s.edv || '–' }}</dd>
+    <dt>Lizenz</dt>
+    <dd>{{ s.license || '–' }}</dd>
+    <dt>Satz pro Stunde</dt>
+    <dd>{{ euro(s.rate) }}</dd>
+  </dl>
+
+  <div class="toolbar mt-4">
+    <h4 class="title is-6 mb-0">Übungseinheiten ({{ s.lines.length }})</h4>
+    @if (editable()) {
+      <app-action
+        kind="download"
+        withText
+        label="Aus Trainingsterminen"
+        (pressed)="fromTraining(s)"
+      />
+      <app-action kind="add" withText label="Zeile hinzufügen" (pressed)="addLine()" />
+    }
+  </div>
+  @if (s.lines.length === 0) {
+    <p class="empty">
+      Noch keine Einheiten. „Aus Trainingsterminen“ übernimmt die Termine, bei denen du als Trainer
+      eingetragen bist.
+    </p>
+  } @else {
+    <div class="item-list">
+      @for (line of s.lines; track line.id) {
+        <article class="item">
+          <div class="item-main">
+            <div class="item-title">
+              {{ fullDate(line.date) }}
+              @if (line.time) {
+                <span class="item-sub">{{ line.time }} Uhr</span>
+              }
+            </div>
+            <div class="item-sub">{{ line.group || '–' }} · {{ line.place || '–' }}</div>
+          </div>
+          <div class="item-actions">
+            <b class="keep-lines">{{ hoursText(line.minutes / 60) }} Std.</b>
+            @if (editable()) {
+              <app-action
+                kind="edit"
+                [label]="fullDate(line.date) + ' bearbeiten'"
+                (pressed)="editingLine.set(line)"
+              />
+              <app-action
+                kind="delete"
+                [label]="fullDate(line.date) + ' löschen'"
+                (pressed)="removeLine(line)"
+              />
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+  <p class="box-note my-2">
+    {{ hoursText(totals.hours) }} Std. × {{ euro(s.rate) }} = <b>{{ euro(totals.pay) }}</b>
+  </p>
+
+  <div class="toolbar mt-4">
+    <h4 class="title is-6 mb-0">PKW und Sonstiges</h4>
+    @if (editable()) {
+      <app-action kind="edit" label="PKW und Sonstiges bearbeiten" (pressed)="section.set('car')" />
+    }
+  </div>
+  <dl class="facts">
+    <dt>PKW</dt>
+    <dd>
+      {{ s.km }} km × {{ euro(s.kmRate) }} = {{ euro(totals.car) }}
+      @if (s.carText) {
+        · {{ s.carText }}
+      }
+    </dd>
+    <dt>Sonstiges</dt>
+    <dd>
+      {{ euro(totals.extra) }}
+      @if (s.extraText) {
+        · {{ s.extraText }}
+      }
+    </dd>
+  </dl>
+
+  <div class="toolbar mt-4">
+    <h4 class="title is-6 mb-0">Überweisung</h4>
+    @if (editable()) {
+      <app-action kind="edit" label="Überweisung bearbeiten" (pressed)="section.set('bank')" />
+    }
+  </div>
+  <dl class="facts">
+    <dt>Kontoinhaber</dt>
+    <dd>{{ s.accountHolder || s.name || s.owner }}</dd>
+    <dt>IBAN</dt>
+    <dd>{{ s.iban || '–' }}</dd>
+    <dt>BIC</dt>
+    <dd>{{ s.bic || '–' }}</dd>
+  </dl>
+
+  <p class="title is-5 mt-4">Gesamtbetrag {{ euro(totals.total) }}</p>
+
+  @switch (section()) {
+    @case ('basics') {
+      <app-form-dialog
+        heading="Angaben"
+        [subtitle]="s.title"
+        [fields]="basicFields()"
+        [values]="s"
+        (saved)="saveBasics($event)"
+        (closed)="section.set(null)"
+      />
+    }
+    @case ('car') {
+      <app-form-dialog
+        heading="PKW und Sonstiges"
+        [subtitle]="s.title"
+        [fields]="carFields"
+        [values]="s"
+        (saved)="saveCar($event)"
+        (closed)="section.set(null)"
+      />
+    }
+    @case ('bank') {
+      <app-form-dialog
+        heading="Überweisung"
+        [subtitle]="s.title"
+        [fields]="bankFields"
+        [values]="s"
+        (saved)="saveBank($event)"
+        (closed)="section.set(null)"
+      />
+    }
+  }
+
+  @if (editingLine(); as line) {
+    <app-form-dialog
+      [heading]="line.id ? 'Zeile ändern' : 'Zeile hinzufügen'"
+      [subtitle]="s.title"
+      [fields]="lineFields()"
+      [values]="line"
+      (saved)="saveLine($event)"
+      (closed)="editingLine.set(null)"
+    />
+  }
+
+  @if (toDelete()) {
+    <app-confirm-dialog
+      heading="Abrechnung löschen?"
+      [subtitle]="s.title"
+      text="Die Abrechnung mit allen Zeilen verschwindet."
+      (confirmed)="confirmDelete()"
+      (closed)="toDelete.set(false)"
+    />
+  }
+}

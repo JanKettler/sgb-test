@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { Action } from '../../ui/action';
 import { Icon } from '../../ui/icon';
 import { ModalDialog } from '../../ui/modal-dialog';
 import { GROUPS, GroupId, Person } from '../training.models';
@@ -29,7 +30,7 @@ interface PickerSection {
 /** Search people, filter them by group and pick one or several of them. */
 @Component({
   selector: 'app-person-picker-dialog',
-  imports: [Icon, ModalDialog],
+  imports: [Action, Icon, ModalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './person-picker-dialog.html',
   styleUrl: './person-picker-dialog.scss',

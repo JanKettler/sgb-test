@@ -44,44 +44,19 @@
               <td>
                 <span class="icon-row">
                   @if (registered) {
-                    <button
-                      type="button"
-                      class="button is-danger"
-                      aria-label="Abmelden"
-                      title="Abmelden"
-                      (click)="declining.set({ session: row.session, role: row.role })"
-                    >
-                      <app-icon name="x" />
-                    </button>
+                    <app-action
+                      kind="unregister"
+                      (pressed)="declining.set({ session: row.session, role: row.role })"
+                    />
                   } @else {
-                    <button
-                      type="button"
-                      class="button is-success"
-                      aria-label="Wieder anmelden"
-                      title="Wieder anmelden"
-                      (click)="register(row)"
-                    >
-                      <app-icon name="check" />
-                    </button>
+                    <app-action kind="register" label="Wieder anmelden" (pressed)="register(row)" />
                   }
-                  <button
-                    type="button"
-                    class="button"
-                    aria-label="Angemeldete anzeigen"
-                    title="Angemeldete"
-                    (click)="viewing.set(row.session)"
-                  >
-                    <app-icon name="users" />
-                  </button>
+                  <app-action kind="people" (pressed)="viewing.set(row.session)" />
                   @if (row.canTakeAttendance) {
-                    <a
-                      class="button is-primary"
-                      [routerLink]="['/training/anwesenheit', row.session.id]"
-                      aria-label="Anwesenheit führen"
-                      title="Anwesenheit"
-                    >
-                      <app-icon name="clipboard" />
-                    </a>
+                    <app-action
+                      kind="attendance"
+                      [link]="['/training/anwesenheit', row.session.id]"
+                    />
                   }
                 </span>
               </td>
@@ -133,33 +108,12 @@
               <tr>
                 <td>
                   <span class="icon-row">
-                    <button
-                      type="button"
-                      class="button is-success"
-                      aria-label="Anmelden"
-                      title="Anmelden"
-                      (click)="register(row)"
-                    >
-                      <app-icon name="check" />
-                    </button>
-                    <button
-                      type="button"
-                      class="button is-danger"
-                      aria-label="Abmelden"
-                      title="Abmelden"
-                      (click)="declining.set({ session: row.session, role: row.role })"
-                    >
-                      <app-icon name="x" />
-                    </button>
-                    <button
-                      type="button"
-                      class="button"
-                      aria-label="Angemeldete anzeigen"
-                      title="Angemeldete"
-                      (click)="viewing.set(row.session)"
-                    >
-                      <app-icon name="users" />
-                    </button>
+                    <app-action kind="register" (pressed)="register(row)" />
+                    <app-action
+                      kind="unregister"
+                      (pressed)="declining.set({ session: row.session, role: row.role })"
+                    />
+                    <app-action kind="people" (pressed)="viewing.set(row.session)" />
                   </span>
                 </td>
                 <td>
@@ -200,33 +154,12 @@
               <tr>
                 <td>
                   <span class="icon-row">
-                    <button
-                      type="button"
-                      class="button is-success"
-                      aria-label="Anmelden"
-                      title="Anmelden"
-                      (click)="register(row)"
-                    >
-                      <app-icon name="check" />
-                    </button>
-                    <button
-                      type="button"
-                      class="button is-danger"
-                      aria-label="Abmelden"
-                      title="Abmelden"
-                      (click)="declining.set({ session: row.session, role: row.role })"
-                    >
-                      <app-icon name="x" />
-                    </button>
-                    <button
-                      type="button"
-                      class="button"
-                      aria-label="Angemeldete anzeigen"
-                      title="Angemeldete"
-                      (click)="viewing.set(row.session)"
-                    >
-                      <app-icon name="users" />
-                    </button>
+                    <app-action kind="register" (pressed)="register(row)" />
+                    <app-action
+                      kind="unregister"
+                      (pressed)="declining.set({ session: row.session, role: row.role })"
+                    />
+                    <app-action kind="people" (pressed)="viewing.set(row.session)" />
                   </span>
                 </td>
                 <td>

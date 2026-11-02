@@ -20,12 +20,6 @@
   background: var(--ok-bg);
 }
 
-.is-off {
-  cursor: not-allowed;
-  opacity: 0.4;
-  pointer-events: none;
-}
-
 /* The table scrolls inside its own box so that the heading stays visible. */
 .is-tall {
   max-height: 70vh;

@@ -1,0 +1,209 @@
+<div class="toolbar">
+  <div class="chip-row mb-0">
+    <button type="button" class="chip" [class.is-on]="view() === 'list'" (click)="view.set('list')">
+      Einkaufsliste
+      @if (store.totals().missing > 0) {
+        <span class="count">{{ store.totals().missing }}</span>
+      }
+    </button>
+    <button
+      type="button"
+      class="chip"
+      [class.is-on]="view() === 'stock'"
+      (click)="view.set('stock')"
+    >
+      Inventar
+    </button>
+  </div>
+  <div class="icon-row">
+    <app-action kind="excel" withText label="Einkaufsliste als Excel" (pressed)="excel()" />
+    <app-action kind="add" withText label="Artikel" (pressed)="add()" />
+  </div>
+</div>
+
+@if (view() === 'list') {
+  <div class="box">
+    <dl class="facts">
+      <dt>Artikel auf der Liste</dt>
+      <dd>{{ store.totals().articles }}, davon {{ store.totals().missing }} noch zu kaufen</dd>
+      <dt>Noch zu bezahlen</dt>
+      <dd>
+        <b>{{ euro(store.totals().open) }}</b>
+      </dd>
+      <dt>Schon gekauft</dt>
+      <dd>{{ euro(store.totals().done) }}</dd>
+      <dt>Gesamt</dt>
+      <dd>{{ euro(store.totals().total) }}</dd>
+    </dl>
+  </div>
+
+  @if (groups().length === 0) {
+    <p class="empty">Die Einkaufsliste ist leer.</p>
+  }
+  @for (group of groups(); track group.name) {
+    <div class="box">
+      <div class="card-head">
+        <h3 class="title is-5 mb-0">{{ group.name }}</h3>
+        <span class="pill is-info">{{ euro(group.total) }}</span>
+      </div>
+      <div class="table-container">
+        <table class="data-table has-cols">
+          <thead>
+            <tr>
+              <th>Gekauft</th>
+              <th class="is-left">Artikel</th>
+              <th>Bedarf</th>
+              <th>Lager</th>
+              <th>Fehlt</th>
+              <th>Packungen</th>
+              <th class="has-text-right">Preis</th>
+              <th class="has-text-right">Summe</th>
+              <th>Aktionen</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of group.rows; track row.item.id) {
+              <tr [class.is-ok-row]="row.buy.done">
+                <td class="is-center">
+                  <input
+                    type="checkbox"
+                    [checked]="row.buy.done"
+                    [attr.aria-label]="row.item.name + ' gekauft'"
+                    (change)="store.toggleBought(row.item.id)"
+                  />
+                </td>
+                <td class="is-left" [class.is-struck]="row.buy.done">{{ row.item.name }}</td>
+                <td class="is-center">{{ quantity(row.item.need, row.item.unit) }}</td>
+                <td class="is-center">
+                  <input
+                    class="input is-small stock-input"
+                    type="number"
+                    min="0"
+                    step="any"
+                    inputmode="decimal"
+                    [value]="row.item.stock"
+                    [attr.aria-label]="row.item.name + ' im Lager'"
+                    (change)="setStock(row.item, $event)"
+                  />
+                </td>
+                <td class="is-center" [class.is-late]="!row.buy.done && row.buy.missing > 0">
+                  {{ missingText(row) }}
+                </td>
+                <td class="is-center">{{ packText(row) }}</td>
+                <td class="has-text-right">{{ row.item.price > 0 ? euro(row.item.price) : '' }}</td>
+                <td class="has-text-right">{{ row.buy.total > 0 ? euro(row.buy.total) : '' }}</td>
+                <td>
+                  <div class="icon-row">
+                    <app-action
+                      kind="edit"
+                      small
+                      [label]="row.item.name + ' bearbeiten'"
+                      (pressed)="editing.set(row.item)"
+                    />
+                    <app-action
+                      kind="minus"
+                      small
+                      [label]="row.item.name + ' von der Liste nehmen'"
+                      (pressed)="store.toggleOnList(row.item.id)"
+                    />
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+} @else {
+  @for (group of categoryGroups(); track group.name) {
+    <div class="box">
+      <h3 class="title is-5">{{ group.name }}</h3>
+      <div class="table-container">
+        <table class="data-table has-cols">
+          <thead>
+            <tr>
+              <th class="is-left">Artikel</th>
+              <th>Aufbewahrung</th>
+              <th>Status</th>
+              <th>Bedarf</th>
+              <th>Lager</th>
+              <th>Einkauf</th>
+              <th>Aktionen</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of group.items; track item.id) {
+              <tr>
+                <td class="is-left">{{ item.name }}</td>
+                <td class="is-center">{{ item.box || '–' }}</td>
+                <td class="is-center">
+                  <div class="select is-small">
+                    <select
+                      [attr.aria-label]="item.name + ' Status'"
+                      (change)="setStatus(item, $event)"
+                    >
+                      @for (status of statuses; track status) {
+                        <option [value]="status" [selected]="status === item.status">
+                          {{ status }}
+                        </option>
+                      }
+                    </select>
+                  </div>
+                </td>
+                <td class="is-center">{{ quantity(item.need, item.unit) }}</td>
+                <td class="is-center">{{ quantity(item.stock, item.unit) }}</td>
+                <td class="is-center">
+                  <app-action
+                    [kind]="isOnList(item) ? 'minus' : 'add'"
+                    small
+                    [label]="
+                      item.name +
+                      (isOnList(item) ? ' von der Liste nehmen' : ' auf die Liste setzen')
+                    "
+                    (pressed)="store.toggleOnList(item.id)"
+                  />
+                </td>
+                <td>
+                  <div class="icon-row">
+                    <app-action
+                      kind="edit"
+                      small
+                      [label]="item.name + ' bearbeiten'"
+                      (pressed)="editing.set(item)"
+                    />
+                    <app-action
+                      kind="delete"
+                      small
+                      [label]="item.name + ' löschen'"
+                      (pressed)="toDelete.set(item)"
+                    />
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+}
+
+@if (editing(); as item) {
+  <app-form-dialog
+    [heading]="item.id ? 'Artikel bearbeiten' : 'Artikel hinzufügen'"
+    [fields]="fields()"
+    [values]="values()"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (toDelete(); as item) {
+  <app-confirm-dialog
+    heading="Artikel löschen?"
+    [text]="item.name + ' wird aus dem Inventar und von der Einkaufsliste gelöscht.'"
+    (confirmed)="remove()"
+    (closed)="toDelete.set(null)"
+  />
+}

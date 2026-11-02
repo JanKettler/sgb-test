@@ -1,0 +1,107 @@
+<div class="toolbar">
+  <app-search-field placeholder="Beschluss, Zuständige oder Text suchen …" [(value)]="query" />
+  <app-action kind="excel" withText label="Excel „Beschlussliste“" (pressed)="exportExcel()" />
+  @if (store.canEdit()) {
+    <app-action kind="add" withText label="Neuer Beschluss" (pressed)="add()" />
+  }
+</div>
+<div class="chip-row">
+  <button
+    type="button"
+    class="chip"
+    [class.is-on]="onlyOpen()"
+    [attr.aria-pressed]="onlyOpen()"
+    (click)="onlyOpen.set(!onlyOpen())"
+  >
+    Nur offene <span class="count">{{ store.openCount() }}</span>
+  </button>
+  @if (store.overdueCount() > 0) {
+    <span class="is-late is-align-self-center">{{ store.overdueCount() }} überfällig</span>
+  }
+</div>
+
+@if (visible().length === 0) {
+  <p class="empty">Keine Beschlüsse gefunden.</p>
+} @else {
+  <div class="item-list">
+    @for (entry of visible(); track entry.id) {
+      <article class="item" [class.is-bad]="late(entry)" [class.is-done]="entry.state === 'done'">
+        <div class="item-main">
+          <div class="item-title">
+            @if (entry.number) {
+              <span class="has-text-grey">{{ entry.number }}</span>
+            }
+            {{ entry.title }}
+            <span
+              class="pill"
+              [class.is-ok]="entry.state === 'done'"
+              [class.is-warn]="entry.state === 'working'"
+              [class.is-info]="entry.state === 'open'"
+              >{{ stateLabel[entry.state] }}</span
+            >
+            @if (late(entry)) {
+              <span class="pill is-bad">überfällig</span>
+            }
+            @if (entry.taskCreated) {
+              <span class="pill is-violet">Aufgabe angelegt</span>
+            }
+          </div>
+          <div class="item-sub">{{ subline(entry) }}</div>
+          @if (entry.text) {
+            <p class="keep-lines mt-1">{{ entry.text }}</p>
+          }
+        </div>
+        @if (store.canEdit()) {
+          <div class="item-actions">
+            @if (entry.state !== 'done') {
+              @if (!entry.taskCreated) {
+                <app-action
+                  kind="add"
+                  small
+                  withText
+                  label="Als Aufgabe anlegen"
+                  (pressed)="createTask(entry)"
+                />
+              }
+              <app-action
+                kind="done"
+                [label]="entry.title + ' als erledigt eintragen'"
+                (pressed)="markDone(entry)"
+              />
+            }
+            <app-action
+              kind="edit"
+              [label]="entry.title + ' bearbeiten'"
+              (pressed)="editing.set(entry)"
+            />
+            <app-action
+              kind="delete"
+              [label]="entry.title + ' löschen'"
+              (pressed)="toDelete.set(entry)"
+            />
+          </div>
+        }
+      </article>
+    }
+  </div>
+}
+
+@if (editing(); as current) {
+  <app-form-dialog
+    [heading]="current.id ? 'Beschluss bearbeiten' : 'Neuer Beschluss'"
+    [fields]="fields"
+    [values]="current"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (toDelete(); as entry) {
+  <app-confirm-dialog
+    heading="Beschluss löschen?"
+    [subtitle]="entry.title"
+    text="Der Beschluss verschwindet aus der Liste. Eine angelegte Aufgabe bleibt bestehen."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

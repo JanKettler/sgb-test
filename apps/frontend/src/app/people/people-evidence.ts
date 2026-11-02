@@ -1,4 +1,4 @@
-import { parseIsoDate } from '../training/training-dates';
+import { daysBetween } from '../training/training-dates';
 import { Member } from './people.models';
 
 export type EvidenceKind =
@@ -61,10 +61,6 @@ export interface EvidenceRow {
 export interface MemberStatus {
   tone: Tone;
   text: string;
-}
-
-export function daysBetween(from: string, to: string): number {
-  return Math.round((parseIsoDate(to).getTime() - parseIsoDate(from).getTime()) / 86_400_000);
 }
 
 function row(

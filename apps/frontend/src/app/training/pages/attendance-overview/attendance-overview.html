@@ -18,20 +18,18 @@
             <small>{{ reasonText(entry) }}</small>
           </div>
           <div class="icon-row">
-            <button
-              type="button"
-              class="button is-small"
-              (click)="mailRequest.set({ kind: 'info', entry: entry })"
-            >
-              Mail senden
-            </button>
-            <button
-              type="button"
-              class="button is-small is-primary"
-              (click)="mailRequest.set({ kind: 'inactive', entry: entry })"
-            >
-              Auf inaktiv setzen und informieren
-            </button>
+            <app-action
+              kind="send"
+              label="Mail senden"
+              withText
+              (pressed)="mailRequest.set({ kind: 'info', entry: entry })"
+            />
+            <app-action
+              kind="send"
+              label="Auf inaktiv setzen und informieren"
+              withText
+              (pressed)="mailRequest.set({ kind: 'inactive', entry: entry })"
+            />
           </div>
         </div>
       }
@@ -41,13 +39,12 @@
             <strong>{{ entry.person.name }}</strong> · {{ groupOf(entry) }}
             <small>{{ reasonText(entry) }}</small>
           </div>
-          <button
-            type="button"
-            class="button is-small is-primary"
-            (click)="mailRequest.set({ kind: 'info', entry: entry })"
-          >
-            Info-Mail senden
-          </button>
+          <app-action
+            kind="send"
+            label="Info-Mail senden"
+            withText
+            (pressed)="mailRequest.set({ kind: 'info', entry: entry })"
+          />
         </div>
       }
     </div>
@@ -76,9 +73,7 @@
         </button>
       }
     </div>
-    <button type="button" class="button is-success" (click)="exporting.set(true)">
-      <app-icon name="sheet" /> Excel
-    </button>
+    <app-action kind="excel" withText (pressed)="exporting.set(true)" />
   </div>
 
   <div class="range">

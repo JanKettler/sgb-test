@@ -6,12 +6,14 @@
     <p class="subtitle is-6 mb-0">Trainingstermine</p>
   </div>
   <div class="buttons">
-    <a class="button" routerLink="/training/termine/neu" [queryParams]="{ serie: 1 }">
-      <app-icon name="plus" /> Serie anlegen
-    </a>
-    <a class="button is-primary" routerLink="/training/termine/neu">
-      <app-icon name="plus" /> Neuer Termin
-    </a>
+    <app-action
+      kind="add"
+      label="Serie anlegen"
+      withText
+      link="/training/termine/neu"
+      [queryParams]="{ serie: 1 }"
+    />
+    <app-action kind="add" label="Neuer Termin" withText link="/training/termine/neu" />
   </div>
 </header>
 
@@ -51,15 +53,7 @@
       @if (filtered()) {
         <button type="button" class="chip" (click)="resetFilters()">Filter zurücksetzen</button>
       }
-      <button
-        type="button"
-        class="button is-info"
-        aria-label="Zum nächsten Termin"
-        title="Zum nächsten Termin"
-        (click)="scrollToNext()"
-      >
-        <app-icon name="calendar" />
-      </button>
+      <app-action kind="goto" label="Zum nächsten Termin" (pressed)="scrollToNext()" />
     </div>
   </div>
 
@@ -105,51 +99,31 @@
             <td>{{ row.deadline }}</td>
             <td>
               <span class="icon-row">
-                <button
-                  type="button"
-                  class="button"
-                  [class]="'grp-' + row.session.groupIds[0]"
-                  aria-label="Angemeldete anzeigen"
-                  title="Angemeldete"
-                  (click)="viewing.set(row.session)"
-                >
-                  <app-icon name="users" />
-                </button>
-                <a
-                  class="button is-primary"
-                  [class.is-off]="!row.started"
-                  [routerLink]="row.started ? ['/training/anwesenheit', row.session.id] : null"
-                  aria-label="Anwesenheit führen"
-                  title="Anwesenheit ab dem Tag des Trainings"
-                >
-                  <app-icon name="clipboard" />
-                </a>
-                <a
-                  class="button is-warning"
-                  [routerLink]="['/training/termine', row.session.id]"
-                  aria-label="Termin bearbeiten"
-                  title="Bearbeiten"
-                >
-                  <app-icon name="pencil" />
-                </a>
-                <a
-                  class="button"
-                  routerLink="/training/termine/neu"
+                <app-action kind="people" (pressed)="viewing.set(row.session)" />
+                <app-action
+                  kind="attendance"
+                  [label]="
+                    row.started ? 'Anwesenheit führen' : 'Anwesenheit ab dem Tag des Trainings'
+                  "
+                  [link]="row.started ? ['/training/anwesenheit', row.session.id] : null"
+                  [disabled]="!row.started"
+                />
+                <app-action
+                  kind="edit"
+                  label="Termin bearbeiten"
+                  [link]="['/training/termine', row.session.id]"
+                />
+                <app-action
+                  kind="copy"
+                  label="Termin kopieren"
+                  link="/training/termine/neu"
                   [queryParams]="{ kopie: row.session.id }"
-                  aria-label="Termin kopieren"
-                  title="Kopieren"
-                >
-                  <app-icon name="copy" />
-                </a>
-                <button
-                  type="button"
-                  class="button is-danger"
-                  aria-label="Termin löschen"
-                  title="Löschen"
-                  (click)="toDelete.set(row.session)"
-                >
-                  <app-icon name="trash" />
-                </button>
+                />
+                <app-action
+                  kind="delete"
+                  label="Termin löschen"
+                  (pressed)="toDelete.set(row.session)"
+                />
               </span>
             </td>
           </tr>
@@ -164,19 +138,13 @@
 </section>
 
 @if (toDelete(); as session) {
-  <app-modal-dialog
+  <app-confirm-dialog
     heading="Termin löschen?"
-    [compact]="true"
-    accent="red"
+    [subtitle]="deleteText(session)"
+    text="Alle Rückmeldungen zu diesem Termin werden ebenfalls gelöscht."
+    (confirmed)="confirmDelete()"
     (closed)="toDelete.set(null)"
-  >
-    <p>{{ deleteText(session) }}</p>
-    <p class="label mt-2">Alle Rückmeldungen zu diesem Termin werden ebenfalls gelöscht.</p>
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
-      <button type="button" class="button is-danger" (click)="confirmDelete()">Löschen</button>
-    </ng-container>
-  </app-modal-dialog>
+  />
 }
 
 @if (viewing(); as session) {

@@ -6,12 +6,8 @@
     <p class="subtitle is-6 mb-0">Mitglieder, Eltern und Nachweise</p>
   </div>
   <div class="buttons">
-    <button type="button" class="button" (click)="importDemo()">
-      <app-icon name="download" /> Aus WebClub importieren
-    </button>
-    <a class="button is-primary" routerLink="/personen/neu">
-      <app-icon name="plus" /> Neue Person
-    </a>
+    <app-action kind="download" label="Aus WebClub importieren" withText (pressed)="importDemo()" />
+    <app-action kind="add" label="Neue Person" withText link="/personen/neu" />
   </div>
 </header>
 
@@ -142,32 +138,21 @@
                 </td>
                 <td class="has-text-right is-nowrap">
                   <span class="icon-row">
-                    <button
-                      type="button"
-                      class="button"
-                      [attr.aria-label]="row.name + ' duplizieren'"
-                      title="Duplizieren"
-                      (click)="duplicate(row.member)"
-                    >
-                      <app-icon name="copy" />
-                    </button>
-                    <a
-                      class="button is-warning"
-                      [routerLink]="['/personen', row.member.id]"
-                      [attr.aria-label]="row.name + ' bearbeiten'"
-                      title="Bearbeiten"
-                    >
-                      <app-icon name="pencil" />
-                    </a>
-                    <button
-                      type="button"
-                      class="button is-danger"
-                      [attr.aria-label]="row.name + ' löschen'"
-                      title="Löschen"
-                      (click)="toDelete.set(row.member)"
-                    >
-                      <app-icon name="trash" />
-                    </button>
+                    <app-action
+                      kind="copy"
+                      [label]="row.name + ' duplizieren'"
+                      (pressed)="duplicate(row.member)"
+                    />
+                    <app-action
+                      kind="edit"
+                      [label]="row.name + ' bearbeiten'"
+                      [link]="['/personen', row.member.id]"
+                    />
+                    <app-action
+                      kind="delete"
+                      [label]="row.name + ' löschen'"
+                      (pressed)="toDelete.set(row.member)"
+                    />
                   </span>
                 </td>
               </tr>
@@ -192,16 +177,10 @@
 </section>
 
 @if (toDelete(); as member) {
-  <app-modal-dialog
+  <app-confirm-dialog
     heading="Person löschen?"
-    [compact]="true"
-    accent="red"
+    [text]="member.firstName + ' ' + member.lastName + ' wird mit allen Angaben entfernt.'"
+    (confirmed)="confirmDelete()"
     (closed)="toDelete.set(null)"
-  >
-    <p>{{ member.firstName }} {{ member.lastName }} wird mit allen Angaben entfernt.</p>
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
-      <button type="button" class="button is-danger" (click)="confirmDelete()">Löschen</button>
-    </ng-container>
-  </app-modal-dialog>
+  />
 }

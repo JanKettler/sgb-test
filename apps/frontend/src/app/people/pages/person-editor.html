@@ -16,24 +16,8 @@
     </div>
   </div>
   <div class="icon-row">
-    <button
-      type="button"
-      class="button is-danger"
-      aria-label="Abbrechen"
-      title="Abbrechen"
-      (click)="cancel()"
-    >
-      <app-icon name="x" />
-    </button>
-    <button
-      type="button"
-      class="button is-success"
-      aria-label="Speichern"
-      title="Speichern"
-      (click)="save()"
-    >
-      <app-icon name="save" />
-    </button>
+    <app-action kind="cancel" (pressed)="cancel()" />
+    <app-action kind="save" (pressed)="save()" />
   </div>
 </section>
 
@@ -600,9 +584,13 @@
     <section class="box">
       <div class="card-head">
         <h3>Material</h3>
-        <button type="button" class="button is-small" (click)="addMaterial()">
-          <app-icon name="plus" /> Material hinzufügen
-        </button>
+        <app-action
+          kind="add"
+          label="Material hinzufügen"
+          withText
+          small
+          (pressed)="addMaterial()"
+        />
       </div>
       <table class="table is-fullwidth is-hoverable">
         <thead>
@@ -633,15 +621,12 @@
                 />
               </td>
               <td class="has-text-right is-nowrap">
-                <button
-                  type="button"
-                  class="button is-small is-danger"
-                  [attr.aria-label]="item.name + ' entfernen'"
-                  title="Entfernen"
-                  (click)="removeMaterial(item.id)"
-                >
-                  <app-icon name="trash" />
-                </button>
+                <app-action
+                  kind="delete"
+                  small
+                  [label]="item.name + ' entfernen'"
+                  (pressed)="removeMaterial(item.id)"
+                />
               </td>
             </tr>
           } @empty {
@@ -713,25 +698,33 @@
       </div>
       <div class="icon-row mt-3">
         @if (draft().access === 'none') {
-          <button type="button" class="button is-primary wide-button" (click)="setAccess('active')">
-            <app-icon name="mail" /> Zugang einrichten
-          </button>
+          <app-action
+            kind="send"
+            label="Zugang einrichten"
+            withText
+            (pressed)="setAccess('active')"
+          />
         } @else {
-          <button
-            type="button"
-            class="button"
-            (click)="notice.set('Demo: Ein neues Kennwort wurde nicht versendet.')"
-          >
-            <app-icon name="mail" /> Neues Kennwort senden
-          </button>
+          <app-action
+            kind="send"
+            label="Neues Kennwort senden"
+            withText
+            (pressed)="notice.set('Demo: Ein neues Kennwort wurde nicht versendet.')"
+          />
           @if (draft().access === 'active') {
-            <button type="button" class="button is-danger" (click)="setAccess('blocked')">
-              Zugang sperren
-            </button>
+            <app-action
+              kind="lock"
+              label="Zugang sperren"
+              withText
+              (pressed)="setAccess('blocked')"
+            />
           } @else {
-            <button type="button" class="button" (click)="setAccess('active')">
-              Zugang entsperren
-            </button>
+            <app-action
+              kind="unlock"
+              label="Zugang entsperren"
+              withText
+              (pressed)="setAccess('active')"
+            />
           }
         }
       </div>
@@ -781,9 +774,7 @@
     <section class="box">
       <div class="card-head">
         <h3>Weitere Felder</h3>
-        <button type="button" class="button is-small" (click)="addExtra()">
-          <app-icon name="plus" /> Feld hinzufügen
-        </button>
+        <app-action kind="add" label="Feld hinzufügen" withText small (pressed)="addExtra()" />
       </div>
       @for (item of draft().extra; track item.id) {
         <div class="extra-row">
@@ -806,15 +797,12 @@
             />
           </div>
           <div class="has-text-right is-nowrap">
-            <button
-              type="button"
-              class="button is-small is-danger"
-              [attr.aria-label]="item.label + ' entfernen'"
-              title="Entfernen"
-              (click)="removeExtra(item.id)"
-            >
-              <app-icon name="trash" />
-            </button>
+            <app-action
+              kind="delete"
+              small
+              [label]="item.label + ' entfernen'"
+              (pressed)="removeExtra(item.id)"
+            />
           </div>
         </div>
       } @empty {
@@ -827,9 +815,13 @@
       <section class="box">
         <div class="card-head">
           <h3>Eltern und Erziehungsberechtigte</h3>
-          <a class="button is-small" routerLink="/personen/eltern/neu">
-            <app-icon name="plus" /> Elternteil hinzufügen
-          </a>
+          <app-action
+            kind="add"
+            label="Elternteil hinzufügen"
+            withText
+            small
+            link="/personen/eltern/neu"
+          />
         </div>
         @for (parent of parents(); track parent.id) {
           <div class="parent">

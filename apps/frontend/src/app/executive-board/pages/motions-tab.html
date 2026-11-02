@@ -1,0 +1,110 @@
+<div class="toolbar">
+  <app-search-field placeholder="Antrag, Antragsteller oder Text suchen …" [(value)]="query" />
+  @if (store.canEdit()) {
+    <app-action kind="add" withText label="Neuer Antrag" (pressed)="add()" />
+  }
+</div>
+<p class="item-sub mb-3">
+  Anträge an den Vorstand. Gedruckt erscheint der Antrag im Briefkopf des Vereins; ein beschlossener
+  Antrag lässt sich mit einem Klick als Beschluss übernehmen.
+</p>
+
+@if (visible().length === 0) {
+  <p class="empty">Keine Anträge gefunden.</p>
+} @else {
+  <div class="item-list">
+    @for (motion of visible(); track motion.id) {
+      <article
+        class="item"
+        [class.is-ok]="motion.state === 'Beschlossen'"
+        [class.is-bad]="motion.state === 'Abgelehnt'"
+      >
+        <div class="item-main">
+          <div class="item-title">
+            {{ motion.title }}
+            <span
+              class="pill"
+              [class.is-ok]="motion.state === 'Beschlossen'"
+              [class.is-bad]="motion.state === 'Abgelehnt'"
+              [class.is-warn]="motion.state === 'Zurückgestellt'"
+              [class.is-info]="motion.state === 'Eingereicht'"
+              >{{ motion.state }}</span
+            >
+            @if (store.hasResolution(motion.id)) {
+              <span class="pill is-violet">Beschluss angelegt</span>
+            }
+          </div>
+          <div class="item-sub">{{ subline(motion) }}</div>
+
+          @if (isOpen(motion.id)) {
+            @if (motion.heading) {
+              <p class="mt-2 has-text-weight-semibold">{{ motion.heading }}</p>
+            }
+            <app-outline-view mode="letter" [text]="motion.text" />
+            @if (motion.decision) {
+              <div class="item-heading">Beschluss</div>
+              <p class="keep-lines">{{ motion.decision }}</p>
+            }
+          }
+        </div>
+        <div class="item-actions">
+          @if (isOpen(motion.id)) {
+            <app-action
+              kind="collapse"
+              [label]="motion.title + ' zuklappen'"
+              (pressed)="toggleOpen(motion.id)"
+            />
+          } @else {
+            <app-action
+              kind="expand"
+              [label]="motion.title + ' aufklappen'"
+              (pressed)="toggleOpen(motion.id)"
+            />
+          }
+          <app-action kind="print" [label]="motion.title + ' drucken'" (pressed)="print(motion)" />
+          @if (store.canEdit()) {
+            @if (motion.state === 'Beschlossen' && !store.hasResolution(motion.id)) {
+              <app-action
+                kind="add"
+                small
+                withText
+                label="Beschluss anlegen"
+                (pressed)="makeResolution(motion)"
+              />
+            }
+            <app-action
+              kind="edit"
+              [label]="motion.title + ' bearbeiten'"
+              (pressed)="editing.set(motion)"
+            />
+            <app-action
+              kind="delete"
+              [label]="motion.title + ' löschen'"
+              (pressed)="toDelete.set(motion)"
+            />
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (editing(); as current) {
+  <app-form-dialog
+    [heading]="current.id ? 'Antrag bearbeiten' : 'Neuer Antrag'"
+    [fields]="fields()"
+    [values]="current"
+    (saved)="save($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (toDelete(); as motion) {
+  <app-confirm-dialog
+    heading="Antrag löschen?"
+    [subtitle]="motion.title"
+    text="Der Antrag verschwindet aus der Liste. Ein bereits angelegter Beschluss bleibt bestehen."
+    (confirmed)="confirmDelete()"
+    (closed)="toDelete.set(null)"
+  />
+}

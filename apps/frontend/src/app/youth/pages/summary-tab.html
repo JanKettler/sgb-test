@@ -1,0 +1,76 @@
+<div class="toolbar">
+  <app-action kind="back" label="Vorheriges Jahr" (pressed)="shift(-1)" />
+  <b>{{ store.year() }}</b>
+  <app-action kind="next" label="Nächstes Jahr" (pressed)="shift(1)" />
+  <app-action
+    kind="excel"
+    withText
+    label="Excel „Abrechnung Abzeichen“"
+    (pressed)="exportExcel()"
+  />
+</div>
+
+<div class="table-container">
+  <table class="table is-fullwidth">
+    <thead>
+      <tr>
+        <th>Abzeichen</th>
+        <th>Kosten</th>
+        <th>Anzahl</th>
+        <th>Gesamt</th>
+        <th>Namen</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.badge) {
+        <tr>
+          <td>{{ row.badge }}</td>
+          <td>{{ euro(row.price) }}</td>
+          <td>{{ row.count || '' }}</td>
+          <td>{{ euro(row.sum) }}</td>
+          <td>{{ row.names.join(', ') }}</td>
+        </tr>
+      }
+      <tr>
+        <td colspan="3"><b>Summe</b></td>
+        <td>
+          <b>{{ euro(total()) }}</b>
+        </td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p class="box-note my-3" [class.is-late]="difference() !== 0">
+  Gegenprüfung Jugendkasse: Abzeichen {{ euro(total()) }} · gebucht {{ euro(booked()) }} ·
+  @if (difference() === 0) {
+    stimmt überein
+  } @else {
+    Differenz {{ euro(difference()) }}
+  }
+</p>
+
+<h3 class="item-heading">Wer hat wann was abgelegt ({{ list().length }})</h3>
+@if (list().length === 0) {
+  <p class="empty">Noch nichts.</p>
+} @else {
+  <div class="item-list">
+    @for (record of list(); track record.id) {
+      <article class="item">
+        <div class="item-main">
+          <div class="item-title">{{ record.name }}</div>
+          <div class="item-sub">
+            {{ record.badge }} · {{ fullDate(record.paidOn || record.date) }}
+          </div>
+        </div>
+        <span
+          class="pill"
+          [class.is-ok]="record.state === 'bezahlt'"
+          [class.is-warn]="record.state === 'bestanden'"
+          >{{ record.state === 'bezahlt' ? euro(store.priceOf(record)) : 'Zahlung offen' }}</span
+        >
+      </article>
+    }
+  </div>
+}

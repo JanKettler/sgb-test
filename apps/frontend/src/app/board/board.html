@@ -5,9 +5,7 @@
     </h3>
     <div class="buttons">
       @if (store.canWrite()) {
-        <button type="button" class="button is-warning is-small is-rounded" (click)="add()">
-          <app-icon name="plus" /> Neue Mitteilung
-        </button>
+        <app-action kind="add" label="Neue Mitteilung" withText small (pressed)="add()" />
       }
       @if (limit() > 0) {
         <a class="button is-small is-rounded" routerLink="/brett">
@@ -84,23 +82,9 @@
             </td>
             @if (store.canWrite()) {
               <td class="actions">
-                <div class="buttons is-flex-wrap-nowrap are-small">
-                  <button
-                    type="button"
-                    class="button is-warning"
-                    aria-label="Bearbeiten"
-                    (click)="edit(post)"
-                  >
-                    <app-icon name="pencil" />
-                  </button>
-                  <button
-                    type="button"
-                    class="button is-danger"
-                    aria-label="Löschen"
-                    (click)="toDelete.set(post)"
-                  >
-                    <app-icon name="trash" />
-                  </button>
+                <div class="icon-row">
+                  <app-action kind="edit" small (pressed)="edit(post)" />
+                  <app-action kind="delete" small (pressed)="toDelete.set(post)" />
                 </div>
               </td>
             }
@@ -154,34 +138,12 @@
                 <div class="content-text" [appRichText]="entry.post.html"></div>
               </td>
               <td class="actions">
-                <div class="buttons is-flex-wrap-nowrap">
+                <div class="icon-row">
                   @if (inArchive(entry)) {
-                    <button
-                      type="button"
-                      class="button is-success"
-                      aria-label="Wiederherstellen"
-                      title="Wiederherstellen"
-                      (click)="store.restore(entry.post.id)"
-                    >
-                      <app-icon name="restore" />
-                    </button>
+                    <app-action kind="restore" small (pressed)="store.restore(entry.post.id)" />
                   } @else {
-                    <button
-                      type="button"
-                      class="button is-warning"
-                      aria-label="Bearbeiten"
-                      (click)="edit(entry.post)"
-                    >
-                      <app-icon name="pencil" />
-                    </button>
-                    <button
-                      type="button"
-                      class="button is-danger"
-                      aria-label="Löschen"
-                      (click)="toDelete.set(entry.post)"
-                    >
-                      <app-icon name="trash" />
-                    </button>
+                    <app-action kind="edit" small (pressed)="edit(entry.post)" />
+                    <app-action kind="delete" small (pressed)="toDelete.set(entry.post)" />
                   }
                 </div>
               </td>
@@ -194,18 +156,12 @@
 }
 
 @if (toDelete(); as post) {
-  <app-modal-dialog
+  <app-confirm-dialog
     heading="Mitteilung löschen?"
-    [compact]="true"
-    accent="red"
+    [text]="'„' + titleOf(post) + '“ wird gelöscht und bleibt 30 Tage im Archiv.'"
+    (confirmed)="remove()"
     (closed)="toDelete.set(null)"
-  >
-    <p>„{{ titleOf(post) }}“ wird gelöscht und bleibt 30 Tage im Archiv.</p>
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="toDelete.set(null)">Abbrechen</button>
-      <button type="button" class="button is-danger" (click)="remove()">Löschen</button>
-    </ng-container>
-  </app-modal-dialog>
+  />
 }
 
 <ng-template #editor let-post>
@@ -313,24 +269,8 @@
   </td>
   <td class="actions edit-cell">
     <div class="icon-row">
-      <button
-        type="button"
-        class="button is-danger"
-        aria-label="Abbrechen"
-        title="Abbrechen"
-        (click)="cancel()"
-      >
-        <app-icon name="x" />
-      </button>
-      <button
-        type="button"
-        class="button is-success"
-        aria-label="Speichern"
-        title="Speichern"
-        (click)="save()"
-      >
-        <app-icon name="save" />
-      </button>
+      <app-action kind="cancel" (pressed)="cancel()" />
+      <app-action kind="save" (pressed)="save()" />
     </div>
   </td>
 </ng-template>

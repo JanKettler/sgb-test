@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { Action } from '../../../ui/action';
 import { Icon } from '../../../ui/icon';
 import { Toasts } from '../../../ui/toast';
 import { CompSection, showTime } from '../../competition.models';
@@ -25,7 +26,7 @@ type ListId = 'start' | 'event' | 'swimmer' | 'overview';
 /** Meldeergebnis of one meet: who swims when and where, the lists for the pool deck, the judges. */
 @Component({
   selector: 'app-meet-schedule',
-  imports: [Icon],
+  imports: [Action, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './meet-schedule.html',
   styleUrl: './meet-schedule.scss',

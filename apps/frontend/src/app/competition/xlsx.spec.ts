@@ -1,5 +1,5 @@
 import { clubLogoBytes } from './club-logo';
-import { XlsxBook, columnName, createXlsx, excelDate } from './xlsx';
+import { XlsxBook, columnName, createXlsx, excelDate, headWidth } from './xlsx';
 
 /** Reads a ZIP whose files are stored, like the one `createZip` writes. */
 function readZip(bytes: Uint8Array): Map<string, Uint8Array> {
@@ -45,6 +45,22 @@ const BOOK: XlsxBook = {
 describe('createXlsx', () => {
   const files = readZip(createXlsx(BOOK));
   const sheet = text(files, 'xl/worksheets/sheet1.xml');
+
+  it('keeps headings on one line: no wrapping and columns at least as wide as the heading', () => {
+    expect(text(files, 'xl/styles.xml')).not.toContain('wrapText');
+    const wide = text(
+      readZip(
+        createXlsx({
+          title: 'T',
+          subtitle: 'S',
+          sheets: [{ name: 'A', head: ['Ein sehr langer Spaltentitel'], rows: [], widths: [6] }],
+        }),
+      ),
+      'xl/worksheets/sheet1.xml',
+    );
+    expect(wide).toContain(`width="${headWidth('Ein sehr langer Spaltentitel')}"`);
+    expect(headWidth('Uhr')).toBeGreaterThanOrEqual(6);
+  });
 
   it('packs the parts of a workbook with the club logo', () => {
     expect([...files.keys()]).toEqual(

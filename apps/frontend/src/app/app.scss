@@ -215,12 +215,12 @@ $sidebar-width: 15rem;
 
 /* Coloured icons in the always dark sidebar. */
 $tones: (
-  blue: #7cc4ff,
-  green: #6ee7a0,
-  amber: #f5c451,
-  teal: #5eead4,
-  violet: #c4a5ff,
-  rose: #fda4af,
+  'blue': #7cc4ff,
+  'green': #6ee7a0,
+  'amber': #f5c451,
+  'teal': #5eead4,
+  'violet': #c4a5ff,
+  'rose': #fda4af,
 );
 
 @each $name, $color in $tones {

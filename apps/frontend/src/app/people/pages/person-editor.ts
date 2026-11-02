@@ -3,8 +3,8 @@ import { Toasts } from '../../ui/toast';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
+import { Action } from '../../ui/action';
 import { DateField } from '../../ui/date-field';
-import { Icon } from '../../ui/icon';
 import { fullDate } from '../../training/training-dates';
 import { GROUPS, GroupId } from '../../training/training.models';
 import { EvidenceRow } from '../people-evidence';
@@ -69,7 +69,7 @@ type GroupKey = 'swimmerGroupIds' | 'trainerGroupIds';
 
 @Component({
   selector: 'app-person-editor',
-  imports: [RouterLink, Icon, DateField, PayAccountForm],
+  imports: [RouterLink, Action, DateField, PayAccountForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './person-editor.html',
   styleUrl: './person-editor.scss',

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Toasts } from '../../../ui/toast';
-import { Icon } from '../../../ui/icon';
+import { Action } from '../../../ui/action';
 import { NameDialog } from '../../dialogs/name-dialog';
 import { TemplateDialog } from '../../dialogs/template-dialog';
 import { GroupDefaults, GroupId, MailTemplate, OTHER_REASON, Venue } from '../../training.models';
@@ -14,7 +14,7 @@ type ReasonEdit = string | 'new' | null;
 
 @Component({
   selector: 'app-training-settings',
-  imports: [Icon, NameDialog, TemplateDialog],
+  imports: [Action, NameDialog, TemplateDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './settings.html',
   styleUrl: './settings.scss',

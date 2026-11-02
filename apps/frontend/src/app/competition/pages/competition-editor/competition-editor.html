@@ -12,24 +12,8 @@
     </p>
   </div>
   <div class="icon-row">
-    <button
-      type="button"
-      class="button is-danger"
-      aria-label="Abbrechen"
-      title="Abbrechen"
-      (click)="cancel()"
-    >
-      <app-icon name="x" />
-    </button>
-    <button
-      type="button"
-      class="button is-success"
-      aria-label="Speichern"
-      title="Speichern"
-      (click)="save()"
-    >
-      <app-icon name="save" />
-    </button>
+    <app-action kind="cancel" (pressed)="cancel()" />
+    <app-action kind="save" (pressed)="save()" />
   </div>
 </header>
 
@@ -60,7 +44,7 @@
           <label class="label" for="c-title">Veranstaltung</label>
           <input
             id="c-title"
-            class="input"
+            class="input is-small"
             [class.is-danger]="invalid() && !item.title.trim()"
             [value]="item.title"
             (change)="text('title', $event)"
@@ -68,11 +52,16 @@
         </div>
         <div>
           <label class="label" for="c-place">Ort</label>
-          <input id="c-place" class="input" [value]="item.place" (change)="text('place', $event)" />
+          <input
+            id="c-place"
+            class="input is-small"
+            [value]="item.place"
+            (change)="text('place', $event)"
+          />
         </div>
         <div>
           <label class="label" for="c-pool">Bahnlänge</label>
-          <div class="select is-fullwidth">
+          <div class="select is-small is-fullwidth">
             <select id="c-pool" (change)="patch({ pool: +value($event) })">
               <option value="25" [selected]="item.pool === 25">Kurzbahn</option>
               <option value="50" [selected]="item.pool === 50">Langbahn</option>
@@ -81,7 +70,7 @@
         </div>
         <div>
           <label class="label" for="c-timing">Zeitnahme</label>
-          <div class="select is-fullwidth">
+          <div class="select is-small is-fullwidth">
             <select id="c-timing" (change)="patch({ timing: value($event) })">
               @for (timing of timings; track timing.key) {
                 <option [value]="timing.key" [selected]="item.timing === timing.key">
@@ -103,7 +92,7 @@
           <label class="label" for="c-deadline-time">Uhrzeit</label>
           <input
             id="c-deadline-time"
-            class="input"
+            class="input is-small"
             placeholder="23:59"
             [value]="item.deadlineTime"
             (change)="text('deadlineTime', $event)"
@@ -124,7 +113,7 @@
         @for (mode of regModes; track mode.id) {
           <button
             type="button"
-            class="button"
+            class="button is-small"
             [class.is-primary]="regMode() === mode.id"
             [class.is-selected]="regMode() === mode.id"
             (click)="setRegMode(mode.id)"
@@ -154,20 +143,25 @@
           <label class="label" for="c-org">Veranstalter</label>
           <input
             id="c-org"
-            class="input"
+            class="input is-small"
             [value]="item.organiser"
             (change)="text('organiser', $event)"
           />
         </div>
         <div class="span2">
           <label class="label" for="c-host">Ausrichter</label>
-          <input id="c-host" class="input" [value]="item.host" (change)="text('host', $event)" />
+          <input
+            id="c-host"
+            class="input is-small"
+            [value]="item.host"
+            (change)="text('host', $event)"
+          />
         </div>
         <div>
           <label class="label" for="c-cname">Meldestelle</label>
           <input
             id="c-cname"
-            class="input"
+            class="input is-small"
             [value]="item.contactName"
             (change)="text('contactName', $event)"
           />
@@ -176,7 +170,7 @@
           <label class="label" for="c-cphone">Telefon</label>
           <input
             id="c-cphone"
-            class="input"
+            class="input is-small"
             [value]="item.contactPhone"
             (change)="text('contactPhone', $event)"
           />
@@ -185,7 +179,7 @@
           <label class="label" for="c-cmail">Mail für die Meldedatei</label>
           <input
             id="c-cmail"
-            class="input"
+            class="input is-small"
             type="email"
             [value]="item.contactEmail"
             (change)="text('contactEmail', $event)"
@@ -199,7 +193,7 @@
           <label class="label" for="c-vname">Name des Bades</label>
           <input
             id="c-vname"
-            class="input"
+            class="input is-small"
             [value]="item.venueName"
             (change)="text('venueName', $event)"
           />
@@ -208,7 +202,7 @@
           <label class="label" for="c-vstreet">Straße</label>
           <input
             id="c-vstreet"
-            class="input"
+            class="input is-small"
             [value]="item.venueStreet"
             (change)="text('venueStreet', $event)"
           />
@@ -217,7 +211,7 @@
           <label class="label" for="c-vzip">PLZ</label>
           <input
             id="c-vzip"
-            class="input"
+            class="input is-small"
             [value]="item.venueZip"
             (change)="text('venueZip', $event)"
           />
@@ -226,7 +220,7 @@
           <label class="label" for="c-vcity">Ort</label>
           <input
             id="c-vcity"
-            class="input"
+            class="input is-small"
             [value]="item.venueCity"
             (change)="text('venueCity', $event)"
           />
@@ -239,7 +233,7 @@
           <label class="label" for="c-flat">Pauschale (€)</label>
           <input
             id="c-flat"
-            class="input"
+            class="input is-small"
             inputmode="decimal"
             [value]="item.flatFee"
             (change)="money('flatFee', $event)"
@@ -249,7 +243,7 @@
           <label class="label" for="c-per">pro Schwimmer (€)</label>
           <input
             id="c-per"
-            class="input"
+            class="input is-small"
             inputmode="decimal"
             [value]="item.perSwimmerFee"
             (change)="money('perSwimmerFee', $event)"
@@ -259,7 +253,7 @@
           <label class="label" for="c-disc">Rabatt (€)</label>
           <input
             id="c-disc"
-            class="input"
+            class="input is-small"
             inputmode="decimal"
             [value]="item.discount"
             (change)="money('discount', $event)"
@@ -273,20 +267,25 @@
           <label class="label" for="c-bh">Kontoinhaber</label>
           <input
             id="c-bh"
-            class="input"
+            class="input is-small"
             [value]="item.bank.holder"
             (change)="bank('holder', $event)"
           />
         </div>
         <div class="span2">
           <label class="label" for="c-bb">Bank</label>
-          <input id="c-bb" class="input" [value]="item.bank.bank" (change)="bank('bank', $event)" />
+          <input
+            id="c-bb"
+            class="input is-small"
+            [value]="item.bank.bank"
+            (change)="bank('bank', $event)"
+          />
         </div>
         <div class="span3">
           <label class="label" for="c-bi">IBAN</label>
           <input
             id="c-bi"
-            class="input"
+            class="input is-small"
             placeholder="Testdaten, keine echte IBAN"
             [value]="item.bank.iban"
             (change)="bank('iban', $event)"
@@ -294,13 +293,18 @@
         </div>
         <div>
           <label class="label" for="c-bc">BIC</label>
-          <input id="c-bc" class="input" [value]="item.bank.bic" (change)="bank('bic', $event)" />
+          <input
+            id="c-bc"
+            class="input is-small"
+            [value]="item.bank.bic"
+            (change)="bank('bic', $event)"
+          />
         </div>
       </div>
 
       <h3>Bemerkung</h3>
       <textarea
-        class="textarea"
+        class="textarea is-small"
         rows="3"
         aria-label="Bemerkung"
         [value]="item.note"
@@ -328,7 +332,7 @@
               <tr>
                 <td class="c-nr" data-label="Nr.">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     inputmode="numeric"
                     aria-label="Abschnittsnummer"
                     [value]="section.no"
@@ -343,7 +347,7 @@
                 </td>
                 <td class="c-in" data-label="Einlass">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     placeholder="09:00"
                     aria-label="Einlass"
                     [value]="section.entry"
@@ -352,7 +356,7 @@
                 </td>
                 <td class="c-warm" data-label="Einschwimmen">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     placeholder="09:00"
                     aria-label="Einschwimmen"
                     [value]="section.warmup"
@@ -361,7 +365,7 @@
                 </td>
                 <td class="c-judges" data-label="Kampfrichter">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     placeholder="09:30"
                     aria-label="Kampfrichter"
                     [value]="section.judges"
@@ -370,7 +374,7 @@
                 </td>
                 <td class="c-start" data-label="Beginn">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     placeholder="10:00"
                     aria-label="Beginn"
                     [value]="section.start"
@@ -386,30 +390,19 @@
                   />
                 </td>
                 <td class="c-del remove">
-                  <button
-                    type="button"
-                    class="button is-danger"
-                    aria-label="Abschnitt entfernen"
-                    title="Entfernen"
-                    (click)="removeSection($index)"
-                  >
-                    <app-icon name="trash" />
-                  </button>
+                  <app-action
+                    kind="delete"
+                    small
+                    label="Abschnitt entfernen"
+                    (pressed)="removeSection($index)"
+                  />
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-      <button
-        type="button"
-        class="button is-success"
-        aria-label="Abschnitt hinzufügen"
-        title="Abschnitt hinzufügen"
-        (click)="addSection()"
-      >
-        <app-icon name="plus" />
-      </button>
+      <app-action kind="add" small label="Abschnitt hinzufügen" (pressed)="addSection()" />
     }
 
     @case ('events') {
@@ -434,7 +427,7 @@
               <tr>
                 <td class="c-wk" data-label="Wk">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     inputmode="numeric"
                     aria-label="Wettkampfnummer"
                     [value]="event.no"
@@ -443,7 +436,7 @@
                 </td>
                 <td class="c-ab" data-label="Abs.">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     inputmode="numeric"
                     aria-label="Abschnitt"
                     [value]="event.section"
@@ -452,7 +445,7 @@
                 </td>
                 <td class="c-st" data-label="Starter">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     inputmode="numeric"
                     aria-label="Anzahl Starter (Staffel: 4)"
                     [value]="event.count"
@@ -461,7 +454,7 @@
                 </td>
                 <td class="c-m" data-label="Meter">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     inputmode="numeric"
                     aria-label="Strecke in Metern"
                     [value]="event.distance"
@@ -469,7 +462,7 @@
                   />
                 </td>
                 <td class="c-lage" data-label="Lage">
-                  <div class="select">
+                  <div class="select is-small">
                     <select
                       aria-label="Schwimmart"
                       (change)="setEvent($index, { stroke: $any(value($event)) })"
@@ -483,7 +476,7 @@
                   </div>
                 </td>
                 <td class="c-art" data-label="Art">
-                  <div class="select">
+                  <div class="select is-small">
                     <select
                       aria-label="Ausübung"
                       (change)="setEvent($index, { style: $any(value($event)) })"
@@ -497,7 +490,7 @@
                   </div>
                 </td>
                 <td class="c-sex" data-label="M/W">
-                  <div class="select">
+                  <div class="select is-small">
                     <select
                       aria-label="Geschlecht"
                       (change)="setEvent($index, { sex: $any(value($event)) })"
@@ -510,7 +503,7 @@
                 </td>
                 <td class="c-year" data-label="Jahrgang">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     aria-label="Jahrgang"
                     placeholder="offen"
                     [value]="event.birthYears"
@@ -519,7 +512,7 @@
                 </td>
                 <td class="c-fee" data-label="Meldegeld">
                   <input
-                    class="input num"
+                    class="input is-small num"
                     inputmode="decimal"
                     aria-label="Meldegeld"
                     [value]="event.fee"
@@ -527,30 +520,19 @@
                   />
                 </td>
                 <td class="c-del remove">
-                  <button
-                    type="button"
-                    class="button is-danger"
-                    aria-label="Wettkampf entfernen"
-                    title="Entfernen"
-                    (click)="removeEvent($index)"
-                  >
-                    <app-icon name="trash" />
-                  </button>
+                  <app-action
+                    kind="delete"
+                    small
+                    label="Wettkampf entfernen"
+                    (pressed)="removeEvent($index)"
+                  />
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-      <button
-        type="button"
-        class="button is-success"
-        aria-label="Wettkampf hinzufügen"
-        title="Wettkampf hinzufügen"
-        (click)="addEvent()"
-      >
-        <app-icon name="plus" />
-      </button>
+      <app-action kind="add" small label="Wettkampf hinzufügen" (pressed)="addEvent()" />
     }
 
     @case ('entries') {
@@ -571,7 +553,7 @@
 
       <div class="toolbar">
         @if (addable().length > 0) {
-          <div class="select compact">
+          <div class="select is-small compact">
             <select aria-label="Person hinzufügen" (change)="startAdding($event)">
               <option value="">Person hinzufügen …</option>
               @for (person of addable(); track person.id) {
@@ -580,37 +562,33 @@
             </select>
           </div>
         }
-        <div class="buttons has-addons">
-          <button
-            type="button"
-            class="button is-small"
-            title="Info an den Kassenwart"
-            (click)="mail.set('treasurer')"
+        <div class="buttons">
+          <app-action
+            kind="send"
+            label="Kassenwart"
+            withText
+            small
             [disabled]="!hasEntries()"
-          >
-            <app-icon name="coins" /> Kassenwart
-          </button>
-          <button
-            type="button"
-            class="button is-small"
-            title="Meldeliste drucken"
-            (click)="printEntryList()"
+            (pressed)="mail.set('treasurer')"
+          />
+          <app-action
+            kind="print"
+            withText
+            small
             [disabled]="!hasEntries()"
-          >
-            <app-icon name="print" /> Drucken
-          </button>
-          <button
-            type="button"
-            class="button is-small"
-            title="Meldedatei herunterladen"
-            (click)="exporting.set(true)"
+            (pressed)="printEntryList()"
+          />
+          <app-action
+            kind="download"
+            label="Meldedatei"
+            withText
+            small
             [disabled]="!hasEntries() || isNew"
-          >
-            <app-icon name="download" /> Meldedatei
-          </button>
+            (pressed)="exporting.set(true)"
+          />
         </div>
         @if (!isNew) {
-          <div class="buttons has-addons">
+          <div class="buttons">
             <button
               type="button"
               class="button is-small"
@@ -620,15 +598,13 @@
             >
               <app-icon name="check" /> {{ item.sent ? 'Gesendet' : 'Nicht gesendet' }}
             </button>
-            <button
-              type="button"
-              class="button is-small is-primary"
-              title="Meldung per E-Mail senden"
-              (click)="mail.set('entry')"
+            <app-action
+              kind="send"
+              withText
+              small
               [disabled]="!hasEntries()"
-            >
-              <app-icon name="send" /> Senden
-            </button>
+              (pressed)="mail.set('entry')"
+            />
           </div>
         }
       </div>
@@ -647,24 +623,18 @@
                   <span class="pill is-warn">{{ issue }}</span>
                 }
                 <span class="gap"></span>
-                <button
-                  type="button"
-                  class="button is-warning"
-                  aria-label="Starts ändern"
-                  title="Starts ändern"
-                  (click)="editing.set(row.personId)"
-                >
-                  <app-icon name="pencil" />
-                </button>
-                <button
-                  type="button"
-                  class="button is-danger"
-                  aria-label="Meldungen löschen"
-                  title="Meldungen löschen"
-                  (click)="personDelete.set(row.personId)"
-                >
-                  <app-icon name="trash" />
-                </button>
+                <app-action
+                  kind="edit"
+                  small
+                  label="Starts ändern"
+                  (pressed)="editing.set(row.personId)"
+                />
+                <app-action
+                  kind="delete"
+                  small
+                  label="Meldungen löschen"
+                  (pressed)="personDelete.set(row.personId)"
+                />
               </div>
               <ul class="starts">
                 @for (entry of row.entries; track entry.eventNo) {
@@ -695,24 +665,18 @@
                 }
                 <span class="gap"></span>
                 @if (canRelays()) {
-                  <button
-                    type="button"
-                    class="button is-warning"
-                    aria-label="Staffel ändern"
-                    title="Staffel ändern"
-                    (click)="relayEditing.set(relay)"
-                  >
-                    <app-icon name="pencil" />
-                  </button>
-                  <button
-                    type="button"
-                    class="button is-danger"
-                    aria-label="Staffel löschen"
-                    title="Staffel löschen"
-                    (click)="relayDelete.set(relay)"
-                  >
-                    <app-icon name="trash" />
-                  </button>
+                  <app-action
+                    kind="edit"
+                    small
+                    label="Staffel ändern"
+                    (pressed)="relayEditing.set(relay)"
+                  />
+                  <app-action
+                    kind="delete"
+                    small
+                    label="Staffel löschen"
+                    (pressed)="relayDelete.set(relay)"
+                  />
                 }
               </div>
               <ul class="starts">
@@ -736,15 +700,13 @@
         <p class="has-text-grey">Noch keine Staffeln gemeldet.</p>
       }
       @if (canRelays() && !isNew) {
-        <button
-          type="button"
-          class="button is-small is-primary"
-          aria-label="Staffel hinzufügen"
-          title="Staffel hinzufügen"
-          (click)="relayEditing.set('new')"
-        >
-          <app-icon name="plus" /> Staffel
-        </button>
+        <app-action
+          kind="add"
+          small
+          withText
+          label="Staffel hinzufügen"
+          (pressed)="relayEditing.set('new')"
+        />
       }
     }
 
@@ -807,7 +769,7 @@
                     <span class="has-text-grey">Noch niemand eingetragen.</span>
                   }
                 </div>
-                <div class="select compact">
+                <div class="select is-small compact">
                   <select
                     [attr.aria-label]="kind.label + ' hinzufügen, Abschnitt ' + section.no"
                     (change)="addStaff(kind.id, section.no, $event)"
@@ -865,18 +827,8 @@
       </label>
     }
     <ng-container dialogActions>
-      <button
-        type="button"
-        class="button is-danger"
-        title="Abbrechen"
-        aria-label="Abbrechen"
-        (click)="exporting.set(false)"
-      >
-        <app-icon name="x" />
-      </button>
-      <button type="button" class="button is-success" (click)="download()">
-        <app-icon name="download" /> Herunterladen
-      </button>
+      <app-action kind="cancel" (pressed)="exporting.set(false)" />
+      <app-action kind="download" withText (pressed)="download()" />
     </ng-container>
   </app-modal-dialog>
 }
@@ -898,31 +850,19 @@
 }
 
 @if (relayDelete()) {
-  <app-modal-dialog
+  <app-confirm-dialog
     heading="Staffel löschen?"
-    [compact]="true"
-    accent="red"
+    text="Die Staffel wird aus der Meldung entfernt."
+    (confirmed)="removeRelay()"
     (closed)="relayDelete.set(null)"
-  >
-    <p>Die Staffel wird aus der Meldung entfernt.</p>
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="relayDelete.set(null)">Abbrechen</button>
-      <button type="button" class="button is-danger" (click)="removeRelay()">Löschen</button>
-    </ng-container>
-  </app-modal-dialog>
+  />
 }
 
 @if (personDelete()) {
-  <app-modal-dialog
+  <app-confirm-dialog
     [heading]="store.nameOf(personDelete()) + ' löschen?'"
-    [compact]="true"
-    accent="red"
+    text="Alle Meldungen der Person für diesen Wettkampf werden gelöscht."
+    (confirmed)="removePerson()"
     (closed)="personDelete.set('')"
-  >
-    <p>Alle Meldungen der Person für diesen Wettkampf werden gelöscht.</p>
-    <ng-container dialogActions>
-      <button type="button" class="button" (click)="personDelete.set('')">Abbrechen</button>
-      <button type="button" class="button is-danger" (click)="removePerson()">Löschen</button>
-    </ng-container>
-  </app-modal-dialog>
+  />
 }
