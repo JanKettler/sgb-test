@@ -21,7 +21,7 @@
 .slots {
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
 }
 
 .slot {
@@ -29,6 +29,7 @@
   background: var(--sgb-card);
   border: 1px solid var(--sgb-line);
   border-radius: 10px;
+  color: var(--sgb-ink);
   cursor: pointer;
   display: flex;
   gap: 0.65rem;
