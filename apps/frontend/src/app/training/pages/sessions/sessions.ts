@@ -14,7 +14,6 @@ import { Toasts } from '../../../ui/toast';
 import { ActivatedRoute } from '@angular/router';
 import { GroupChips } from '../../../ui/group-chips';
 import { DateField } from '../../../ui/date-field';
-import { Icon } from '../../../ui/icon';
 import { MailDialog } from '../../dialogs/mail-dialog';
 import { RegisteredDialog } from '../../dialogs/registered-dialog';
 import { endTime, shortDay } from '../../training-dates';
@@ -37,7 +36,7 @@ interface SessionRow {
 
 @Component({
   selector: 'app-sessions',
-  imports: [Action, ConfirmDialog, Icon, DateField, GroupChips, RegisteredDialog, MailDialog],
+  imports: [Action, ConfirmDialog, DateField, GroupChips, RegisteredDialog, MailDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sessions.html',
   styleUrl: './sessions.scss',

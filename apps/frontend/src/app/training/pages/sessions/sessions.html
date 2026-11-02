@@ -53,15 +53,7 @@
       @if (filtered()) {
         <button type="button" class="chip" (click)="resetFilters()">Filter zurücksetzen</button>
       }
-      <button
-        type="button"
-        class="button is-info"
-        aria-label="Zum nächsten Termin"
-        title="Zum nächsten Termin"
-        (click)="scrollToNext()"
-      >
-        <app-icon name="calendar" />
-      </button>
+      <app-action kind="goto" label="Zum nächsten Termin" (pressed)="scrollToNext()" />
     </div>
   </div>
 

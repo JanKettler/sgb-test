@@ -134,15 +134,11 @@
           </td>
           <td class="has-text-right is-nowrap">
             <span class="icon-row">
-              <button
-                type="button"
-                class="button"
-                [attr.aria-label]="row.label + ' von ' + row.member.firstName + ' ausblenden'"
-                title="Diesen Eintrag ausblenden"
-                (click)="store.dismiss(row)"
-              >
-                <app-icon name="eye-slash" />
-              </button>
+              <app-action
+                kind="hide"
+                [label]="row.label + ' von ' + row.member.firstName + ' ausblenden'"
+                (pressed)="store.dismiss(row)"
+              />
             </span>
           </td>
         </tr>

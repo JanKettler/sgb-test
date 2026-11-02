@@ -6,6 +6,7 @@ import {
   linkedSignal,
   output,
 } from '@angular/core';
+import { Action } from '../../../ui/action';
 import { Icon } from '../../../ui/icon';
 import { ModalDialog } from '../../../ui/modal-dialog';
 import { RichEditor } from '../../../ui/rich-editor';
@@ -14,7 +15,7 @@ import { MailDraft } from '../../competition.store';
 /** Mail window: recipients, subject, formatted text and the attachments, then "Jetzt verschicken". */
 @Component({
   selector: 'app-mail-dialog',
-  imports: [Icon, ModalDialog, RichEditor],
+  imports: [Action, Icon, ModalDialog, RichEditor],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-modal-dialog [heading]="heading()" accent="amber" (closed)="closed.emit()">
@@ -69,24 +70,15 @@ import { MailDraft } from '../../competition.store';
         von Hand anfügen.
       </p>
       <ng-container dialogActions>
-        <button
-          type="button"
-          class="button is-danger"
-          title="Abbrechen"
-          aria-label="Abbrechen"
-          (click)="closed.emit()"
-        >
-          <app-icon name="x" />
-        </button>
+        <app-action kind="cancel" (pressed)="closed.emit()" />
         <a class="button" [href]="mailto()"><app-icon name="mail" /> Im Mailprogramm öffnen</a>
-        <button
-          type="button"
-          class="button is-success"
+        <app-action
+          kind="send"
+          label="Jetzt verschicken"
+          withText
           [disabled]="!to().trim()"
-          (click)="submit()"
-        >
-          <app-icon name="check" /> Jetzt verschicken
-        </button>
+          (pressed)="submit()"
+        />
       </ng-container>
     </app-modal-dialog>
   `,

@@ -42,7 +42,9 @@ export type ActionKind =
   | 'register'
   | 'unregister'
   | 'people'
-  | 'attendance';
+  | 'attendance'
+  | 'hide'
+  | 'goto';
 
 export interface ActionLook {
   icon: IconName;
@@ -87,6 +89,8 @@ export const ACTIONS: Readonly<Record<ActionKind, ActionLook>> = {
   unregister: { icon: 'x', label: 'Abmelden', tone: 'is-danger' },
   people: { icon: 'users', label: 'Angemeldete anzeigen', tone: '' },
   attendance: { icon: 'clipboard', label: 'Anwesenheit führen', tone: 'is-primary' },
+  hide: { icon: 'eye-slash', label: 'Ausblenden', tone: '' },
+  goto: { icon: 'calendar', label: 'Springen', tone: 'is-info' },
 };
 
 /**
