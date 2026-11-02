@@ -22,14 +22,12 @@
               kind="send"
               label="Mail senden"
               withText
-              small
               (pressed)="mailRequest.set({ kind: 'info', entry: entry })"
             />
             <app-action
               kind="send"
               label="Auf inaktiv setzen und informieren"
               withText
-              small
               (pressed)="mailRequest.set({ kind: 'inactive', entry: entry })"
             />
           </div>
@@ -45,7 +43,6 @@
             kind="send"
             label="Info-Mail senden"
             withText
-            small
             (pressed)="mailRequest.set({ kind: 'info', entry: entry })"
           />
         </div>

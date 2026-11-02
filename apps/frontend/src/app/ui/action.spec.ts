@@ -82,4 +82,20 @@ describe('Action', () => {
     expect(link.className).toContain('is-warning');
     expect(link.getAttribute('aria-label')).toBe('Bearbeiten');
   });
+
+  it('puts query parameters on the link', () => {
+    const element = create('copy', {
+      link: '/training/termine/neu',
+      queryParams: { kopie: 's-1' },
+    }).nativeElement as HTMLElement;
+    const link = element.querySelector('a') as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/training/termine/neu?kopie=s-1');
+  });
+
+  it('is not a link without a target, even when it is disabled for a missing date', () => {
+    const element = create('attendance', { link: null, disabled: true })
+      .nativeElement as HTMLElement;
+    expect(element.querySelector('a')).toBeNull();
+    expect(button(element).disabled).toBe(true);
+  });
 });

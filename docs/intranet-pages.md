@@ -26,9 +26,10 @@ booked into the youth cash.
 ## Shared building blocks
 
 - `app-action` (`ui/action.ts`): one button per recurring action (add, edit, view, delete, copy,
-  save, cancel, back, next, download, print, Excel, lend, return, done, stock, expand, collapse,
-  lock, unlock, settings, up, down, minus, undo, cart). The same action has the same colour, icon
-  and accessible name on every page. Icon only by default, with `withText` the name is shown.
+  save, cancel, restore, send, back, next, download, print, Excel, lend, return, done, register,
+  unregister, and so on; the list is `ACTIONS` in the file). The same action has the same colour,
+  icon and accessible name on every page. Icon only by default, with `withText` the name is shown,
+  with `link` it is a router link (also with query parameters).
 - `app-form-dialog` (`ui/form-dialog.ts`): a dialog that is described by its fields (text, number,
   date, time, select, checkbox, tags, lines). Required fields and an extra check are verified
   before the dialog hands back its values.
@@ -71,6 +72,20 @@ before the market. Not ported:
 - archive of earlier years and the loan list
 - charts, the rights and admin area, status and log pages, the practice mode
 - editing the ingredients of the recipe (only the preparation and the note can be edited), images
+
+## Buttons
+
+All pages use `app-action` for adding, editing, viewing, deleting, copying, saving, cancelling,
+sending and the other recurring actions, and `app-confirm-dialog` for the question "really
+delete?". These stay plain buttons on purpose:
+
+- toggles, filter chips and the choice between options (list or columns, long or short course,
+  the tabs of a page, the sign-up states of an attendance row),
+- the toolbar of the rich editor and the big sale buttons of the cash desk,
+- the waitlist pages, which are older, have their own labelled workflow buttons (for example
+  "Zuteilung speichern") and tests that select them by class,
+- the print windows of the exports, which are separate HTML documents, and the link that opens the
+  mail program.
 
 ## Left out in other pages
 
