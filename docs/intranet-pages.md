@@ -27,9 +27,9 @@ booked into the youth cash.
 
 - `app-action` (`ui/action.ts`): one button per recurring action (add, edit, view, delete, copy,
   save, cancel, restore, send, back, next, download, print, Excel, lend, return, done, register,
-  unregister, and so on; the list is `ACTIONS` in the file). The same action has the same colour,
-  icon and accessible name on every page. Icon only by default, with `withText` the name is shown,
-  with `link` it is a router link (also with query parameters).
+  unregister, decline, and so on; the list is `ACTIONS` in the file). The same action has the
+  same colour, icon and accessible name on every page. Icon only by default, with `withText` the
+  name is shown, with `link` it is a router link (also with query parameters).
 - `app-form-dialog` (`ui/form-dialog.ts`): a dialog that is described by its fields (text, number,
   date, time, select, checkbox, tags, lines). Required fields and an extra check are verified
   before the dialog hands back its values.
