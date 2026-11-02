@@ -50,8 +50,12 @@ export class SessionEditor {
   protected readonly series = signal(this.route.snapshot.queryParamMap.has('serie'));
   protected readonly rhythm = signal<RepeatOptions['rhythm']>('weekly');
   protected readonly until = signal('');
-  protected readonly repeatDays = signal<number[]>([weekdayIndex(this.draft().date)]);
+  protected readonly repeatDays = signal<number[]>(
+    this.draft().date ? [weekdayIndex(this.draft().date)] : [],
+  );
   protected readonly picker = signal<Picker>(null);
+  /** Until the deadline is typed by hand, the deadline of a copy follows the chosen day. */
+  private readonly deadlineEdited = signal(false);
 
   protected readonly isNew = computed(() => this.draft().id === '');
 
@@ -63,10 +67,12 @@ export class SessionEditor {
   protected readonly title = computed(() => {
     const draft = this.draft();
     const names = draft.groupIds.map((id) => this.store.groupName(id)).join(', ');
-    const own = `${draft.date ? shortDay(draft.date) : ''} · ${names}`;
     const source = this.copySource;
-    if (!source || !this.isNew()) return own;
-    return `${own} · Kopie von ${shortDay(source.date)}, ${source.time} Uhr`;
+    const parts = [draft.date ? shortDay(draft.date) : '', names];
+    if (source && this.isNew()) {
+      parts.push(`Kopie von ${shortDay(source.date)}, ${source.time} Uhr`);
+    }
+    return parts.filter((part) => part !== '').join(' · ');
   });
 
   /** A new session on a day and time where the same groups already train. */
@@ -120,7 +126,7 @@ export class SessionEditor {
   });
 
   protected readonly repeatDates = computed(() => {
-    if (!this.series() || !this.isNew() || !this.until()) return [];
+    if (!this.series() || !this.isNew() || !this.until() || !this.draft().date) return [];
     return this.store.repeatDates(this.draft().date, {
       rhythm: this.rhythm(),
       until: this.until(),
@@ -166,6 +172,22 @@ export class SessionEditor {
 
   protected patch(change: Partial<TrainingSession>): void {
     this.draft.update((current) => ({ ...current, ...change }));
+  }
+
+  /** The training day; in a copy the deadline moves with it, as far before it as in the original. */
+  protected setDate(date: string): void {
+    const source = this.copySource;
+    if (source && this.isNew() && !this.deadlineEdited()) {
+      this.patch({ date, deadlineDate: this.store.copyDeadline(source, date) });
+    } else {
+      this.patch({ date });
+    }
+    if (date && this.repeatDays().length === 0) this.repeatDays.set([weekdayIndex(date)]);
+  }
+
+  protected setDeadlineDate(date: string): void {
+    this.deadlineEdited.set(true);
+    this.patch({ deadlineDate: date });
   }
 
   protected toggleGroup(groupId: GroupId): void {
@@ -217,9 +239,9 @@ export class SessionEditor {
 
   protected save(asCopy: boolean): void {
     const draft = this.draft();
-    if (!draft.date || !draft.time || draft.groupIds.length === 0) {
+    if (!draft.date || !draft.time || !draft.deadlineDate || draft.groupIds.length === 0) {
       this.invalid.set(true);
-      this.toasts.failed('Bitte Datum, Uhrzeit und mindestens eine Gruppe wählen');
+      this.toasts.failed('Bitte Datum, Uhrzeit, Meldeschluss und mindestens eine Gruppe wählen');
       return;
     }
     const session = asCopy ? { ...draft, id: '' } : draft;
