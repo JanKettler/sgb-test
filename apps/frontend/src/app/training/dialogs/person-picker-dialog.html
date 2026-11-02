@@ -63,14 +63,13 @@
     }
   </ul>
   <ng-container dialogActions>
-    <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
-    <button
-      type="button"
-      class="button is-success"
+    <app-action kind="cancel" withText (pressed)="closed.emit()" />
+    <app-action
+      kind="done"
+      [label]="confirmLabel()"
+      withText
       [disabled]="chosen().size === 0"
-      (click)="confirm()"
-    >
-      {{ confirmLabel() }}
-    </button>
+      (pressed)="confirm()"
+    />
   </ng-container>
 </app-modal-dialog>

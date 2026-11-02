@@ -6,7 +6,7 @@ import {
   input,
   output,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Params, RouterLink } from '@angular/router';
 import { Icon, IconName } from './icon';
 
 export type ActionKind =
@@ -37,7 +37,12 @@ export type ActionKind =
   | 'undo'
   | 'cart'
   | 'restore'
-  | 'send';
+  | 'send'
+  | 'close'
+  | 'register'
+  | 'unregister'
+  | 'people'
+  | 'attendance';
 
 export interface ActionLook {
   icon: IconName;
@@ -77,6 +82,11 @@ export const ACTIONS: Readonly<Record<ActionKind, ActionLook>> = {
   cart: { icon: 'cart', label: 'Zur Einkaufsliste', tone: '' },
   restore: { icon: 'restore', label: 'Wiederherstellen', tone: 'is-success' },
   send: { icon: 'mail', label: 'Senden', tone: 'is-primary' },
+  close: { icon: 'x', label: 'Schließen', tone: '' },
+  register: { icon: 'check', label: 'Anmelden', tone: 'is-success' },
+  unregister: { icon: 'x', label: 'Abmelden', tone: 'is-danger' },
+  people: { icon: 'users', label: 'Angemeldete anzeigen', tone: '' },
+  attendance: { icon: 'clipboard', label: 'Anwesenheit führen', tone: 'is-primary' },
 };
 
 /**
@@ -90,7 +100,13 @@ export const ACTIONS: Readonly<Record<ActionKind, ActionLook>> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (link(); as target) {
-      <a [class]="classes()" [routerLink]="target" [attr.aria-label]="name()" [title]="name()">
+      <a
+        [class]="classes()"
+        [routerLink]="target"
+        [queryParams]="queryParams()"
+        [attr.aria-label]="name()"
+        [title]="name()"
+      >
         <app-icon [name]="look().icon" />
         @if (withText()) {
           <span>{{ name() }}</span>
@@ -124,6 +140,8 @@ export class Action {
   readonly submit = input(false, { transform: booleanAttribute });
   /** Target of a router link; without it the button emits `pressed`. */
   readonly link = input<string | readonly unknown[] | null>(null);
+  /** Query parameters of the router link. */
+  readonly queryParams = input<Params | null>(null);
   readonly pressed = output<MouseEvent>();
 
   protected readonly look = computed(() => ACTIONS[this.kind()]);

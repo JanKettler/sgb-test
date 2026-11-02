@@ -3,9 +3,9 @@
   <input id="name-input" class="input" type="text" [value]="value()" (input)="setValue($event)" />
   <ng-container dialogActions>
     @if (deletable()) {
-      <button type="button" class="button is-danger" (click)="deleted.emit()">Löschen</button>
+      <app-action kind="delete" withText (pressed)="deleted.emit()" />
     }
-    <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
-    <button type="button" class="button is-primary" (click)="saved.emit(value())">Speichern</button>
+    <app-action kind="cancel" withText (pressed)="closed.emit()" />
+    <app-action kind="save" withText (pressed)="saved.emit(value())" />
   </ng-container>
 </app-modal-dialog>

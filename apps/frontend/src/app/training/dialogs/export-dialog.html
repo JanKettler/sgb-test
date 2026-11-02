@@ -38,7 +38,7 @@
     <button type="button" class="chip is-solid" (click)="season()">Saison</button>
   </div>
   <ng-container dialogActions>
-    <button type="button" class="button" (click)="closed.emit()">Abbrechen</button>
-    <button type="button" class="button is-success" (click)="download()">Excel erstellen</button>
+    <app-action kind="cancel" withText (pressed)="closed.emit()" />
+    <app-action kind="excel" label="Excel erstellen" withText (pressed)="download()" />
   </ng-container>
 </app-modal-dialog>

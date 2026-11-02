@@ -6,8 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { Icon } from '../../../ui/icon';
+import { Action } from '../../../ui/action';
 import { Toasts } from '../../../ui/toast';
 import { DeclineChoice, DeclineDialog } from '../../dialogs/decline-dialog';
 import { MailDialog } from '../../dialogs/mail-dialog';
@@ -41,7 +40,7 @@ interface DeclineTarget {
 
 @Component({
   selector: 'app-training-registration',
-  imports: [RouterLink, Icon, DeclineDialog, RegisteredDialog, MailDialog],
+  imports: [Action, DeclineDialog, RegisteredDialog, MailDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './registration.html',
   styleUrl: './registration.scss',

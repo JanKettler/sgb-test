@@ -7,34 +7,10 @@
   </div>
   <div class="icon-row">
     @if (editing()) {
-      <button
-        type="button"
-        class="button is-danger"
-        aria-label="Abbrechen"
-        title="Abbrechen"
-        (click)="cancelEdit()"
-      >
-        <app-icon name="x" />
-      </button>
-      <button
-        type="button"
-        class="button is-success"
-        aria-label="Speichern"
-        title="Speichern"
-        (click)="saveEdit()"
-      >
-        <app-icon name="save" />
-      </button>
+      <app-action kind="cancel" (pressed)="cancelEdit()" />
+      <app-action kind="save" (pressed)="saveEdit()" />
     } @else {
-      <button
-        type="button"
-        class="button is-warning"
-        aria-label="Bearbeiten"
-        title="Bearbeiten"
-        (click)="startEdit()"
-      >
-        <app-icon name="pencil" />
-      </button>
+      <app-action kind="edit" (pressed)="startEdit()" />
     }
   </div>
 </header>
@@ -186,25 +162,11 @@
           <span class="label">Saison</span>
           <span class="season">
             @if (editing()) {
-              <button
-                type="button"
-                class="button"
-                aria-label="Vorherige Saison"
-                (click)="changeSeason(-1)"
-              >
-                <app-icon name="chevron-left" />
-              </button>
+              <app-action kind="back" label="Vorherige Saison" (pressed)="changeSeason(-1)" />
             }
             <strong>{{ store.season() }}</strong>
             @if (editing()) {
-              <button
-                type="button"
-                class="button"
-                aria-label="Nächste Saison"
-                (click)="changeSeason(1)"
-              >
-                <app-icon name="chevron-right" />
-              </button>
+              <app-action kind="next" label="Nächste Saison" (pressed)="changeSeason(1)" />
             }
           </span>
           <small>bleibt bis Ende {{ store.season() + 1 }}</small>

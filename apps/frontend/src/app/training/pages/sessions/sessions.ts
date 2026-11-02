@@ -8,12 +8,13 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { Action } from '../../../ui/action';
+import { ConfirmDialog } from '../../../ui/confirm-dialog';
 import { Toasts } from '../../../ui/toast';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { GroupChips } from '../../../ui/group-chips';
 import { DateField } from '../../../ui/date-field';
 import { Icon } from '../../../ui/icon';
-import { ModalDialog } from '../../../ui/modal-dialog';
 import { MailDialog } from '../../dialogs/mail-dialog';
 import { RegisteredDialog } from '../../dialogs/registered-dialog';
 import { endTime, shortDay } from '../../training-dates';
@@ -36,7 +37,7 @@ interface SessionRow {
 
 @Component({
   selector: 'app-sessions',
-  imports: [RouterLink, Icon, DateField, GroupChips, ModalDialog, RegisteredDialog, MailDialog],
+  imports: [Action, ConfirmDialog, Icon, DateField, GroupChips, RegisteredDialog, MailDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sessions.html',
   styleUrl: './sessions.scss',

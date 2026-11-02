@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { Action } from '../../ui/action';
 import { ModalDialog } from '../../ui/modal-dialog';
 import { TrainingStore } from '../training.store';
 
 /** Demo mail dialog: shows the recipients and a text, but never sends anything. */
 @Component({
   selector: 'app-mail-dialog',
-  imports: [ModalDialog],
+  imports: [Action, ModalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './mail-dialog.html',
 })

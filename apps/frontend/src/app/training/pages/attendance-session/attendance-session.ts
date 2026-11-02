@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Icon } from '../../../ui/icon';
+import { Action } from '../../../ui/action';
 import { Toasts } from '../../../ui/toast';
 import { PersonPickerDialog } from '../../dialogs/person-picker-dialog';
 import { endTime, fullDate } from '../../training-dates';
@@ -26,7 +26,7 @@ interface AttendanceRow {
 /** Attendance of one session. Registrations are taken over and can be overridden. */
 @Component({
   selector: 'app-attendance-session',
-  imports: [RouterLink, Icon, PersonPickerDialog],
+  imports: [RouterLink, Action, PersonPickerDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './attendance-session.html',
   styleUrl: './attendance-session.scss',

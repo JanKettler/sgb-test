@@ -5,15 +5,7 @@
       <span class="week-label">{{ weekLabel() }}</span>
     </h3>
     <div class="icon-row">
-      <button
-        type="button"
-        class="button"
-        aria-label="Eine Woche zurück"
-        title="Woche zurück"
-        (click)="shiftWeek(-1)"
-      >
-        <app-icon name="chevron-left" />
-      </button>
+      <app-action kind="back" label="Eine Woche zurück" (pressed)="shiftWeek(-1)" />
       <button
         type="button"
         class="button"
@@ -22,15 +14,7 @@
       >
         Heute
       </button>
-      <button
-        type="button"
-        class="button"
-        aria-label="Eine Woche vor"
-        title="Woche vor"
-        (click)="shiftWeek(1)"
-      >
-        <app-icon name="chevron-right" />
-      </button>
+      <app-action kind="next" label="Eine Woche vor" (pressed)="shiftWeek(1)" />
     </div>
   </div>
   <p class="hint">

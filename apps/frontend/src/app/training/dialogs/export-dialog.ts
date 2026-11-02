@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { Action } from '../../ui/action';
 import { DateField } from '../../ui/date-field';
 import { ModalDialog } from '../../ui/modal-dialog';
 import { addDays, addMonths, lastDayOfMonth, monthKey } from '../training-dates';
@@ -9,7 +10,7 @@ import { ExportContent, TrainingStore } from '../training.store';
 /** Pop-up for the Excel list: names as rows, sessions as columns. */
 @Component({
   selector: 'app-export-dialog',
-  imports: [ModalDialog, DateField],
+  imports: [Action, ModalDialog, DateField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './export-dialog.html',
 })

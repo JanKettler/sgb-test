@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { dateOf } from '../../../competition/competition.models';
 import { CompetitionStore } from '../../../competition/competition.store';
 import { StartStore } from '../../../start/start.store';
+import { Action } from '../../../ui/action';
 import { Icon, IconName } from '../../../ui/icon';
 import { addDays, endTime, minutesOfDay, parseIsoDate, weekdayShort } from '../../training-dates';
 import { TrainingStore } from '../../training.store';
@@ -42,7 +43,7 @@ interface CalendarDay {
 /** Start page: the current week. The hour range follows the sessions that are shown. */
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Action, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.html',
   styleUrl: './home.scss',
