@@ -11,10 +11,11 @@ import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { fullDate } from '../training/training-dates';
 import { DEMO_ROLES, DemoRole, GROUPS, GroupId } from '../training/training.models';
+import { Action } from '../ui/action';
 import { BACKGROUND_COLORS, ColorField, readableOn } from '../ui/color-field';
+import { ConfirmDialog } from '../ui/confirm-dialog';
 import { DateField } from '../ui/date-field';
 import { Icon } from '../ui/icon';
-import { ModalDialog } from '../ui/modal-dialog';
 import { RichEditor } from '../ui/rich-editor';
 import { RichText, htmlToText } from '../ui/rich-text';
 import { ArchiveEntry, BoardPost, titleOf } from './board.models';
@@ -29,7 +30,8 @@ const SEEN_AFTER_MS = 15000;
     NgTemplateOutlet,
     RouterLink,
     Icon,
-    ModalDialog,
+    Action,
+    ConfirmDialog,
     DateField,
     RichEditor,
     RichText,
