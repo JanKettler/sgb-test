@@ -95,7 +95,11 @@ export type IconName =
   | 'plug'
   | 'receipt'
   | 'check-double'
-  | 'trophy';
+  | 'trophy'
+  | 'mug'
+  | 'waffle'
+  | 'arrow-up'
+  | 'arrow-down';
 
 const FONT_AWESOME: Record<IconName, string> = {
   check: 'fa-check',
@@ -193,6 +197,10 @@ const FONT_AWESOME: Record<IconName, string> = {
   receipt: 'fa-receipt',
   'check-double': 'fa-check-double',
   trophy: 'fa-trophy',
+  mug: 'fa-mug-hot',
+  waffle: 'fa-stroopwafel',
+  'arrow-up': 'fa-arrow-up',
+  'arrow-down': 'fa-arrow-down',
 };
 
 /**

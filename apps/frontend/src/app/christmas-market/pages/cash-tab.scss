@@ -1,0 +1,55 @@
+.sale-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.sale {
+  background: var(--sgb-card);
+  border: 1px solid var(--sgb-line);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.9rem;
+}
+
+.sale-head {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+}
+
+.sale-count {
+  align-items: center;
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: 1fr auto 1fr;
+
+  .button {
+    font-size: 1.5rem;
+    height: 4.2rem;
+    font-weight: 700;
+  }
+}
+
+.sale-number {
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1;
+  min-width: 3.5ch;
+  text-align: center;
+}
+
+.sale-free {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: space-between;
+}
+
+.undo-bar {
+  margin-top: 0.8rem;
+}

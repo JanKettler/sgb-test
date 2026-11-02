@@ -1,0 +1,262 @@
+<div class="box">
+  <div class="card-head">
+    <div>
+      <p class="title is-5 mb-1"><app-icon name="tree" /> {{ countdownLine() }}</p>
+      <p class="sub">{{ dates() }}</p>
+    </div>
+    <div class="icon-row">
+      @if (store.canOrganize()) {
+        <app-action kind="excel" label="Helferliste als Excel" withText (pressed)="excel()" />
+      }
+      @if (store.isAdmin()) {
+        <app-action kind="edit" label="Datum ändern" withText (pressed)="editingDate.set(true)" />
+      }
+    </div>
+  </div>
+</div>
+
+<div class="box">
+  <div class="card-head">
+    <h2 class="title is-5 mb-0">Wichtig</h2>
+    @if (store.canOrganize()) {
+      <app-action kind="edit" label="Hinweis bearbeiten" (pressed)="editingNotice.set(true)" />
+    }
+  </div>
+  @if (store.notice()) {
+    <p class="keep-lines">{{ store.notice() }}</p>
+  } @else {
+    <p class="empty">Es gibt keinen Hinweis.</p>
+  }
+</div>
+
+<div class="box">
+  <h2 class="title is-5">Meine Schichten</h2>
+  @if (store.myShifts().length === 0) {
+    <p class="empty">Du stehst noch auf keiner Liste. Trag dich unten ein, wo noch Platz ist.</p>
+  } @else {
+    <div class="item-list">
+      @for (shift of store.myShifts(); track shift.key) {
+        <div class="item is-ok">
+          <div class="item-main">
+            <div class="item-title">{{ dayName[shift.day] }}, {{ date(shift.day) }}</div>
+            <div class="item-sub">{{ shift.what }}</div>
+          </div>
+          <div class="item-actions">
+            <app-action
+              kind="cancel"
+              label="Austragen"
+              withText
+              small
+              (pressed)="removeShift(shift)"
+            />
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@for (day of days; track day) {
+  <div class="box">
+    <div class="card-head">
+      <h2 class="title is-5 mb-0">{{ dayName[day] }}, {{ date(day) }}</h2>
+      @if (store.canOrganize()) {
+        <app-action kind="add" label="Zeile hinzufügen" withText small (pressed)="addSlot(day)" />
+      }
+    </div>
+    @if (store.slotsOf(day).length === 0) {
+      <p class="empty">Für diesen Tag gibt es noch keine Zeiten.</p>
+    } @else {
+      <div class="table-container">
+        <table class="data-table has-cols">
+          <thead>
+            <tr>
+              <th class="is-left">Zeit</th>
+              @for (field of fields; track field) {
+                <th class="is-left">{{ fieldName[field] }}</th>
+              }
+              @if (store.canOrganize()) {
+                <th>Zeile</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (slot of store.slotsOf(day); track slot.id; let first = $first; let last = $last) {
+              <tr>
+                <td class="is-left">
+                  <b>{{ slot.label }}</b>
+                  @if (slot.note) {
+                    <span class="sub">{{ slot.note }}</span>
+                  }
+                </td>
+                @for (field of fields; track field) {
+                  <td class="is-left">
+                    <div class="tags mb-1">
+                      @for (name of slot[field]; track $index) {
+                        <span class="tag is-rounded" [class.is-success]="store.isMine(name)">
+                          {{ store.shown(name) }}
+                          @if (store.canRemove(name)) {
+                            <button
+                              type="button"
+                              class="delete is-small"
+                              [attr.aria-label]="'Austragen: ' + store.shown(name)"
+                              (click)="signOff(slot, field, $index)"
+                            ></button>
+                          }
+                        </span>
+                      }
+                      @if (!full(slot, field)) {
+                        <app-action
+                          kind="add"
+                          small
+                          [label]="'Eintragen: ' + fieldName[field]"
+                          (pressed)="sign(slot, field)"
+                        />
+                      }
+                    </div>
+                    @if (limit(slot, field) > 0) {
+                      <span class="sub">
+                        {{ slot[field].length }} von {{ limit(slot, field) }}
+                        @if (full(slot, field)) {
+                          · voll
+                        }
+                      </span>
+                    }
+                  </td>
+                }
+                @if (store.canOrganize()) {
+                  <td>
+                    <div class="icon-row">
+                      <app-action
+                        kind="up"
+                        small
+                        [disabled]="first"
+                        label="Zeile nach oben"
+                        (pressed)="move(slot, -1)"
+                      />
+                      <app-action
+                        kind="down"
+                        small
+                        [disabled]="last"
+                        label="Zeile nach unten"
+                        (pressed)="move(slot, 1)"
+                      />
+                      <app-action
+                        kind="edit"
+                        small
+                        label="Zeile bearbeiten"
+                        (pressed)="editing.set(slot)"
+                      />
+                      <app-action
+                        kind="delete"
+                        small
+                        label="Zeile löschen"
+                        (pressed)="toDelete.set(slot)"
+                      />
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}
+
+<div class="box">
+  <div class="card-head">
+    <div>
+      <h2 class="title is-5 mb-1">Waffelteig</h2>
+      <p class="sub">Jeder Platz ist ein Teig, der zuhause vorbereitet wird.</p>
+    </div>
+  </div>
+  @for (day of days; track day) {
+    <div class="card-head">
+      <h3 class="title is-6 mb-0">{{ dayName[day] }}</h3>
+      @if (store.canOrganize()) {
+        <div class="icon-row">
+          <app-action
+            kind="minus"
+            label="Letzten Platz entfernen"
+            small
+            (pressed)="resize(day, -1)"
+          />
+          <app-action kind="add" label="Platz hinzufügen" small (pressed)="resize(day, 1)" />
+        </div>
+      }
+    </div>
+    <div class="tile-grid mb-4">
+      @for (spot of store.doughOf(day); track spot.id) {
+        <div class="tile">
+          <div class="tile-name">Platz {{ spot.no }}</div>
+          <div class="tile-foot">
+            @if (spot.name) {
+              <span>{{ store.shown(spot.name) }}</span>
+              @if (store.canRemove(spot.name)) {
+                <app-action kind="cancel" label="Austragen" small (pressed)="release(spot)" />
+              }
+            } @else {
+              <span class="sub">frei</span>
+              <app-action kind="add" label="Eintragen" small (pressed)="claim(spot)" />
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (asking(); as ask) {
+  <app-form-dialog
+    [heading]="askTitle(ask)"
+    [fields]="nameFields"
+    saveLabel="Eintragen"
+    (saved)="answer($event)"
+    (closed)="asking.set(null)"
+  />
+}
+
+@if (editing(); as slot) {
+  <app-form-dialog
+    [heading]="slot.id ? 'Zeile bearbeiten' : 'Zeile hinzufügen'"
+    [subtitle]="dayName[slot.day]"
+    [fields]="slotForm"
+    [values]="slot"
+    (saved)="saveSlot($event)"
+    (closed)="editing.set(null)"
+  />
+}
+
+@if (toDelete(); as slot) {
+  <app-confirm-dialog
+    heading="Zeile löschen?"
+    [subtitle]="dayName[slot.day]"
+    [text]="'Die Zeit ' + slot.label + ' wird mit allen Namen darin gelöscht.'"
+    (confirmed)="removeSlot()"
+    (closed)="toDelete.set(null)"
+  />
+}
+
+@if (editingNotice()) {
+  <app-form-dialog
+    heading="Hinweis bearbeiten"
+    [fields]="noticeForm"
+    [values]="noticeValues()"
+    (saved)="saveNotice($event)"
+    (closed)="editingNotice.set(false)"
+  />
+}
+
+@if (editingDate()) {
+  <app-form-dialog
+    heading="Datum ändern"
+    subtitle="Samstag und Sonntag des Weihnachtsmarkts"
+    [fields]="dateForm"
+    [values]="dateValues()"
+    [check]="checkSaturday"
+    (saved)="saveDate($event)"
+    (closed)="editingDate.set(false)"
+  />
+}

@@ -2,7 +2,7 @@ import { Injectable, computed, inject } from '@angular/core';
 import { CompetitionStore } from '../competition/competition.store';
 import { dateOf } from '../competition/competition.models';
 import { EventsStore } from '../events/events.store';
-import { parseIsoDate } from '../training/training-dates';
+import { daysBetween } from '../training/training-dates';
 import { TrainingStore } from '../training/training.store';
 import { ClubEvent, Competition } from './start.models';
 
@@ -56,8 +56,6 @@ export class StartStore {
   );
 
   daysTo(iso: string): number {
-    return Math.round(
-      (parseIsoDate(iso).getTime() - parseIsoDate(this.today).getTime()) / (24 * 60 * 60 * 1000),
-    );
+    return daysBetween(this.today, iso);
   }
 }

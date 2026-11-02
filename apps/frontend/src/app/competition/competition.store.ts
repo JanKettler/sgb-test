@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { PeopleStore } from '../people/people.store';
-import { addDays } from '../training/training-dates';
+import { addDays, daysBetween } from '../training/training-dates';
 import { TrainingStore } from '../training/training.store';
 import {
   CompEvent,
@@ -613,9 +613,7 @@ export class CompetitionStore {
   }
 
   daysTo(iso: string): number {
-    return Math.round(
-      (Date.parse(`${iso}T12:00:00`) - Date.parse(`${this.today}T12:00:00`)) / 864e5,
-    );
+    return daysBetween(this.today, iso);
   }
 
   /** Slots of the host's judge panel nobody is named for yet. */

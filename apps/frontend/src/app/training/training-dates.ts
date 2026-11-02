@@ -52,6 +52,11 @@ export function addMonths(iso: string, months: number): string {
   return toIsoDate(date);
 }
 
+/** Whole days from one ISO date to another; negative when the second one is earlier. */
+export function daysBetween(from: string, to: string): number {
+  return Math.round((parseIsoDate(to).getTime() - parseIsoDate(from).getTime()) / 86_400_000);
+}
+
 /** 0 = Sunday ... 6 = Saturday */
 export function weekdayIndex(iso: string): number {
   return parseIsoDate(iso).getDay();

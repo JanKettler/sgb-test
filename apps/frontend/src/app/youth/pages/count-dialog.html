@@ -1,14 +1,16 @@
 <app-modal-dialog
-  heading="Kassensturz"
-  [subtitle]="'Soll laut Kassenbuch (bestätigt): ' + euro(expected())"
+  [heading]="heading()"
+  [subtitle]="subtitleText()"
   accent="green"
   (closed)="closed.emit()"
 >
-  <div class="field">
-    <label class="label" for="count-date">Datum</label>
-    <app-date-field inputId="count-date" [(value)]="date" />
-    <p class="help">Leer lassen für heute.</p>
-  </div>
+  @if (withDate()) {
+    <div class="field">
+      <label class="label" for="count-date">Datum</label>
+      <app-date-field inputId="count-date" [(value)]="date" />
+      <p class="help">Leer lassen für heute.</p>
+    </div>
+  }
   <p class="item-sub mb-2">
     Anzahl der Scheine und Münzen eintragen. Die Summe wird automatisch berechnet.
   </p>
@@ -32,17 +34,19 @@
     <b class="piece-label">Summe</b>
     <b>{{ euro(total()) }}</b>
   </div>
-  <p class="help" [class.is-danger]="difference() !== 0">
-    @if (difference() === 0) {
-      Stimmt mit dem Kassenbuch überein.
-    } @else {
-      Differenz zum Soll: <b>{{ euro(difference()) }}</b>
-    }
-  </p>
-  <div class="field mt-3">
-    <label class="label" for="count-note">Notiz</label>
-    <input class="input" id="count-note" autocomplete="off" (input)="setNote($event)" />
-  </div>
+  @if (difference(); as gap) {
+    <p class="help is-danger">
+      Differenz zum Soll: <b>{{ euro(gap) }}</b>
+    </p>
+  } @else if (difference() === 0) {
+    <p class="help">{{ matchText() }}</p>
+  }
+  @if (withNote()) {
+    <div class="field mt-3">
+      <label class="label" for="count-note">Notiz</label>
+      <input class="input" id="count-note" autocomplete="off" (input)="setNote($event)" />
+    </div>
+  }
   <ng-container dialogActions>
     <app-action kind="cancel" withText (pressed)="closed.emit()" />
     <app-action kind="save" withText (pressed)="save()" />

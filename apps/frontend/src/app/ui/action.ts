@@ -30,7 +30,12 @@ export type ActionKind =
   | 'collapse'
   | 'lock'
   | 'unlock'
-  | 'settings';
+  | 'settings'
+  | 'up'
+  | 'down'
+  | 'minus'
+  | 'undo'
+  | 'cart';
 
 export interface ActionLook {
   icon: IconName;
@@ -63,6 +68,11 @@ export const ACTIONS: Readonly<Record<ActionKind, ActionLook>> = {
   lock: { icon: 'lock', label: 'Abschließen', tone: '' },
   unlock: { icon: 'unlock', label: 'Öffnen', tone: '' },
   settings: { icon: 'gear', label: 'Einstellungen', tone: '' },
+  up: { icon: 'arrow-up', label: 'Nach oben', tone: '' },
+  down: { icon: 'arrow-down', label: 'Nach unten', tone: '' },
+  minus: { icon: 'minus', label: 'Weniger', tone: '' },
+  undo: { icon: 'undo', label: 'Rückgängig', tone: '' },
+  cart: { icon: 'cart', label: 'Zur Einkaufsliste', tone: '' },
 };
 
 /**

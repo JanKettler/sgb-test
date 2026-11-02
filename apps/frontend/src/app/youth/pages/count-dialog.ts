@@ -1,9 +1,17 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { euro } from '../../competition/competition.models';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  booleanAttribute,
+  computed,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { euro, roundCents } from '../../core/money';
 import { Action } from '../../ui/action';
 import { DateField } from '../../ui/date-field';
 import { ModalDialog } from '../../ui/modal-dialog';
-import { DENOMINATIONS, denominationLabel, roundCents } from '../cash.models';
+import { DENOMINATIONS, denominationLabel } from '../cash.models';
 
 /** What the dialog hands back: the pieces by value, the sum and the note. */
 export interface CountResult {
@@ -13,7 +21,10 @@ export interface CountResult {
   note: string;
 }
 
-/** Cash count: the number of notes and coins is typed, the sum and the difference follow. */
+/**
+ * Cash count: the number of notes and coins is typed, the sum follows. With an expected sum it also
+ * shows the difference; the date and the note can be left out.
+ */
 @Component({
   selector: 'app-count-dialog',
   imports: [ModalDialog, Action, DateField],
@@ -22,9 +33,15 @@ export interface CountResult {
   styleUrl: './count-dialog.scss',
 })
 export class CountDialog {
-  /** The balance of the cash book that the count is compared with. */
-  readonly expected = input.required<number>();
-  readonly today = input.required<string>();
+  readonly heading = input('Kassensturz');
+  readonly subtitle = input('');
+  /** The sum that the count is compared with, e.g. the balance of the cash book; null for none. */
+  readonly expected = input<number | null>(null);
+  /** Said when the count matches the expected sum. */
+  readonly matchText = input('Stimmt mit dem Kassenbuch überein.');
+  readonly today = input('');
+  readonly withDate = input(true, { transform: booleanAttribute });
+  readonly withNote = input(true, { transform: booleanAttribute });
   /** The pieces of the last count, so a similar box does not have to be typed again. */
   readonly start = input<Record<string, number>>({});
   readonly saved = output<CountResult>();
@@ -41,7 +58,15 @@ export class CountDialog {
   protected readonly total = computed(() =>
     roundCents(DENOMINATIONS.reduce((sum, value) => sum + this.subtotal(value), 0)),
   );
-  protected readonly difference = computed(() => roundCents(this.total() - this.expected()));
+  protected readonly difference = computed(() => {
+    const expected = this.expected();
+    return expected === null ? null : roundCents(this.total() - expected);
+  });
+  protected readonly subtitleText = computed(() => {
+    const expected = this.expected();
+    if (this.subtitle()) return this.subtitle();
+    return expected === null ? '' : `Soll laut Kassenbuch (bestätigt): ${euro(expected)}`;
+  });
 
   protected pieceCount(value: number): number {
     const key = String(value);
