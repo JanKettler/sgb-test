@@ -10,7 +10,9 @@ import { Action } from '../../ui/action';
 import { ConfirmDialog } from '../../ui/confirm-dialog';
 import { SortButton, SortState } from '../../ui/sort';
 import { TablePager, pageOf } from '../../ui/table-pager';
+import { downloadXlsx } from '../../competition/competition-download';
 import { downloadText } from '../../training/training-download';
+import { paymentsBook } from '../fees.export';
 import { Payment } from '../fees.models';
 import { FeesStore } from '../fees.store';
 import { euro } from '../../core/money';
@@ -122,8 +124,11 @@ export class PaymentsTab {
     );
   }
 
-  exportCsv(): void {
-    downloadText('Zahlungen.csv', this.store.paymentsCsv(this.rows()));
+  exportExcel(): void {
+    downloadXlsx(
+      'Zahlungen.xlsx',
+      paymentsBook(this.store.paymentLines(this.rows()), this.store.today),
+    );
   }
 
   exportSepa(): void {

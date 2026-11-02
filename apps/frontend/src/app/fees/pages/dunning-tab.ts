@@ -8,7 +8,8 @@ import {
 } from '@angular/core';
 import { Action } from '../../ui/action';
 import { SortButton, SortState } from '../../ui/sort';
-import { downloadText } from '../../training/training-download';
+import { downloadXlsx } from '../../competition/competition-download';
+import { dunningBook } from '../fees.export';
 import { fullDate } from '../../training/training-dates';
 import { DunningRow, FeesStore } from '../fees.store';
 import { euro } from '../../core/money';
@@ -99,21 +100,15 @@ export class DunningTab {
     this.notice.emit(`Demo: ${sent} Mahnungen vorbereitet, nichts wurde versendet.`);
   }
 
-  exportCsv(): void {
-    const lines = [
-      ['Zahler', 'Person', 'Offen', 'Gebühr', 'Gesamt', 'Stufe'],
-      ...this.chosen().map((row) => [
-        row.payment.payerName,
-        row.payment.label,
-        euro(row.payment.amount),
-        euro(row.fee),
-        euro(row.total),
-        String(row.level),
-      ]),
-    ];
-    downloadText(
-      'Mahnungen.csv',
-      String.fromCharCode(0xfeff) + lines.map((line) => line.join(';')).join('\r\n'),
-    );
+  exportExcel(): void {
+    const lines = this.chosen().map((row) => ({
+      payer: row.payment.payerName,
+      person: row.payment.label,
+      open: row.payment.amount,
+      fee: row.fee,
+      total: row.total,
+      level: row.level,
+    }));
+    downloadXlsx('Mahnungen.xlsx', dunningBook(lines, this.store.today));
   }
 }

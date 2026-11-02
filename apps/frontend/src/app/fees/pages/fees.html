@@ -32,7 +32,7 @@
   <div class="fees-actions">
     @switch (tab()) {
       @case ('payments') {
-        <app-action kind="excel" withText (pressed)="payments()?.exportCsv()" />
+        <app-action kind="excel" withText (pressed)="payments()?.exportExcel()" />
         <app-action
           kind="download"
           label="SEPA-Lastschriftdatei"
@@ -47,10 +47,10 @@
         />
       }
       @case ('dunning') {
-        <app-action kind="excel" withText (pressed)="dunning()?.exportCsv()" />
+        <app-action kind="excel" withText (pressed)="dunning()?.exportExcel()" />
       }
       @case ('types') {
-        <app-action kind="excel" withText (pressed)="types()?.exportCsv()" />
+        <app-action kind="excel" withText (pressed)="types()?.exportExcel()" />
         <app-action kind="add" label="Neue Beitragsart" withText (pressed)="types()?.add()" />
       }
     }

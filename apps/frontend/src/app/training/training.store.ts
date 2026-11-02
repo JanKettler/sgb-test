@@ -1,5 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { createSampleData, DEMO_TRAINER_ID, markKey, PARENT_CHILD_IDS } from './sample-data';
+import { AttendanceTable } from './training.export';
 import {
   addDays,
   addMonths,
@@ -678,10 +679,15 @@ export class TrainingStore {
     return [...new Set(this.sessions().map((session) => monthKey(session.date)))].sort();
   }
 
-  // --- Excel / CSV export ---------------------------------------------------------------------
+  // --- Excel export ---------------------------------------------------------------------------
 
-  /** Semicolon separated text with a BOM: opens directly in German Excel. */
-  attendanceCsv(groupId: GroupId, content: ExportContent, from: string, to: string): string {
+  /** The attendance of one group: one row per swimmer, one column per session in the range. */
+  attendanceTable(
+    groupId: GroupId,
+    content: ExportContent,
+    from: string,
+    to: string,
+  ): AttendanceTable {
     const sessions = this.sessions().filter(
       (session) =>
         session.groupIds.includes(groupId) &&
@@ -694,9 +700,9 @@ export class TrainingStore {
       missing: 'fehlt',
       excused: 'abgemeldet',
     };
-    const lines = [['Name', ...sessions.map((s) => `${shortDay(s.date)} ${s.time}`)]];
-    for (const person of this.swimmers().filter((candidate) => candidate.groupId === groupId)) {
-      lines.push([
+    const rows = this.swimmers()
+      .filter((candidate) => candidate.groupId === groupId)
+      .map((person) => [
         person.name,
         ...sessions.map((session) => {
           if (content === 'blank') return '';
@@ -704,7 +710,6 @@ export class TrainingStore {
           return role ? words[this.stateOf(session, person.id, role)] : '';
         }),
       ]);
-    }
-    return '﻿' + lines.map((line) => line.join(';')).join('\r\n');
+    return { head: ['Name', ...sessions.map((s) => `${shortDay(s.date)} ${s.time}`)], rows };
   }
 }

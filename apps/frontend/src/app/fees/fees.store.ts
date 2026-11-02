@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { PeopleStore } from '../people/people.store';
 import { Member, Parent, fullName } from '../people/people.models';
 import { fullDate } from '../training/training-dates';
+import { PaymentLine } from './fees.export';
 import { FeeSettings, FeeType, Payment } from './fees.models';
 import {
   SAMPLE_FEE_TYPES,
@@ -9,9 +10,7 @@ import {
   createPaymentSample,
   describeGroup,
 } from './fees.sample';
-import { euro } from '../core/money';
 
-const BOM = String.fromCharCode(0xfeff);
 const MONTHS = [
   'Januar',
   'Februar',
@@ -254,30 +253,18 @@ export class FeesStore {
     };
   }
 
-  paymentsCsv(rows: Payment[]): string {
-    const lines = [
-      [
-        'Person',
-        'Zahler',
-        'Beitragsart',
-        'Betrag',
-        'Status',
-        'Zahlart',
-        'Mahnstufe',
-        'Verwendungszweck',
-      ],
-      ...rows.map((payment) => [
-        payment.label,
-        payment.payerName,
-        this.feeName(payment.feeTypeId),
-        euro(payment.amount),
-        payment.paid ? `bezahlt am ${fullDate(payment.paidOn)}` : 'offen',
-        payment.method,
-        String(payment.dunning),
-        this.purposeOf(payment),
-      ]),
-    ];
-    return BOM + lines.map((line) => line.join(';')).join('\r\n');
+  /** The payments as lines for the Excel export. */
+  paymentLines(rows: Payment[]): PaymentLine[] {
+    return rows.map((payment) => ({
+      label: payment.label,
+      payer: payment.payerName,
+      fee: this.feeName(payment.feeTypeId),
+      amount: payment.amount,
+      status: payment.paid ? `bezahlt am ${fullDate(payment.paidOn)}` : 'offen',
+      method: payment.method,
+      level: payment.dunning,
+      purpose: this.purposeOf(payment),
+    }));
   }
 
   /** Demo file with the structure of a SEPA direct debit; the bank data is invented. */

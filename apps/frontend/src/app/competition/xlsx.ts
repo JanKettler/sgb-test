@@ -184,6 +184,11 @@ export function headWidth(text: string): number {
   return Math.ceil(text.length * 1.2) + 3;
 }
 
+/** Column widths: the wanted ones, but never narrower than the heading needs on one line. */
+export function fitWidths(head: readonly string[], wanted: readonly number[]): number[] {
+  return head.map((text, index) => Math.max(headWidth(text), wanted[index] ?? 0));
+}
+
 function sheetXml(sheet: XlsxSheet, title: string, subtitle: string): string {
   const columns = sheet.head.length;
   const last = columnName(columns - 1);

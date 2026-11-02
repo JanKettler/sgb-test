@@ -1,4 +1,4 @@
-import { XlsxBook, XlsxFormat, XlsxSheet, XlsxValue, headWidth } from '../competition/xlsx';
+import { XlsxBook, XlsxFormat, XlsxSheet, XlsxValue, fitWidths } from '../competition/xlsx';
 import { fullDate } from '../training/training-dates';
 import {
   Counts,
@@ -20,11 +20,6 @@ import {
   tallyOf,
 } from './market.models';
 
-/** Width of each column: at least what the heading needs on one line, else the given width. */
-function widthsFor(head: string[], wanted: number[]): number[] {
-  return head.map((text, index) => Math.max(headWidth(text), wanted[index] ?? 0));
-}
-
 function sheet(
   name: string,
   head: string[],
@@ -36,7 +31,7 @@ function sheet(
     name,
     orientation: head.length > 6 ? 'landscape' : 'portrait',
     head,
-    widths: widthsFor(head, wanted),
+    widths: fitWidths(head, wanted),
     formats,
     rows,
   };
