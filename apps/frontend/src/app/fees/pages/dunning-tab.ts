@@ -10,8 +10,8 @@ import { Icon } from '../../ui/icon';
 import { SortButton, SortState } from '../../ui/sort';
 import { downloadText } from '../../training/training-download';
 import { fullDate } from '../../training/training-dates';
-import { euro } from '../fees.models';
 import { DunningRow, FeesStore } from '../fees.store';
+import { euro } from '../../core/money';
 
 @Component({
   selector: 'app-dunning-tab',

@@ -1,12 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { downloadXlsx } from '../../competition/competition-download';
-import { euro } from '../../competition/competition.models';
 import { fullDate } from '../../training/training-dates';
 import { Action } from '../../ui/action';
-import { roundCents } from '../cash.models';
 import { badgeSummaryBook } from '../youth.export';
 import { BADGE_STATE_LABEL } from '../youth.models';
 import { YouthStore } from '../youth.store';
+import { euro, roundCents } from '../../core/money';
 
 /** What the badges brought in during a year, checked against the bookings of the youth cash. */
 @Component({

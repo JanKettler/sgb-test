@@ -61,17 +61,3 @@ export const PLACEHOLDERS: readonly string[] = [
   '[MONAT]',
   '[ZAHLINTERVALL]',
 ];
-
-export function euro(value: number): string {
-  return `${value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
-}
-
-export function parseEuro(text: string): number {
-  const value = Number(
-    text
-      .replace(/\./g, '')
-      .replace(',', '.')
-      .replace(/[^0-9.-]/g, ''),
-  );
-  return Number.isFinite(value) ? value : 0;
-}

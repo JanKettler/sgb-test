@@ -11,8 +11,9 @@ import { SortButton, SortState } from '../../ui/sort';
 import { TablePager, pageOf } from '../../ui/table-pager';
 import { ModalDialog } from '../../ui/modal-dialog';
 import { downloadText } from '../../training/training-download';
-import { Payment, euro } from '../fees.models';
+import { Payment } from '../fees.models';
 import { FeesStore } from '../fees.store';
+import { euro } from '../../core/money';
 
 type StatusFilter = 'open' | 'paid' | 'all';
 

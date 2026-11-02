@@ -5,8 +5,9 @@ import { Action } from '../../../ui/action';
 import { ConfirmDialog } from '../../../ui/confirm-dialog';
 import { Icon } from '../../../ui/icon';
 import { Toasts } from '../../../ui/toast';
-import { Competition, dateOf, euro } from '../../competition.models';
+import { Competition, dateOf } from '../../competition.models';
 import { CompetitionStore } from '../../competition.store';
+import { euro } from '../../../core/money';
 
 @Component({
   selector: 'app-competition-list',

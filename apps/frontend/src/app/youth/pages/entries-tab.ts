@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { downloadXlsx } from '../../competition/competition-download';
-import { euro } from '../../competition/competition.models';
 import { fullDate, monthKey, monthLabel, addMonthKey } from '../../training/training-dates';
 import { Action } from '../../ui/action';
 import { ConfirmDialog } from '../../ui/confirm-dialog';
 import { FieldDef, FormDialog, FormValues, listOf, numberOf, textOf } from '../../ui/form-dialog';
 import { Toasts } from '../../ui/toast';
-import { CashEntry, EntryKind, emptyEntry, roundCents } from '../cash.models';
+import { CashEntry, EntryKind, emptyEntry } from '../cash.models';
 import { CashStore } from '../cash.store';
 import { cashBookBook } from '../youth.export';
+import { euro, roundCents } from '../../core/money';
 
 const KIND_OPTIONS = [
   { value: 'in', label: 'Einnahme' },

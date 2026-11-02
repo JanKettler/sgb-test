@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { downloadXlsx } from '../../competition/competition-download';
-import { euro } from '../../competition/competition.models';
 import { fullDate } from '../../training/training-dates';
 import { Action } from '../../ui/action';
 import { ConfirmDialog } from '../../ui/confirm-dialog';
@@ -17,6 +16,7 @@ import {
   ticked,
 } from '../youth.models';
 import { PersonBadges, YouthStore } from '../youth.store';
+import { euro } from '../../core/money';
 
 type StateFilter = '' | 'laufend' | 'bestanden';
 

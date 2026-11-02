@@ -16,7 +16,6 @@ import {
   Participation,
   PHASES,
   dateOf,
-  euro,
   eventLabel,
   eventTitle,
   yearFits,
@@ -35,6 +34,7 @@ import {
 import { createZip } from './zip';
 import { pastSeason, sampleMeet } from './competition-sample';
 import { ParsedResults, ParsedSchedule } from './wk-parse';
+import { euro } from '../core/money';
 
 /** The club as it appears in the entry file; editable in the settings later. */
 const CLUB: FileClub = {

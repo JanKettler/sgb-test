@@ -349,10 +349,6 @@ export function showTime(time: string): string {
     : `${seconds},${pad(hundredths)}`;
 }
 
-export function euro(amount: number): string {
-  return `${amount.toFixed(2).replace('.', ',')} €`;
-}
-
 export function emptyPlan(): Plan {
   return { done: {}, fee: '', participation: '', judges: {} };
 }

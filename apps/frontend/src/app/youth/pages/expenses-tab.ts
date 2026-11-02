@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { euro } from '../../competition/competition.models';
 import { fullDate } from '../../training/training-dates';
 import { Action } from '../../ui/action';
 import { ConfirmDialog } from '../../ui/confirm-dialog';
 import { FieldDef, FormDialog, FormValues, numberOf, textOf } from '../../ui/form-dialog';
 import { Toasts } from '../../ui/toast';
-import { EXPENSE_LABEL, Expense, ExpenseState, roundCents } from '../cash.models';
+import { EXPENSE_LABEL, Expense, ExpenseState } from '../cash.models';
 import { CashStore } from '../cash.store';
+import { euro, roundCents } from '../../core/money';
 
 const FIELDS: readonly FieldDef[] = [
   { key: 'amount', label: 'Betrag (€)', type: 'number', required: true },

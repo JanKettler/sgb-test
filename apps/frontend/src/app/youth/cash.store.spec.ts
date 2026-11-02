@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { addMonthKey, monthKey } from '../training/training-dates';
 import { TrainingStore } from '../training/training.store';
-import { emptyEntry, piecesText, roundCents } from './cash.models';
+import { emptyEntry, piecesText } from './cash.models';
 import { CashStore } from './cash.store';
+import { roundCents } from '../core/money';
 
 describe('CashStore', () => {
   function create() {

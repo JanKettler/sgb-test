@@ -11,9 +11,9 @@ import {
   Expense,
   ExpenseState,
   MonthClosing,
-  roundCents,
   signedAmount,
 } from './cash.models';
+import { roundCents } from '../core/money';
 
 /** Data for a new booking; the store adds the id, the status and who booked it. */
 export type NewEntry = Pick<

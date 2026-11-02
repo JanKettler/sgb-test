@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { euro } from '../../competition/competition.models';
 import {
   addMonthKey,
   fullDate,
@@ -13,6 +12,7 @@ import { Toasts } from '../../ui/toast';
 import { piecesText } from '../cash.models';
 import { CashStore } from '../cash.store';
 import { CountDialog, CountResult } from './count-dialog';
+import { euro } from '../../core/money';
 
 /** How many months the closing list goes back. */
 const MONTHS = 12;

@@ -2,13 +2,14 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { PeopleStore } from '../people/people.store';
 import { Member, Parent, fullName } from '../people/people.models';
 import { fullDate } from '../training/training-dates';
-import { FeeSettings, FeeType, Payment, euro } from './fees.models';
+import { FeeSettings, FeeType, Payment } from './fees.models';
 import {
   SAMPLE_FEE_TYPES,
   SAMPLE_SETTINGS,
   createPaymentSample,
   describeGroup,
 } from './fees.sample';
+import { euro } from '../core/money';
 
 const BOM = String.fromCharCode(0xfeff);
 const MONTHS = [

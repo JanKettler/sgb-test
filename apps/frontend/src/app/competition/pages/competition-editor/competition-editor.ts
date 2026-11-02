@@ -19,7 +19,6 @@ import {
   STYLES,
   TIMINGS,
   eventLabel,
-  euro,
   showTime,
 } from '../../competition.models';
 import { CompetitionStore, MailDraft } from '../../competition.store';
@@ -31,6 +30,7 @@ import { MeetResults } from '../meet-results/meet-results';
 import { MeetSchedule } from '../meet-schedule/meet-schedule';
 import { MailDialog } from '../mail-dialog/mail-dialog';
 import { RelayForm } from '../relay-form/relay-form';
+import { euro } from '../../../core/money';
 
 type Tab =
   | 'base'

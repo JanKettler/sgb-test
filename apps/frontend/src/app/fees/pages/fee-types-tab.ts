@@ -8,8 +8,9 @@ import {
 } from '@angular/core';
 import { Icon } from '../../ui/icon';
 import { downloadText } from '../../training/training-download';
-import { FeeType, euro, parseEuro } from '../fees.models';
+import { FeeType } from '../fees.models';
 import { FeesStore } from '../fees.store';
+import { euro, parseEuro } from '../../core/money';
 
 @Component({
   selector: 'app-fee-types-tab',

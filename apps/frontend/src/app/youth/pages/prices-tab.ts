@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { euro } from '../../competition/competition.models';
 import { isBadgeLow } from '../../equipment/equipment.models';
 import { EquipmentStore } from '../../equipment/equipment.store';
 import { Action } from '../../ui/action';
@@ -7,6 +6,7 @@ import { FieldDef, FormDialog, FormValues, listOf, numberOf, textOf } from '../.
 import { Toasts } from '../../ui/toast';
 import { BadgeKind } from '../youth.models';
 import { YouthStore } from '../youth.store';
+import { euro } from '../../core/money';
 
 const KIND_FIELDS: readonly FieldDef[] = [
   { key: 'price', label: 'Preis (€)', type: 'number' },

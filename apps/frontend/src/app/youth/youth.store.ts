@@ -3,8 +3,8 @@ import { EquipmentStore } from '../equipment/equipment.store';
 import { PeopleStore } from '../people/people.store';
 import { TrainingStore } from '../training/training.store';
 import { CashStore } from './cash.store';
-import { roundCents } from './cash.models';
 import { BadgeKind, BadgeRecord, DEFAULT_CATALOG, emptyRecord, yearOf } from './youth.models';
+import { roundCents } from '../core/money';
 
 /** All badges of one person. */
 export interface PersonBadges {

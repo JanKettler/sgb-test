@@ -7,8 +7,9 @@ import {
   signal,
 } from '@angular/core';
 import { Icon } from '../../ui/icon';
-import { FeeSettings, PLACEHOLDERS, euro, parseEuro } from '../fees.models';
+import { FeeSettings, PLACEHOLDERS } from '../fees.models';
 import { FeesStore } from '../fees.store';
+import { euro, parseEuro } from '../../core/money';
 
 type TextKey =
   'copyTo' | 'purposeTemplate' | 'accountHolder' | 'bank' | 'iban' | 'bic' | 'creditorId';
