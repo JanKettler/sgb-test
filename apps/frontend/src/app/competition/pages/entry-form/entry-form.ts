@@ -8,7 +8,7 @@ import {
   output,
 } from '@angular/core';
 import { PeopleStore } from '../../../people/people.store';
-import { Icon } from '../../../ui/icon';
+import { Action } from '../../../ui/action';
 import { Toasts } from '../../../ui/toast';
 import {
   CompEvent,
@@ -25,7 +25,7 @@ import { CompetitionStore } from '../../competition.store';
 /** The starts of one swimmer at one meet: tick the events, type the entry times, save. */
 @Component({
   selector: 'app-entry-form',
-  imports: [Icon],
+  imports: [Action],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './entry-form.html',
   styleUrl: './entry-form.scss',

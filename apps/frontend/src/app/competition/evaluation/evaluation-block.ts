@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { Action } from '../../ui/action';
 import { Icon } from '../../ui/icon';
 import { Block } from './evaluation.model';
 import { EvaluationStore } from './evaluation.store';
@@ -9,7 +10,7 @@ import { EvaluationStore } from './evaluation.store';
  */
 @Component({
   selector: 'app-evaluation-block',
-  imports: [Icon],
+  imports: [Action, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './evaluation-block.html',
   styleUrl: './evaluation-block.scss',

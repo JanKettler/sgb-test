@@ -562,37 +562,33 @@
             </select>
           </div>
         }
-        <div class="buttons has-addons">
-          <button
-            type="button"
-            class="button is-small"
-            title="Info an den Kassenwart"
-            (click)="mail.set('treasurer')"
+        <div class="buttons">
+          <app-action
+            kind="send"
+            label="Kassenwart"
+            withText
+            small
             [disabled]="!hasEntries()"
-          >
-            <app-icon name="coins" /> Kassenwart
-          </button>
-          <button
-            type="button"
-            class="button is-small"
-            title="Meldeliste drucken"
-            (click)="printEntryList()"
+            (pressed)="mail.set('treasurer')"
+          />
+          <app-action
+            kind="print"
+            withText
+            small
             [disabled]="!hasEntries()"
-          >
-            <app-icon name="print" /> Drucken
-          </button>
-          <button
-            type="button"
-            class="button is-small"
-            title="Meldedatei herunterladen"
-            (click)="exporting.set(true)"
+            (pressed)="printEntryList()"
+          />
+          <app-action
+            kind="download"
+            label="Meldedatei"
+            withText
+            small
             [disabled]="!hasEntries() || isNew"
-          >
-            <app-icon name="download" /> Meldedatei
-          </button>
+            (pressed)="exporting.set(true)"
+          />
         </div>
         @if (!isNew) {
-          <div class="buttons has-addons">
+          <div class="buttons">
             <button
               type="button"
               class="button is-small"
@@ -602,15 +598,13 @@
             >
               <app-icon name="check" /> {{ item.sent ? 'Gesendet' : 'Nicht gesendet' }}
             </button>
-            <button
-              type="button"
-              class="button is-small is-primary"
-              title="Meldung per E-Mail senden"
-              (click)="mail.set('entry')"
+            <app-action
+              kind="send"
+              withText
+              small
               [disabled]="!hasEntries()"
-            >
-              <app-icon name="send" /> Senden
-            </button>
+              (pressed)="mail.set('entry')"
+            />
           </div>
         }
       </div>

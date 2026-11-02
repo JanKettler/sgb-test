@@ -35,13 +35,9 @@
           <span class="list-name">{{ list.label }}</span>
           <span class="list-buttons">
             @if (list.excel) {
-              <button type="button" class="button is-small" (click)="excel(list.id)">
-                <app-icon name="file-excel" /> Excel
-              </button>
+              <app-action kind="excel" withText small (pressed)="excel(list.id)" />
             }
-            <button type="button" class="button is-small" (click)="print(list.id)">
-              <app-icon name="print" /> Drucken
-            </button>
+            <app-action kind="print" withText small (pressed)="print(list.id)" />
           </span>
         </li>
       }

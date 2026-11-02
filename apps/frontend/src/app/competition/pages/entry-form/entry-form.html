@@ -2,9 +2,7 @@
   <div class="notification is-link is-light">
     <p class="mb-2">Teilnahme an diesem Wettkampf abgesagt.</p>
     @if (editable()) {
-      <button type="button" class="button is-small" (click)="rejoin()">
-        <app-icon name="check" /> Doch teilnehmen
-      </button>
+      <app-action kind="register" label="Doch teilnehmen" withText small (pressed)="rejoin()" />
     }
   </div>
 } @else {
@@ -59,35 +57,9 @@
   <div class="foot">
     @if (editable()) {
       <div class="icon-row">
-        <button
-          type="button"
-          class="button is-warning"
-          title="Nicht teilnehmen"
-          aria-label="Nicht teilnehmen"
-          (click)="decline()"
-        >
-          <app-icon name="minus" />
-        </button>
-        <button
-          type="button"
-          class="button is-danger"
-          title="Abbrechen"
-          aria-label="Abbrechen"
-          [disabled]="!dirty()"
-          (click)="cancel()"
-        >
-          <app-icon name="x" />
-        </button>
-        <button
-          type="button"
-          class="button is-success"
-          title="Speichern"
-          aria-label="Speichern"
-          [disabled]="!dirty()"
-          (click)="save()"
-        >
-          <app-icon name="save" />
-        </button>
+        <app-action kind="minus" label="Nicht teilnehmen" (pressed)="decline()" />
+        <app-action kind="cancel" [disabled]="!dirty()" (pressed)="cancel()" />
+        <app-action kind="save" [disabled]="!dirty()" (pressed)="save()" />
       </div>
     } @else {
       <p class="has-text-grey mb-0">

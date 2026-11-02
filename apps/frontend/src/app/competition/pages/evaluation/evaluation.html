@@ -271,22 +271,20 @@
             </div>
             <div>
               <div class="nav">
-                <button
-                  type="button"
-                  class="button is-small"
+                <app-action
+                  kind="back"
+                  withText
+                  small
                   [disabled]="position() <= 0"
-                  (click)="step(-1)"
-                >
-                  <app-icon name="chevron-left" /> Zurück
-                </button>
-                <button
-                  type="button"
-                  class="button is-small"
+                  (pressed)="step(-1)"
+                />
+                <app-action
+                  kind="next"
+                  withText
+                  small
                   [disabled]="position() >= names().length - 1"
-                  (click)="step(1)"
-                >
-                  Weiter <app-icon name="chevron-right" />
-                </button>
+                  (pressed)="step(1)"
+                />
                 <span class="sub"
                   >Platz {{ place() }} von {{ bestList().length }} in der Gesamtwertung</span
                 >
