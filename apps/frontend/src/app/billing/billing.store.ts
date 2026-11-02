@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { sameOwner } from '../core/names';
 import { StartStore } from '../start/start.store';
 import { addDays } from '../training/training-dates';
 import { TrainingStore } from '../training/training.store';
@@ -15,7 +16,6 @@ import {
   parseTitle,
   periodTitle,
   rateFor,
-  sameOwner,
   sortLines,
   sumsOf,
 } from './billing.models';

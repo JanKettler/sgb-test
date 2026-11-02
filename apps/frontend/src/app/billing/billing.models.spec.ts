@@ -10,7 +10,6 @@ import {
   periodIndex,
   periodTitle,
   rateFor,
-  sameOwner,
   sortLines,
   sumsOf,
 } from './billing.models';
@@ -81,16 +80,6 @@ describe('billing models', () => {
     expect(parseTitle('Sep - Dez 2025')).toEqual({ year: 2025, period: 2 });
     expect(parseTitle('Herbst')).toBeNull();
     expect(parseTitle('Mai - Sep')).toBeNull();
-  });
-
-  it('lets an account with only a first name match the first name of a person', () => {
-    expect(sameOwner('Jonas Weber', 'Jonas')).toBe(true);
-    expect(sameOwner('Jonas Weber', 'jonas weber')).toBe(true);
-    expect(sameOwner('Jonas Weber', 'Jonas Meier')).toBe(false);
-    expect(sameOwner('Jonas', 'Jonas Weber')).toBe(false);
-    expect(sameOwner('Maria', 'Maria')).toBe(true);
-    expect(sameOwner('', 'Maria')).toBe(false);
-    expect(sameOwner('Maria', '')).toBe(false);
   });
 
   it('adds up hours, pay, kilometres and other costs', () => {

@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { euro } from '../../core/money';
+import { sameOwner } from '../../core/names';
 import { fullDate } from '../../training/training-dates';
 import { Action } from '../../ui/action';
 import { ConfirmDialog } from '../../ui/confirm-dialog';
@@ -23,7 +24,6 @@ import {
   emptyLine,
   hoursText,
   rateFor,
-  sameOwner,
   sumsOf,
 } from '../billing.models';
 import { BillingStore } from '../billing.store';

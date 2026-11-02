@@ -140,14 +140,6 @@ export function parseTitle(title: string): { year: number; period: number } | nu
   return year && period >= 0 ? { year: Number(year), period } : null;
 }
 
-/** Whether a name belongs to an account: an account with only a first name takes that first name. */
-export function sameOwner(owner: string, account: string): boolean {
-  const left = owner.trim().toLocaleLowerCase('de');
-  const right = account.trim().toLocaleLowerCase('de');
-  if (!left || !right) return false;
-  return left === right || (!right.includes(' ') && left.split(' ')[0] === right);
-}
-
 export function sumsOf(statement: Statement): StatementSums {
   const hours = roundCents(statement.lines.reduce((sum, line) => sum + line.minutes / 60, 0));
   const pay = roundCents(hours * statement.rate);
