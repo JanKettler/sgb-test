@@ -15,7 +15,14 @@
 
 @if (invalid()) {
   <p class="notification is-danger is-flex is-justify-content-space-between is-align-items-center">
-    Bitte Datum, Uhrzeit und mindestens eine Gruppe angeben.
+    Bitte Datum, Uhrzeit, Meldeschluss und mindestens eine Gruppe angeben.
+  </p>
+}
+
+@if (copySource && isNew() && !session.date) {
+  <p class="notification is-link">
+    Das ist eine Kopie. Bitte den Trainingstag wählen; der Meldeschluss rückt dann so weit vor den
+    Tag wie im Original.
   </p>
 }
 
@@ -36,7 +43,7 @@
           <app-date-field
             inputId="edit-date"
             [value]="session.date"
-            (valueChange)="patch({ date: $event })"
+            (valueChange)="setDate($event)"
           />
         </div>
         <div>
@@ -172,7 +179,7 @@
           <app-date-field
             inputId="edit-deadline-date"
             [value]="session.deadlineDate"
-            (valueChange)="patch({ deadlineDate: $event })"
+            (valueChange)="setDeadlineDate($event)"
           />
         </div>
         <div>

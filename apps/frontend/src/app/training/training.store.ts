@@ -447,26 +447,26 @@ export class TrainingStore {
   }
 
   /**
-   * A copy for the next week that does not have this session yet, not saved yet. People who
-   * were added for the one session only stay out of the copy.
+   * A copy without a training day, not saved yet: the day is chosen afterwards, nothing is
+   * guessed. People who were added for the one session only stay out of the copy.
    */
   copyOf(session: TrainingSession): TrainingSession {
-    const offset = (Date.parse(session.deadlineDate) - Date.parse(session.date)) / DAY_MS;
-    let date = addDays(session.date, 7);
-    for (let week = 0; week < MAX_SERIES_LENGTH; week++) {
-      if (!this.hasSession(date, session.time, session.groupIds)) break;
-      date = addDays(date, 7);
-    }
     const regular = new Set(this.trainersForGroups(session.groupIds).map((trainer) => trainer.id));
     return {
       ...session,
       id: '',
-      date,
-      deadlineDate: addDays(date, offset),
+      date: '',
+      deadlineDate: '',
       groupIds: [...session.groupIds],
       trainerIds: session.trainerIds.filter((id) => regular.has(id)),
       extraSwimmerIds: [],
     };
+  }
+
+  /** The deadline of a copy on the chosen day: as far before that day as in the original. */
+  copyDeadline(source: TrainingSession, date: string): string {
+    const offset = (Date.parse(source.deadlineDate) - Date.parse(source.date)) / DAY_MS;
+    return date && Number.isFinite(offset) ? addDays(date, offset) : '';
   }
 
   deleteSession(id: string): void {

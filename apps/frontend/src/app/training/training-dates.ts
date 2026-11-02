@@ -87,6 +87,12 @@ export function shortDay(iso: string): string {
   return `${weekdayShort(iso)} ${dayMonth(iso)}`;
 }
 
+/** "Nov" for the date block of a card. */
+export function monthShort(iso: string): string {
+  const month = Number(iso.split('-')[1]);
+  return MONTHS[month - 1].slice(0, 3);
+}
+
 export function monthKey(iso: string): string {
   return iso.slice(0, 7);
 }

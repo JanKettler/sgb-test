@@ -1,0 +1,4 @@
+/* A long address wraps, so that the table fits and the buttons stay in view. */
+.email {
+  overflow-wrap: anywhere;
+}

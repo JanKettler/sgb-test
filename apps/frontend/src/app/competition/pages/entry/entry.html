@@ -1,79 +1,122 @@
-<header class="page-head mb-4">
-  <h2 class="title is-4 mb-0">Wettkampf-Anmeldung</h2>
-</header>
-
-<section class="box">
+<header class="page-head head">
+  <div>
+    <h2 class="title is-4 mb-1">Wettkampf-Anmeldung</h2>
+    @if (summary()) {
+      <p class="subtitle is-6 mb-0">{{ summary() }}</p>
+    }
+  </div>
   @if (person(); as current) {
     @if (store.actors().length > 1) {
-      <div class="person-bar">
-        <div class="select">
-          <select aria-label="Person wählen" (change)="select($event)">
+      <label class="person-pick">
+        <span>Anmelden für</span>
+        <span class="select">
+          <select (change)="select($event)">
             @for (actor of store.actors(); track actor.id) {
               <option [value]="actor.id" [selected]="current.id === actor.id">
                 {{ nameOf(actor.id) }}
               </option>
             }
           </select>
-        </div>
-      </div>
+        </span>
+      </label>
     }
+  }
+</header>
 
-    @for (row of rows(); track row.competition.id) {
-      <article class="meet" [class.is-open]="openId() === row.competition.id">
-        <div class="meet-head">
-          <div>
-            <strong>{{ row.competition.title }}</strong>
-            <small class="is-block has-text-grey">
-              {{ row.weekday }}, {{ fullDate(row.date) }} · {{ row.competition.place }}
-            </small>
-            @if (row.status !== 'closed') {
-              <span class="deadline" [class]="'deadline is-' + row.tone">
-                <app-icon name="hourglass" />
-                Meldeschluss {{ row.deadlineWeekday }},
-                {{ fullDate(row.competition.internalDeadline) }} · {{ row.left }}
-              </span>
+@if (person(); as current) {
+  @for (row of rows(); track row.competition.id) {
+    <article
+      class="box meet"
+      [class.is-open]="openId() === row.competition.id"
+      [attr.data-status]="row.status"
+    >
+      <div class="meet-head">
+        <div class="date" aria-hidden="true">
+          <strong>{{ row.day }}</strong>
+          <span>{{ row.month }}</span>
+        </div>
+        <div class="info">
+          <h3 class="name">{{ row.competition.title }}</h3>
+          <p class="where">
+            {{ row.weekday }}, {{ fullDate(row.date) }} · {{ row.competition.place }}
+          </p>
+          @if (row.status !== 'closed') {
+            <span [class]="'deadline is-' + row.tone">
+              <app-icon name="hourglass" />
+              Meldeschluss {{ row.deadlineWeekday }},
+              {{ fullDate(row.competition.internalDeadline) }} · {{ row.left }}
+            </span>
+          }
+        </div>
+        <div class="side">
+          @switch (row.status) {
+            @case ('registered') {
+              <span class="pill is-ok">{{ startsText(row.starts.length) }} gemeldet</span>
             }
-          </div>
-          <div class="meet-actions">
-            @switch (row.status) {
-              @case ('registered') {
-                <span class="pill is-ok">{{ row.starts }} Starts gemeldet</span>
-              }
-              @case ('declined') {
-                <span class="pill is-warn">Abgesagt</span>
-              }
-              @case ('closed') {
-                <span class="pill is-bad">Anmeldung beendet</span>
-              }
-              @default {
-                <span class="pill is-bad">Keine Rückmeldung</span>
-              }
+            @case ('declined') {
+              <span class="pill is-warn">Abgesagt</span>
             }
+            @case ('closed') {
+              <span class="pill">Anmeldung beendet</span>
+            }
+            @default {
+              <span class="pill is-bad">Noch keine Rückmeldung</span>
+            }
+          }
+          @if (row.editable) {
             @if (openId() === row.competition.id) {
               <app-action
                 kind="collapse"
                 label="Zuklappen"
+                withText
                 small
                 (pressed)="toggle(row.competition.id)"
               />
+            } @else if (row.status === 'open') {
+              <app-action kind="register" withText small (pressed)="toggle(row.competition.id)" />
             } @else {
               <app-action
                 kind="edit"
-                label="Anmelden oder ändern"
+                label="Ändern"
+                withText
                 small
                 (pressed)="toggle(row.competition.id)"
               />
             }
-          </div>
+          }
         </div>
-        @if (openId() === row.competition.id) {
-          <app-entry-form [competition]="row.competition" [personId]="current.id" />
-        }
-      </article>
-    } @empty {
-      <p class="has-text-grey">Zurzeit ist keine Wettkampf-Anmeldung freigegeben.</p>
-    }
-  } @else {
-    <p class="has-text-grey">Für diese Rolle gibt es keine Person zum Anmelden.</p>
+      </div>
+
+      @if (row.starts.length > 0 && openId() !== row.competition.id) {
+        <ul class="starts" aria-label="Gemeldete Starts">
+          @for (start of row.starts; track start.no) {
+            <li>
+              <strong>Wk {{ start.no }}</strong>
+              {{ start.label }}
+              <span class="time">{{ start.time }}</span>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (!row.editable && row.status !== 'closed') {
+        <p class="locked">
+          Der interne Meldeschluss ist vorbei. Änderungen bitte beim Trainer melden.
+        </p>
+      }
+
+      @if (openId() === row.competition.id) {
+        <app-entry-form
+          class="form"
+          [competition]="row.competition"
+          [personId]="current.id"
+          (saved)="openId.set('')"
+        />
+      }
+    </article>
+  } @empty {
+    <p class="has-text-grey">Zurzeit ist keine Wettkampf-Anmeldung freigegeben.</p>
   }
-</section>
+} @else {
+  <p class="has-text-grey">Für diese Rolle gibt es keine Person zum Anmelden.</p>
+}

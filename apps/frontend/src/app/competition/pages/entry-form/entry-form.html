@@ -6,65 +6,54 @@
     }
   </div>
 } @else {
-  <div class="table-container">
-    <table class="table is-fullwidth is-hoverable is-narrow">
-      <thead>
-        <tr>
-          <th scope="col"><span class="is-sr-only">Dabei</span></th>
-          <th scope="col">Wk</th>
-          <th scope="col">Strecke</th>
-          <th scope="col">M/F</th>
-          <th scope="col">Jahrgang</th>
-          <th scope="col">Meldezeit</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (row of rows(); track row.event.no) {
-          <tr [class.is-picked]="row.picked">
-            <td class="is-centered">
-              <input
-                type="checkbox"
-                [checked]="row.picked"
-                [disabled]="!editable()"
-                [attr.aria-label]="'Wk ' + row.event.no + ' ' + eventLabel(row.event)"
-                (change)="toggle(row.event)"
-              />
-            </td>
-            <td class="is-centered">{{ row.event.no }}</td>
-            <td>{{ eventLabel(row.event) }}</td>
-            <td class="is-centered">{{ sexLabel(row.event.sex) }}</td>
-            <td class="is-centered">{{ row.event.birthYears }}</td>
-            <td class="is-centered">
-              @if (row.picked) {
-                <input
-                  class="input is-small time"
-                  [class.is-danger]="!row.valid"
-                  inputmode="numeric"
-                  autocomplete="off"
-                  [attr.aria-label]="'Meldezeit Wk ' + row.event.no"
-                  [value]="row.time"
-                  [disabled]="!editable()"
-                  (input)="typeTime(row.event, $event)"
-                  (focus)="selectAll($event)"
-                />
-              }
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+  <div class="form-head">
+    <strong>Starts wählen</strong>
+    <span class="count" [class.is-some]="count() > 0">{{ countText() }}</span>
   </div>
-  <div class="foot">
-    @if (editable()) {
-      <div class="icon-row">
-        <app-action kind="minus" label="Nicht teilnehmen" (pressed)="decline()" />
-        <app-action kind="cancel" [disabled]="!dirty()" (pressed)="cancel()" />
-        <app-action kind="save" [disabled]="!dirty()" (pressed)="save()" />
-      </div>
-    } @else {
-      <p class="has-text-grey mb-0">
-        Der interne Meldeschluss ist vorbei. Bitte beim Trainer melden.
-      </p>
+  <div class="slots">
+    @for (row of rows(); track row.event.no) {
+      <label class="slot" [class.is-picked]="row.picked" [class.is-locked]="!editable()">
+        <input
+          type="checkbox"
+          [checked]="row.picked"
+          [disabled]="!editable()"
+          [attr.aria-label]="'Wk ' + row.event.no + ' ' + eventLabel(row.event)"
+          (change)="toggle(row.event)"
+        />
+        <span class="no">Wk {{ row.event.no }}</span>
+        <span class="name">
+          {{ eventLabel(row.event) }}
+          @if (row.note) {
+            <small>{{ row.note }}</small>
+          }
+        </span>
+        @if (row.picked) {
+          <input
+            class="input is-small time"
+            [class.is-danger]="!row.valid"
+            inputmode="numeric"
+            autocomplete="off"
+            [attr.aria-label]="'Meldezeit Wk ' + row.event.no"
+            [value]="row.time"
+            [disabled]="!editable()"
+            (input)="typeTime(row.event, $event)"
+            (focus)="selectAll($event)"
+          />
+        }
+      </label>
+    } @empty {
+      <p class="has-text-grey mb-0">Für diese Person gibt es hier keine passende Strecke.</p>
     }
   </div>
+  @if (editable()) {
+    <p class="hint">Meldezeit nur mit Ziffern tippen: 3045 ergibt 00:30,45.</p>
+    <div class="foot">
+      <app-action kind="decline" withText (pressed)="decline()" />
+      <span class="spacer"></span>
+      <app-action kind="cancel" withText [disabled]="!dirty()" (pressed)="cancel()" />
+      <app-action kind="save" withText [disabled]="!dirty()" (pressed)="save()" />
+    </div>
+  } @else {
+    <p class="hint">Der interne Meldeschluss ist vorbei. Bitte beim Trainer melden.</p>
+  }
 }

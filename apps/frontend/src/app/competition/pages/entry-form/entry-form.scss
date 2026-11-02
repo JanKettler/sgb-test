@@ -1,29 +1,116 @@
-.is-centered {
-  text-align: center;
+.form-head {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
 }
 
-.is-picked {
+.count {
+  color: var(--sgb-soft);
+  font-size: 0.85rem;
+
+  &.is-some {
+    color: var(--ok-fg);
+    font-weight: 700;
+  }
+}
+
+/* The events as tiles: two or three side by side instead of one wide table. */
+.slots {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+}
+
+.slot {
+  align-items: center;
+  background: var(--sgb-card);
+  border: 1px solid var(--sgb-line);
+  border-radius: 10px;
+  color: var(--sgb-ink);
+  cursor: pointer;
+  display: flex;
+  gap: 0.65rem;
+  min-height: 3.3rem;
+  padding: 0.35rem 0.75rem;
+
+  &:hover {
+    border-color: var(--sgb-strong);
+  }
+
+  &.is-picked {
+    background: var(--sgb-hover);
+    border-color: var(--sgb-strong);
+  }
+
+  &.is-locked {
+    cursor: default;
+    opacity: 0.75;
+  }
+
+  input[type='checkbox'] {
+    accent-color: var(--sgb-strong);
+    flex: none;
+    height: 1.3rem;
+    width: 1.3rem;
+  }
+}
+
+.no {
   background: var(--sgb-hover);
+  border-radius: 6px;
+  color: var(--sgb-soft);
+  flex: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+
+  .is-picked & {
+    background: var(--sgb-strong);
+    color: var(--sgb-on-strong);
+  }
 }
 
-/* Every row has the same height, with or without the time field. */
-tbody td {
-  height: 2.9rem;
-  padding-block: 0;
-  vertical-align: middle;
+.name {
+  flex: 1;
+  font-weight: 600;
+  line-height: 1.2;
+  min-width: 0;
+
+  small {
+    color: var(--sgb-soft);
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 400;
+  }
 }
 
 .time {
+  flex: none;
   font-variant-numeric: tabular-nums;
   height: 2rem;
-  max-width: 7rem;
   text-align: center;
+  width: 6.3rem;
+}
+
+.hint {
+  color: var(--sgb-soft);
+  font-size: 0.8rem;
+  margin: 0.6rem 0 0;
 }
 
 .foot {
   align-items: center;
+  border-top: 1px solid var(--sgb-line);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+}
+
+.spacer {
+  flex: 1;
 }

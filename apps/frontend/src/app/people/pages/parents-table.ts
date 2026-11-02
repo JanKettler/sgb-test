@@ -14,6 +14,7 @@ import { PeopleStore } from '../people.store';
   imports: [RouterLink, Action, ConfirmDialog, SortButton, TablePager],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './parents-table.html',
+  styleUrl: './parents-table.scss',
 })
 export class ParentsTable {
   private readonly store = inject(PeopleStore);

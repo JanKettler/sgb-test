@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { TrainingSession } from './training.models';
 import { TrainingStore } from './training.store';
 import { addDays, weekdayIndex } from './training-dates';
 
@@ -6,6 +7,15 @@ describe('TrainingStore', () => {
   let store: TrainingStore;
 
   const upcoming = () => store.sessions().find((item) => item.date >= store.today)!;
+
+  /** The first week after the session in which the same session does not exist yet. */
+  const nextFree = (source: TrainingSession) => {
+    let date = addDays(source.date, 7);
+    while (store.hasSession(date, source.time, source.groupIds)) date = addDays(date, 7);
+    return date;
+  };
+
+  const days = (from: string, to: string) => (Date.parse(to) - Date.parse(from)) / 86_400_000;
 
   beforeEach(() => {
     store = TestBed.inject(TrainingStore);
@@ -78,18 +88,25 @@ describe('TrainingStore', () => {
     expect(store.sessions().length).toBe(before + 1);
   });
 
-  it('proposes the next week without the session for a copy and keeps the deadline distance', () => {
+  it('leaves the training day of a copy empty and keeps the rest of the session', () => {
     const source = upcoming();
     const copy = store.copyOf(source);
     expect(copy.id).toBe('');
-    expect(weekdayIndex(copy.date)).toBe(weekdayIndex(source.date));
-    expect(store.hasSession(copy.date, copy.time, copy.groupIds)).toBe(false);
-    // Every week in between already has the session, so the copy skips them.
-    for (let date = addDays(source.date, 7); date < copy.date; date = addDays(date, 7)) {
-      expect(store.hasSession(date, source.time, source.groupIds)).toBe(true);
-    }
-    const days = (from: string, to: string) => (Date.parse(to) - Date.parse(from)) / 86_400_000;
-    expect(days(copy.date, copy.deadlineDate)).toBe(days(source.date, source.deadlineDate));
+    expect(copy.date).toBe('');
+    expect(copy.deadlineDate).toBe('');
+    expect(copy.time).toBe(source.time);
+    expect(copy.groupIds).toEqual(source.groupIds);
+    expect(copy.venueId).toBe(source.venueId);
+    expect(copy.maxSwimmers).toBe(source.maxSwimmers);
+    expect(copy.deadlineTime).toBe(source.deadlineTime);
+  });
+
+  it('puts the deadline of a copy as far before the chosen day as in the original', () => {
+    const source = upcoming();
+    const date = addDays(source.date, 14);
+    const deadline = store.copyDeadline(source, date);
+    expect(days(date, deadline)).toBe(days(source.date, source.deadlineDate));
+    expect(store.copyDeadline(source, '')).toBe('');
   });
 
   it('leaves people who were added for one session out of the copy', () => {
@@ -106,7 +123,9 @@ describe('TrainingStore', () => {
   });
 
   it('does not create a session twice', () => {
-    const copy = store.copyOf(upcoming());
+    const source = upcoming();
+    const date = nextFree(source);
+    const copy = { ...store.copyOf(source), date, deadlineDate: store.copyDeadline(source, date) };
     const first = store.addSessions(copy, null);
     expect(first.ids.length).toBe(1);
     expect(first.existing).toBe(0);
@@ -115,7 +134,7 @@ describe('TrainingStore', () => {
 
   it('creates only the missing dates of a series', () => {
     const source = upcoming();
-    const free = store.copyOf(source).date;
+    const free = nextFree(source);
     const result = store.addSessions(
       { ...source, id: '' },
       { rhythm: 'weekly', until: free, weekdays: [weekdayIndex(source.date)] },

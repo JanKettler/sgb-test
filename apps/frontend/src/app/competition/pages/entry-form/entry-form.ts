@@ -40,7 +40,6 @@ export class EntryForm {
   readonly saved = output();
 
   protected readonly eventLabel = eventLabel;
-  protected readonly sexLabel = sexLabel;
 
   /** The picks being edited: event number to entry time. Starts from what is saved. */
   protected readonly picks = linkedSignal<Map<number, string>>(() => {
@@ -70,6 +69,19 @@ export class EntryForm {
     return sexOk && yearFits(event.birthYears, Number(member.birthDate.slice(0, 4)));
   }
 
+  /** What sets an event apart for this swimmer: a restricted year or another sex. */
+  private noteOf(event: CompEvent): string {
+    const member = this.member();
+    const parts: string[] = [];
+    if (event.sex === 'X') parts.push(sexLabel(event.sex));
+    else if (member && member.sex !== 'X' && event.sex !== member.sex) {
+      parts.push(sexLabel(event.sex));
+    }
+    const years = event.birthYears.trim();
+    if (years && years.toLowerCase() !== 'offen') parts.push(`Jg. ${years}`);
+    return parts.join(' · ');
+  }
+
   /** Only the events that fit the swimmer, plus the ones already picked. */
   protected readonly rows = computed(() => {
     const competition = this.competition();
@@ -81,11 +93,20 @@ export class EntryForm {
         const time = picks.get(event.no) ?? '';
         return {
           event,
+          note: this.noteOf(event),
           picked: picks.has(event.no),
           time: time || NO_TIME,
           valid: isValidTime(time),
         };
       });
+  });
+
+  protected readonly count = computed(() => this.picks().size);
+
+  protected readonly countText = computed(() => {
+    const count = this.count();
+    if (count === 0) return 'noch kein Start gewählt';
+    return count === 1 ? '1 Start gewählt' : `${count} Starts gewählt`;
   });
 
   protected readonly dirty = computed(() => {

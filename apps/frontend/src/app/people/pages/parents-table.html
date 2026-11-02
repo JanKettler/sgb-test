@@ -18,7 +18,7 @@
             <strong>{{ row.parent.name }}</strong>
           </td>
           <td>{{ row.parent.relation }}</td>
-          <td>{{ row.parent.email }}</td>
+          <td class="email">{{ row.parent.email }}</td>
           <td>
             @for (child of row.children; track child.id) {
               <a class="mr-3" [routerLink]="['/personen', child.id]">{{ child.name }}</a>
