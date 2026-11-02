@@ -36,7 +36,8 @@ export type ActionKind =
   | 'minus'
   | 'undo'
   | 'cart'
-  | 'restore';
+  | 'restore'
+  | 'send';
 
 export interface ActionLook {
   icon: IconName;
@@ -75,6 +76,7 @@ export const ACTIONS: Readonly<Record<ActionKind, ActionLook>> = {
   undo: { icon: 'undo', label: 'Rückgängig', tone: '' },
   cart: { icon: 'cart', label: 'Zur Einkaufsliste', tone: '' },
   restore: { icon: 'restore', label: 'Wiederherstellen', tone: 'is-success' },
+  send: { icon: 'mail', label: 'Senden', tone: 'is-primary' },
 };
 
 /**

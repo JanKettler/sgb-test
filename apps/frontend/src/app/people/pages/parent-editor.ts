@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
+import { Action } from '../../ui/action';
 import { DateField } from '../../ui/date-field';
-import { Icon } from '../../ui/icon';
 import { Toasts } from '../../ui/toast';
 import { Member, PayAccount, Parent, Relation, birthYear, fullName } from '../people.models';
 import { FeesStore } from '../../fees/fees.store';
@@ -23,7 +23,7 @@ const RELATIONS: readonly Relation[] = [
 /** Edit page for one parent or guardian, including the children they are linked to. */
 @Component({
   selector: 'app-parent-editor',
-  imports: [RouterLink, Icon, PayAccountForm, DateField],
+  imports: [RouterLink, Action, PayAccountForm, DateField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './parent-editor.html',
 })

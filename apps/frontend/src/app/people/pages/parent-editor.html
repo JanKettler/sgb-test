@@ -6,24 +6,8 @@
     <p class="subtitle is-6 mb-0">Eltern bzw. Erziehungsberechtigte</p>
   </div>
   <div class="icon-row">
-    <button
-      type="button"
-      class="button is-danger"
-      aria-label="Abbrechen"
-      title="Abbrechen"
-      (click)="cancel()"
-    >
-      <app-icon name="x" />
-    </button>
-    <button
-      type="button"
-      class="button is-success"
-      aria-label="Speichern"
-      title="Speichern"
-      (click)="save()"
-    >
-      <app-icon name="save" />
-    </button>
+    <app-action kind="cancel" (pressed)="cancel()" />
+    <app-action kind="save" (pressed)="save()" />
   </div>
 </header>
 
@@ -177,9 +161,7 @@
       {{ draft().access === 'active' ? 'Zugang aktiv' : 'Einladung offen' }}
     </span>
     @if (draft().access === 'invited') {
-      <button type="button" class="button is-small" (click)="invite()">
-        <app-icon name="mail" /> Einladung erneut senden
-      </button>
+      <app-action kind="send" label="Einladung erneut senden" withText small (pressed)="invite()" />
     }
   </p>
   <div>
@@ -215,15 +197,12 @@
           </td>
           <td>Nr. {{ child.no }}</td>
           <td class="has-text-right is-nowrap">
-            <button
-              type="button"
-              class="button is-small is-danger"
-              [attr.aria-label]="child.name + ' entfernen'"
-              title="Verknüpfung entfernen"
-              (click)="removeChild(child.id)"
-            >
-              <app-icon name="x" />
-            </button>
+            <app-action
+              kind="minus"
+              small
+              [label]="child.name + ' entfernen'"
+              (pressed)="removeChild(child.id)"
+            />
           </td>
         </tr>
       } @empty {
@@ -257,9 +236,7 @@
         (valueChange)="kidBirth.set($event)"
       />
     </div>
-    <button type="button" class="button is-link" (click)="createChild()">
-      <app-icon name="plus" /> Kind anlegen
-    </button>
+    <app-action kind="add" label="Kind anlegen" withText (pressed)="createChild()" />
   </div>
 
   <label class="label" for="e-child">Vorhandenes Kind hinzufügen</label>
@@ -271,11 +248,17 @@
     [value]="search()"
     (input)="search.set(value($event))"
   />
-  @for (item of candidates(); track item.id) {
-    <button type="button" class="button is-small mt-2 mr-2" (click)="addChild(item.id)">
-      <app-icon name="plus" /> {{ item.name }} (Jg. {{ item.year }})
-    </button>
-  }
+  <div class="buttons mt-2">
+    @for (item of candidates(); track item.id) {
+      <app-action
+        kind="add"
+        small
+        withText
+        [label]="item.name + ' (Jg. ' + item.year + ')'"
+        (pressed)="addChild(item.id)"
+      />
+    }
+  </div>
 </section>
 
 @if (draft().memberNo) {

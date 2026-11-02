@@ -1,29 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Icon } from '../../ui/icon';
+import { Action } from '../../ui/action';
+import { ConfirmDialog } from '../../ui/confirm-dialog';
 import { SortButton, SortState } from '../../ui/sort';
 import { TablePager, pageOf } from '../../ui/table-pager';
 import { Toasts } from '../../ui/toast';
-import { ModalDialog } from '../../ui/modal-dialog';
 import { Parent, fullName } from '../people.models';
 import { PeopleStore } from '../people.store';
 
 /** Parents and guardians with the children they register. */
 @Component({
   selector: 'app-parents-table',
-  imports: [RouterLink, Icon, ModalDialog, SortButton, TablePager],
-  styles: `
-    .icon-row {
-      gap: 0.5rem;
-
-      .button {
-        font-size: 0.85rem;
-        height: 2.2rem;
-        min-width: 2.2rem;
-        padding: 0;
-      }
-    }
-  `,
+  imports: [RouterLink, Action, ConfirmDialog, SortButton, TablePager],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './parents-table.html',
 })

@@ -74,14 +74,13 @@
     </div>
   </div>
   <div class="send">
-    <button
-      type="button"
-      class="button is-primary"
+    <app-action
+      kind="send"
+      [label]="'Erinnerung senden (' + recipients().length + ')'"
+      withText
       [disabled]="recipients().length === 0"
-      (click)="mailing.set(true)"
-    >
-      <app-icon name="mail" /> Erinnerung senden ({{ recipients().length }})
-    </button>
+      (pressed)="mailing.set(true)"
+    />
   </div>
 </div>
 

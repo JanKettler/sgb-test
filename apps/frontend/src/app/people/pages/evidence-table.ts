@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Toasts } from '../../ui/toast';
 import { RouterLink } from '@angular/router';
+import { Action } from '../../ui/action';
 import { DateField } from '../../ui/date-field';
 import { Icon } from '../../ui/icon';
 import { SortButton, SortState } from '../../ui/sort';
@@ -23,7 +24,7 @@ type Period = 'all' | 'overdue' | '30' | 'range';
 
 @Component({
   selector: 'app-evidence-table',
-  imports: [RouterLink, Icon, MailDialog, DateField, SortButton, TablePager],
+  imports: [RouterLink, Action, Icon, MailDialog, DateField, SortButton, TablePager],
   styleUrl: './evidence-table.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './evidence-table.html',
